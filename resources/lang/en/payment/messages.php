@@ -1,0 +1,24 @@
+<?php
+ 
+ return [
+    'payment_method_inactive_message' => 'The payment method is not available right now.',
+    'payment_method_not_found' => 'Payment method not found.',
+    'payment_method_min_amount' => 'The minimum allowed amount for this payment method is :amount.',
+    'payment_method_max_amount' => 'The maximum allowed amount for this payment method is :amount.',
+    'payment_method_update_time_exceeded' => 'Allowed time exceeded to allow update.',
+    'payment_process_success' => 'We have successfully accepted your payment of :amount. Payment reference: :payment_reference. You will receive a mail notification once your order has been processed.',
+    'invalid_payment_channel' => 'Invalid payment channel.',
+    'valid_payment_channel' => 'Valid payment channel.',
+    'payment_process_failed' => 'It seems that there was an issue processing your payment. Please double-check your payment details and try again. :cause',
+    'payment_process_cancelled' => 'Your payment processing was cancelled.',
+    'payment_process_timeout' => 'Your payment processing has timeout.',
+    'payment_process_expired' => 'Your payment processing has expired.',
+    'paid' => 'Paid',
+    'unpaid' => 'Unpaid',
+    'receipt_generation_disabled' => 'Receipt generation is disabled.',
+    'invalid_currency' => 'Currency not supported.',
+    'manual_payment_update_not_allowed' => 'Update not allowed. Payment status must be unpaid to update.',
+    'payment_confirmed' => 'Payment has been updated with status :status',
+    'previous_payment_process_success' => 'Your last payment of :amount is still being processed. Payment method: :payment_method. Payment reference: :payment_reference. You will receive a mail notification once your order has been completed.',
+    'payment_already_processed' => 'Payment has already been processed.'
+];

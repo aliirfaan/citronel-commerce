@@ -1,0 +1,29 @@
+{
+    "name": "aliirfaan/citronel-commerce",
+    "description": "This package provides classes to create simple e-commerce flow using products, order, payments and fulfillments.",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "aliirfaan",
+            "email": "aliirfaan.freelance@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "aliirfaan\\CitronelCommerce\\": "src/"
+        }
+    },
+    "require": {
+        "php": ">=8.0.0",
+        "aliirfaan/citronel-core": "^1.0",
+        "aliirfaan/citronel-error-catalogue": "^1.0"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "aliirfaan\\CitronelCommerce\\CitronelCommerceProvider"
+            ]
+        }
+    }
+}

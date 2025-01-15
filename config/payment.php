@@ -1,7 +1,9 @@
 <?php
 
 return [
-    'transaction_number_prefix' => env('TRANSACTION_NUMBER_PREFIX', 'esrp'),
+    'payment_method_default' => env('PAYMENT_METHOD_DEFAULT', 'credit_card'),
+    'transaction_number_prefix' => env('TRANSACTION_NUMBER_PREFIX', 'citrcom'),
+    // @todo to remove as we are using enums
     'payment_status' => [
         'unpaid' => [
             'event' => 'PaymentCreated',
@@ -61,6 +63,7 @@ return [
         'myt_money' => 'myt_money',
         'credit_card_mpgs' => 'credit_card'
     ],
+    // @todo to remove
     'payment_myt_money_should_log' => env('PAYMENT_MYT_MONEY_SHOULD_LOG', false),
     // before creating a new payment, check if the last payment is paid at gateway in case we did not receive callback
     'verify_last_payment_before_create' => env('VERIFY_LAST_PAYMENT_BEFORE_CREATE', false)

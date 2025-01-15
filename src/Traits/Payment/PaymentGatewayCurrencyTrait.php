@@ -25,4 +25,31 @@ trait PaymentGatewayCurrencyTrait
      * @var array
      */
     protected $currencylist = ['MUR'];
+
+    /**
+     * Check if a currency is allowed.
+     *
+     * @param string $currency The currency to check.
+     *
+     * @return array True if the currency is allowed, false otherwise.
+     */
+    public function isCurrencyAllowed($currency)
+    {
+        $data = $this->helperService->returnFormat();
+        $allowed = false;
+
+        if ($this->currencylistType === 'whitelist') {
+            $allowed = in_array($currency, $this->currencylist);
+        } elseif ($this->currencylistType === 'blacklist') {
+            $allowed = !in_array($currency, $this->currencylist);
+        }
+
+        $data['success'] = $allowed;
+
+        if (!$allowed) {
+            $data['message'] = __('payment/messages.invalid_currency');
+        }
+
+        return $data;
+    }
 }

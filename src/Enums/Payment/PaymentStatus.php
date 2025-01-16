@@ -12,4 +12,5 @@ enum PaymentStatus: string
     case MARKED_FOR_REFUND = 'marked_for_refund';
     case PROCESSING_REFUND = 'processing_refund';
     case REFUNDED = 'refunded';
+    case PARTIALLY_REFUNDED = 'partially_refunded';
 }

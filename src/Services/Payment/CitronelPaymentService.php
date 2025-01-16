@@ -2,18 +2,22 @@
 
 namespace aliirfaan\CitronelCommerce\Services\Payment;
 
-use Illuminate\Support\Str;
 use aliirfaan\CitronelErrorCatalogue\Services\CitronelErrorCatalogueService;
 use aliirfaan\CitronelCommerce\Services\Helper\CitronelCommerceHelperService;
 use aliirfaan\CitronelCommerce\Models\Payment\Payment;
 use aliirfaan\LaravelSimpleAuditLog\Services\AuditLogService;
 use aliirfaan\CitronelErrorCatalogue\Traits\ErrorCatalogue;
 use aliirfaan\CitronelCommerce\Enums\Payment\PaymentStatus;
+use aliirfaan\CitronelCommerce\Events\Payment\PaymentProcessed;
+use aliirfaan\CitronelCommerce\Services\Order\OrderMediatorService;
+use aliirfaan\CitronelCommerce\Contracts\Traits\Payment\PaymentServiceManualConfirmationTrait;
+use Illuminate\Support\Str;
+use Carbon\Carbon;
 
 // @todo
 class CitronelPaymentService
 {
-    use ErrorCatalogue;
+    use ErrorCatalogue, PaymentServiceManualConfirmationTrait;
 
     /**
      * paymentModel
@@ -51,6 +55,13 @@ class CitronelPaymentService
     public $errorCatalogueService;
 
     /**
+     * orderMediatorService
+     *
+     * @var mixed
+     */
+    public $orderMediatorService;
+
+    /**
      * Method __construct
      *
      * @return void
@@ -61,6 +72,7 @@ class CitronelPaymentService
         $this->auditService = new AuditLogService();
         $this->helperService = new CitronelCommerceHelperService();
         $this->errorCatalogueService = new CitronelErrorCatalogueService();
+        $this->orderMediatorService = new OrderMediatorService();
         $this->mainProcess = 'payment_service';
     }
 
@@ -193,8 +205,7 @@ class CitronelPaymentService
     public function processPayment($payment, $paymentGatewayService, $gatewayResponseFields, $gatewayProcessingResponse, $channel = 'web_callback', $correlationToken = null, $extra = [])
     {
         $data = $this->helperService->returnFormat();
-        $subProcess = config('error-catalogue.process.payment.sub_process.process');
-        $subProcessKey = $subProcess['key'];
+        $subProcess = $this->mainProcess['sub_process']['process'];
         $shouldUpdateOrder = false;
 
         $paymentStatus = $payment->payment_status;
@@ -209,17 +220,17 @@ class CitronelPaymentService
                 'payment_status' => $gatewayProcessingResponse['status'],
                 'payment_channel' => $channel
             ];
-            if ($gatewayProcessingResponse['status'] == config('payment.payment_status.paid.status')) {
+            if ($gatewayProcessingResponse['status'] ==  PaymentStatus::PAID->value) {
                 $savePaymentData['paid_at'] = $gatewayProcessingResponse['paid_at'];
             }
             $savePaymentData = \array_merge($savePaymentData, $gatewayResponseFields);
 
-            $this->paymentApiCommand::where('id', $payment->id)->update(
+            $this->paymentModel::where('id', $payment->id)->update(
                 $savePaymentData
             );
         }
 
-        $payment = $this->paymentApiQuery::where('id', $payment->id)->first();
+        $payment = $this->paymentModel::where('id', $payment->id)->first();
 
         // log
         $auditData = $this->auditService->generatePreliminaryEventData(null, $correlationToken);
@@ -231,14 +242,14 @@ class CitronelPaymentService
         $paymentMessageExtra = array_merge($extra,
         ['gateway_response_message' => $payment->gateway_response_message]);
         switch ($payment->payment_status) {
-            case config('payment.payment_status.paid.status'):
+            case PaymentStatus::PAID->value:
                 $data['message'] = $paymentGatewayService->successPaymentMessage($paymentMessageExtra);
                 break;
-            case config('payment.payment_status.cancelled.status'):
+            case PaymentStatus::CANCELLED->value:
                 $data['errors'] = true;
                 $data['message'] = $paymentGatewayService->cancelPaymentMessage($paymentMessageExtra);
                 break;
-            case config('payment.payment_status.failed.status'):
+            case PaymentStatus::FAILED->value:
             default:
                 $data['errors'] = true;
                 $data['message'] = $paymentGatewayService->failedPaymentMessage($paymentMessageExtra);
@@ -259,5 +270,206 @@ class CitronelPaymentService
 
         return $data;
     }
-}
 
+    public function mapOrderStatusFromPaymentStatus($paymentStatus)
+    {
+        return $this->orderMediatorService->mapOrderStatusFromPaymentStatus($paymentStatus);
+    }
+
+    /**
+     * Method generatePaymentGuid
+     *
+     * @return string
+     */
+    public function generatePaymentGuid()
+    {
+        return (string) Str::uuid();
+    }
+
+    public function updatePaymentValidationRules()
+    {
+        return [
+            'payment_channel' => 'required'
+        ];
+    }
+
+    /**
+     * Method validatePaymentForProcessing
+     *
+     * Check if payment was already processed
+     * If payment was already processed, return a message
+     *
+     * @param mixed $payment [explicite description]
+     * @param array $extra [explicite description]
+     *
+     * @return array
+     */
+    public function validatePaymentForProcessing($payment, $extra = [])
+    {
+        $data = $this->helperService->returnFormat();
+        
+        $wasPaymentProcessed = $this->wasPaymentProcessed($payment->payment_status);
+        if ($wasPaymentProcessed) {
+            $data['errors'] = true;
+            $data['message'] = __('payment/messages.payment_already_processed');
+        }
+
+        if (is_null($data['errors'])) {
+            $data['success'] = true;
+        }
+
+        return $data;
+    }
+
+    public function getCustomerPaymentsWithOrderItems(string $customerId, string $gatewayMerchantTransactionNo = null, string $orderNumber = null)
+    {
+        $customerPayments = $this->paymentModel
+            ->orderBy('updated_at', 'desc')
+            ->whereRelation('order', 'customer_id', $customerId);
+
+        return $customerPayments->select('order_id', 'payment_method_configuration_id', 'payment_status', 'gateway_merchant_transaction_no', 'currency_code', 'grand_total', 'paid_at', 'updated_at as payment_updated_at')
+         ->with(
+            'payment_method_configuration:id,payment_method_id',
+            'payment_method_configuration.payment_method:id,title',
+            'order:id,order_guid,order_number,created_at as order_created_at',
+            'order.order_items:id,order_id,product_id,bundle_code,quantity,order_item_meta',
+            'order.order_items.product',
+            'order.order_items.order_fulfillments:id,order_item_id,fulfilled_at,order_item_fulfillment_status'
+        )
+        ->whereHas('order', function ($query) {
+            $query->where('created_at', '>=', Carbon::now()->subYear());
+        });
+    }
+
+    /**
+     * Method getLastPaymentToVerifyForOrder
+     *
+     * For safety. ensure last payment has the same grand total and currency code as the order
+     * if last payment status is not unpaid, return the last payment
+     *
+     * @param mixed $order [explicite description]
+     *
+     * @return mixed
+     */
+    public function getLastPaymentToVerifyForOrder($order)
+    {
+        $data = $this->helperService->returnFormat();
+
+        $payment = $this->paymentModel::where('order_id', $order->id)
+            ->where('grand_total', $order->order_grand_total)
+            ->where('currency_code', $order->order_currency_code)
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        if (!is_null($payment) && $payment->payment_status === PaymentStatus::UNPAID->value) {
+            $data['result'] = $payment;
+        } else {
+            $data['errors'] = true;
+        }
+
+        if (is_null($data['errors'])) {
+            $data['success'] = true;
+        }
+
+        return $data;
+    }
+
+    /**
+     * Method verifyLastPaymentForOrder
+     * Before creating a new payment, check if the last payment for the order was successful at gateway but not on our side
+     * This check is to prevent duplicate payments
+     *
+     * @return array
+     */
+    public function verifyLastPaymentForOrder($order, $extra = [], $channel = 'retrieve_order')
+    {
+        $data = $this->helperService->returnFormat();
+
+        $getLastPaymentToVerifyForOrderResponse = $this->getLastPaymentToVerifyForOrder($order);
+        $lastPaymentForOrder = $getLastPaymentToVerifyForOrderResponse['result'];
+
+        // no last payment, so we cannot verify
+        if (is_null($lastPaymentForOrder)) {
+            $data['errors'] = true;
+        }
+
+        if (is_null($data['errors'])) {
+            $lastPaymentGatewayService = $this->helperService->makeObject($lastPaymentForOrder->payment_method_configuration->payment_class, ['paymentMethodConfigurationId' => $lastPaymentForOrder->payment_method_configuration->id]);
+
+            $verifyGatewayOrderResponse = $lastPaymentGatewayService->verifyGatewayOrder($lastPaymentForOrder);
+            if (!$verifyGatewayOrderResponse['success']) {
+                $data['errors'] = true;
+            }
+
+             if (is_null($data['errors'])) {
+                $shouldUpdateOrder = true;
+
+                $paymentResult = $verifyGatewayOrderResponse['result']['payment'];
+
+                $savePaymentData = [
+                    'payment_status' => array_key_exists('payment_status', $paymentResult) ? $paymentResult['payment_status'] : null,
+    
+                    'payment_channel' => $channel,
+    
+                    'gateway_transaction_no' => array_key_exists('gateway_transaction_no', $paymentResult) ? $paymentResult['gateway_transaction_no'] : null,
+    
+                    'gateway_response_code' => array_key_exists('gateway_response_code', $paymentResult) ? $paymentResult['gateway_response_code'] : null,
+    
+                    'gateway_response_status' => array_key_exists('gateway_response_status', $paymentResult) ? $paymentResult['gateway_response_status'] : null,
+    
+                    'gateway_response_message' => array_key_exists('gateway_response_message', $paymentResult) ? $paymentResult['gateway_response_message'] : null,
+    
+                    'paid_at' => array_key_exists('paid_at', $paymentResult) ? $paymentResult['paid_at'] : null,
+                ];
+                $this->paymentModel::where('id', $lastPaymentForOrder->id)->update(
+                    $savePaymentData
+                );
+
+                $payment = $this->paymentModel::where('id', $lastPaymentForOrder->id)->first();
+
+                switch ($payment->payment_status) {
+                    case PaymentStatus::PAID->value:
+                        break;
+                    case PaymentStatus::CANCELLED->value:
+                        $data['errors'] = true;
+                        break;
+                    case PaymentStatus::FAILED->value:
+                    default:
+                        $data['errors'] = true;
+                        break;
+                }
+
+                if ($data['errors'] == null) {
+                    $data['success'] = true;
+
+                    $replace = [
+                        'amount' => $payment->grand_total,
+                        'payment_reference' => $payment->gateway_merchant_transaction_no,
+                        'payment_method' => $payment->payment_method_configuration->payment_method->title,
+                    ];
+                    $data['message'] =  __('payment/messages.previous_payment_process_success', $replace);
+                }
+
+                $data['result']['payment'] = $payment;
+                $data['result']['should_update_order'] = $shouldUpdateOrder;
+            }
+        }
+
+        if (is_null($data['errors'])) {
+            $data['success'] = true;
+        }
+
+        return $data;
+    }
+
+    /**
+     * Method shouldVerifyLastPaymentBeforeCreate
+     * before creating a new payment, check if the last payment is paid at gateway in case we did not receive callback
+     *
+     * @return bool
+     */
+    public function shouldVerifyLastPaymentBeforeCreate()
+    {
+        return intval(config('payment.verify_last_payment_before_create'));
+    }
+}

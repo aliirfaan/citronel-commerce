@@ -60,7 +60,7 @@ class Order extends Model
         return $this->hasMany(Payment::class, 'order_id');
     }
 
-    public function actor(): BelongsTo
+    public function customer(): BelongsTo
     {
         return $this->belongsTo(CitronelActor::class);
     }

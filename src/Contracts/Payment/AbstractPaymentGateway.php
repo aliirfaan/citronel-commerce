@@ -133,14 +133,14 @@ abstract class AbstractPaymentGateway
     /**
      * Method __construct
      *
-     * @param mixed $paymentMethodConfiguration
+     * @param mixed $paymentMethod
      *
      *
      * @return void
      */
-    public function __construct($paymentMethodConfiguration)
+    public function __construct($paymentMethod)
     {
-        $this->paymentMethod = $paymentMethodConfiguration;
+        $this->paymentMethod = $paymentMethod;
         $this->helperService = new CitronelCommerceHelperService();
         $this->paymentService = new CitronelPaymentService();
     }

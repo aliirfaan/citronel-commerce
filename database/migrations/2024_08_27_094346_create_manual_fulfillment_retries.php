@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('manual_retries', function (Blueprint $table) {
+        Schema::create('manual_fulfillment_retries', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->uuid('order_fulfillment_id');
             $table->string('retry_user_id')->nullable(true);
@@ -32,6 +32,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('manual_retries');
+        Schema::dropIfExists('manual_fulfillment_retries');
     }
 };

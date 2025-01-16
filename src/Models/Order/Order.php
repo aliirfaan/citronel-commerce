@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use aliirfaan\CitronelCommerce\Models\Payment\Payment;
-use App\Models\Customer\Customer;
+use aliirfaan\CitronelCore\Models\Actor\CitronelActor;
 
 class Order extends Model
 {
@@ -60,8 +60,8 @@ class Order extends Model
         return $this->hasMany(Payment::class, 'order_id');
     }
 
-    public function customer(): BelongsTo
+    public function actor(): BelongsTo
     {
-        return $this->belongsTo(Customer::class);
+        return $this->belongsTo(CitronelActor::class);
     }
 }

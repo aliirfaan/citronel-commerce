@@ -1,0 +1,186 @@
+<?php
+
+namespace aliirfaan\CitronelCommerce\Services\Currency;
+
+use aliirfaan\CitronelCommerce\Services\Helper\CitronelCommerceHelperService;
+use aliirfaan\CitronelCommerce\Models\CurrencyRate;
+use aliirfaan\CitronelCommerce\Contracts\CurrencyPlatform\CurrencyPlatformInterface;
+
+class CitronelCurrencyService
+{
+    /**
+     * currencyPlatformService
+     *
+     * @var mixed
+     */
+    private $currencyPlatformService;
+    
+    /**
+     * currencyModel
+     *
+     * @var mixed
+     */
+    private $currencyRateModel;
+    
+    /**
+     * helperService
+     *
+     * @var mixed
+     */
+    private $helperService;
+
+    /**
+     * mainProcess
+     *
+     * @var string
+     */
+    public $mainProcess;
+
+    public function __construct(CurrencyPlatformInterface $currencyPlatformService)
+    {
+        $this->mainProcess = 'currency_service';
+        
+        $this->currencyRateModel = new CurrencyRate();
+        $this->helperService = new CitronelCommerceHelperService();
+        $this->currencyPlatformService = $currencyPlatformService;
+    }
+    
+    /**
+     * Fetch rates from external platform and update local currency table
+     *
+     * @param $correlationToken $correlationToken [explicite description]
+     *
+     * @return array
+     */
+    public function refreshExchangeRate($correlationToken = null)
+    {
+        $data = $this->helperService->returnFormat();
+        $subProcessKey = 'refresh_rate';
+
+        $data = $this->currencyPlatformService->refreshExchangeRate($correlationToken);
+        if ($data['success']) {
+            $exchangeRateResult = $data['result'];
+            $buyingRate = $this->helperService->formatAmount($exchangeRateResult['buying_rate']);
+            $sellingRate = $this->helperService->formatAmount($exchangeRateResult['selling_rate']);
+            $saveData = [
+                'from_code' => array_key_exists('from_code', $exchangeRateResult) ? $exchangeRateResult['from_code'] : null,
+                'to_code' => array_key_exists('to_code', $exchangeRateResult) ? $exchangeRateResult['to_code'] : null,
+                'buying_rate' => $buyingRate,
+                'selling_rate' => $sellingRate,
+                'source_updated_at_local' => array_key_exists('date', $exchangeRateResult) ? $exchangeRateResult['date'] : null,
+                'refreshed_at' => now(),
+            ];
+
+            $this->currencyRateModel::create($saveData);
+        }
+
+        return $data;
+    }
+    
+    /**
+     * Get latest currency rate from local currency table
+     *
+     * @return array
+     */
+    public function getLatestCurrencyRate($toCode = 'MUR')
+    {
+        $fromCode = $this->getBaseCurrencyCode();
+
+        return $this->currencyRateModel::select('id', 'from_code', 'to_code', 'buying_rate', 'selling_rate', 'refreshed_at')
+        ->where('from_code', $fromCode)
+        ->where('to_code', $toCode)
+        ->orderByDesc('refreshed_at')
+        ->first();
+    }
+    
+    /**
+     * Method getBaseCurrencyCode
+     *
+     * @return string
+     */
+    public function getBaseCurrencyCode()
+    {
+        return $this->helperService->getCitronelBaseCurrencyCode();
+    }
+
+    public function getDefaultCurrencyCode()
+    {
+        return $this->helperService->getCitronelDefaultCurrency();
+    }
+    
+    /**
+     * Method getSupportedCurrencies
+     *
+     * @return array
+     */
+    public function getSupportedCurrencies()
+    {
+        return config('citronel.currency.supported');
+    }
+
+    public function generateCurrencyExtra()
+    {
+        $supportedCurrencies = $this->getSupportedCurrencies();
+
+        foreach ($supportedCurrencies as $key => $currency) {
+            $currencyRate = $this->getLatestCurrencyRate($currency['code']);
+            $supportedCurrencies[$key]['exchange_rate'] = $currencyRate;
+        }
+
+        return [
+            'currency' => [
+                'supported' => $supportedCurrencies,
+            ]
+        ];
+    }
+    
+    /**
+     * Method convertAmount
+     *
+     * @param float $amount [explicite description]
+     * @param string $toCode [explicite description]
+     * @param mixed $currencyRate [explicite description]
+     *
+     * @return void
+     */
+    public function convertAmount($amount, $toCode, $currencyRate)
+    {
+        $baseCurrencyCode = $this->getBaseCurrencyCode();
+        if ($toCode !== $baseCurrencyCode) {
+            $amount = $amount * $currencyRate->selling_rate;
+        }
+
+        return $amount;
+    }
+
+    public function formatCurrencyAmount($amount, $currencyCode)
+    {
+        $supportedCurrency = $this->getSupportedCurrencies();
+        $currency = $supportedCurrency[$currencyCode];
+
+        $formatted = $this->helperService->formatAmount($amount);
+        $formattedWithSymbol = $currency['symbol'] . ' ' . $amount;
+        $formattedWithCode = $amount . ' ' . $currency['code'];
+
+        return [
+            'raw' =>  $amount,
+            'formatted' =>  $formatted,
+            'formatted_with_symbol' =>  $formattedWithSymbol,
+            'formatted_with_code' =>  $formattedWithCode
+        ];
+    }
+    
+    /**
+     * Method getCurrencyRateById
+     *
+     * @param mixed $id [explicite description]
+     *
+     * @return mixed
+     */
+    public function getCurrencyRateById($id)
+    {
+        return $this->currencyRateModel::select('id', 'from_code', 'to_code', 'buying_rate', 'selling_rate', 'refreshed_at')
+        ->where('id', $id)
+        ->first();
+    }
+}

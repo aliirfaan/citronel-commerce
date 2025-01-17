@@ -16,10 +16,7 @@ use Illuminate\Support\Str;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
-// @todo to remove
-use App\Services\Api\v1\MontyEsim\Order\MontyEsimPlatformOrderHistoryService;
-
-class FulfillmentService
+class CitronelFulfillmentService
 {
     use ErrorCatalogue, HasJobPolicy;
 
@@ -61,7 +58,7 @@ class FulfillmentService
     public function __construct()
     {
         $this->orderFulfillmentModel = new OrderFulfillment();
-        $this->auditService = new AuditService();
+        $this->auditService = new AuditLogService();
         $this->helperService = new CitronelCommerceHelperService();
         $this->productService = new ProductService();
         $this->mainProcess = 'order';
@@ -120,7 +117,7 @@ class FulfillmentService
                 $orderFulfillmentSaveData = [
                     'order_item_id' => $anOrderItem->id,
                     'customer_id' => $order->customer_id,
-                    'order_item_fulfillment_status' => config('order.order_status.created.status'),
+                    'order_item_fulfillment_status' => OrderStatus::CREATED->value,
                     'order_id' => $order->id,
                     'product_id' => $anOrderItem->product_id,
                     'order_item_meta' => $anOrderItem->order_item_meta,
@@ -184,7 +181,7 @@ class FulfillmentService
             $fulfillProductOrderItemResponse = $productInterfaceObj->fulfillProductOrderItem($item, $extra);
             if ($fulfillProductOrderItemResponse['success']) {
                 $orderItemFulfillmentStatus = OrderStatus::FULFILLED->value;
-                $fulfilledAt = date('Y-m-d H:i:s');
+                $fulfilledAt = date(config('citronel.db_date_time_db_format'));
             } else {
                 $orderItemFulfillmentStatus = OrderStatus::UNFULFILLED->value;
 
@@ -210,7 +207,10 @@ class FulfillmentService
                 'fulfilled_at' => $fulfilledAt,
                 'retry_count' => $retryCount,
             ];
-            $productOrderFulfillmentItemUpdateData = $productInterfaceObj->generateProductOrderFulfillmentItemUpdate($item, $extra);
+
+            $generateProductOrderFulfillmentItemUpdateExtra = $fulfillProductOrderItemResponse['result'];
+
+            $productOrderFulfillmentItemUpdateData = $productInterfaceObj->generateProductOrderFulfillmentItemUpdate($item, $generateProductOrderFulfillmentItemUpdateExtra);
 
             $fulfillmentUpdateData = array_merge($fulfillmentUpdateData, $productOrderFulfillmentItemUpdateData);
 
@@ -252,7 +252,7 @@ class FulfillmentService
                 break;
         }
 
-        if ($data['errors'] == null) {
+        if (is_null($data['errors'])) {
             $data['success'] = true;
             $auditData['al_is_success'] = 1;
         }
@@ -278,11 +278,11 @@ class FulfillmentService
     public function shouldFulfillItem($orderItemFulfillmentStatus, $isRetry = false)
     {
         $statusToCheck = [
-            config('order.order_status.created.status'),
+            OrderStatus::CREATED->value
         ];
 
         if ($isRetry) {
-            $statusToCheck[] = config('order.order_status.processing_retry.status');
+            $statusToCheck[] = OrderStatus::PROCESSING_RETRY->value;
         }
 
         if (in_array($orderItemFulfillmentStatus, $statusToCheck)) {
@@ -301,7 +301,7 @@ class FulfillmentService
      */
     public function getFulfillmentsByOrderId($orderId, $status = null)
     {
-        $result = $this->orderFulfillmentApiQuery->where('order_id', $orderId);
+        $result = $this->orderFulfillmentModel->where('order_id', $orderId);
         if (!is_null($status)) {
             $result->where('order_item_fulfillment_status', $status);
         }
@@ -317,7 +317,7 @@ class FulfillmentService
      */
     public function getFulfillmentsByOrderIdWithPaidPayments(string $orderId)
     {
-        return $this->orderFulfillmentApiQuery
+        return $this->orderFulfillmentModel
             ->where('order_id', $orderId)
             ->with([
                 'payments' => function($query){
@@ -330,7 +330,7 @@ class FulfillmentService
     {
         $data = $this->helperService->returnFormat();
   
-        $result = $this->orderFulfillmentApiQuery->where('id', $id)->first();
+        $result = $this->orderFulfillmentModel->where('id', $id)->first();
         if (is_null($result)) {
           $data['errors'] = true;
         }
@@ -354,7 +354,7 @@ class FulfillmentService
      */
     public function getCustomerFulfillmentsByProduct($customerId, $productId, $status = 'fulfilled')
     {
-        return $this->orderFulfillmentApiQuery->where('order_fulfillments.customer_id', $customerId)
+        return $this->orderFulfillmentModel->where('order_fulfillments.customer_id', $customerId)
             ->join('payments', 'payments.order_id', '=', 'order_fulfillments.order_id')
             ->where('order_fulfillments.product_id', $productId)
             ->where('order_fulfillments.order_item_fulfillment_status', $status)
@@ -380,10 +380,10 @@ class FulfillmentService
      */
     public function getCustomerPendingFulfillmentsCount($customerId, $seconds)
     {
-        $status = config('order.order_status.processing_retry.status');
+        $status = OrderStatus::PROCESSING_RETRY->value;
         $timeLimit = Carbon::now()->subSeconds(intval($seconds));
 
-        return $this->orderFulfillmentApiQuery->where('order_fulfillments.customer_id', $customerId)
+        return $this->orderFulfillmentModel->where('order_fulfillments.customer_id', $customerId)
             ->where('order_fulfillments.order_item_fulfillment_status', $status)
             ->where('order_fulfillments.created_at', '>=', $timeLimit)
             ->count();
@@ -401,12 +401,12 @@ class FulfillmentService
     public function getUnprocessedFulfillmentCountForOrder($orderId)
     {
         $statusToCheck = [
-            config('order.order_status.created.status'),
-            config('order.order_status.processing.status'),
-            config('order.order_status.processing_retry.status')
+            OrderStatus::CREATED->value,
+            OrderStatus::PROCESSING->value,
+            OrderStatus::PROCESSING_RETRY->value
         ];
 
-        return $this->orderFulfillmentApiQuery
+        return $this->orderFulfillmentModel
         ->where('order_id', $orderId)
         ->whereIn('order_item_fulfillment_status', $statusToCheck)->count();
     }
@@ -420,7 +420,7 @@ class FulfillmentService
      */
     public function getSuccessPaymentForOrder($orderId)
     {
-        return $this->orderFulfillmentApiQuery
+        return $this->orderFulfillmentModel
             ->where('order_fulfillments.order_id', $orderId)
             ->join('payments', 'payments.order_id', '=', 'order_fulfillments.order_id')
             ->join('payment_method_configurations', 'payments.payment_method_configuration_id', '=', 'payment_method_configurations.id')
@@ -438,7 +438,7 @@ class FulfillmentService
      * Method fulfillItem
      *
      * Fulfill an item manually
-     * It is possible that order has been fulfilles at supplier side but we did not get the response:
+     * It is possible that order has been fulfilled at supplier side but we did not get the response:
      * - check if order has been fulfilled at supplier side
      * - if order has been fulfilled at supplier side, fulfill item
      * - else continue with manual fulfillment by calling product manual fulfillment method
@@ -452,155 +452,136 @@ class FulfillmentService
     {
         $data = $this->helperService->returnFormat();
         $subProcess = config('error-catalogue.process.order.sub_process.fulfillment');
-        $subProcessKey = $subProcess['key'];
 
-        try {
-            $productInterfaceObj = null;
+        $productInterfaceObj = null;
 
-            $validateProductForManualFulfillmentResponse = $this->productService->validateProductForManualFulfillment($item->order_item->product);
-            if (!$validateProductForManualFulfillmentResponse['success']) {
-                $data = $validateProductForManualFulfillmentResponse;
-            }
-
-            $retryCount = intval($item->retry_count); // number of times retry has been attempted for this item, both manual and auto retries
-            if (is_null($data['errors']) && ($retryCount >= intval($item->order_item->product->max_retry_count))) {
-                $data['errors'] = true;
-                $data['message'] = __('order/messages.order_item_fulfillment_max_retry_reached');
-            }
-
-            if (is_null($data['errors'])) {
-                $shouldFullfillItem = $this->shouldFulfillItemManually($item->order_item_fulfillment_status);
-                if (!$shouldFullfillItem) {
-                    $data['errors'] = true;
-                    $data['message'] = __('order/messages.order_item_fulfillment_retry_not_allowed');
-                }
-            }
-
-            if (is_null($data['errors'])) {
-                $retrySaveData = [
-                    'id' => (string) Str::uuid(),
-                    'order_fulfillment_id' => $item->id,
-                    'retry_user_id' => array_key_exists('retry_user_id', $extra) ? $extra['retry_user_id'] : null,
-                    'retry_fulfillment_status' => config('order.order_status.created.status'),
-                    'retried_at' => date('Y-m-d H:i:s')
-                ];
-                $manualRetryObj = ManualRetryApiCommand::create($retrySaveData);
-
-                $statusProcessing = config('order.order_status.processing.status');
-                $retryCount = $retryCount + 1;
-                $this->orderFulfillmentApiCommand::where('id', $item->id)->update([
-                    'order_item_fulfillment_status' => $statusProcessing
-                ]);
-
-                $fulfilledAt = null;
-                $supplierOrderId = null;
-                $iccid = null;
-                $result_code = null;
-                $result_message = null;
-
-                $getSupplierOrderForManualFulfillmentResponse = $this->getSupplierOrderForManualFulfillment($item, $extra);
-                if ($getSupplierOrderForManualFulfillmentResponse['success']) {
-                    $supplierOrder = $getSupplierOrderForManualFulfillmentResponse['result'];
-
-                    $orderItemFulfillmentStatus = config('order.order_status.unfulfilled.status');
-                    if ($supplierOrder['order_status'] === 'Successful') {
-                        $orderItemFulfillmentStatus = config('order.order_status.fulfilled.status');
-                        $fulfilledAt = date('Y-m-d H:i:s');
-                    }
-
-                    $supplierOrderId = array_key_exists('order_id', $supplierOrder) ? $supplierOrder['order_id'] : null;
-                    $iccid = array_key_exists('iccid', $supplierOrder) ? $supplierOrder['iccid'] : null;
-
-                    $data['message'] = array_key_exists('order_status', $supplierOrder) ? $supplierOrder['order_status'] : null;
-                } else {
-                    $productInterfaceObj = $this->helperService->makeObject($item->order_item->product->product_class, ['product'=> $item->order_item->product]);
-
-                    $fulfillProductOrderItemResponse = $productInterfaceObj->fulfillProductOrderItem($item, $extra);
-                    if ($fulfillProductOrderItemResponse['success']) {
-                        $orderItemFulfillmentStatus = config('order.order_status.fulfilled.status');
-                        $fulfilledAt = date('Y-m-d H:i:s');
-                    } else {
-                        $orderItemFulfillmentStatus = config('order.order_status.unfulfilled.status');
-                    }
-    
-                    if (!is_null($fulfillProductOrderItemResponse['result']) && array_key_exists('data', $fulfillProductOrderItemResponse['result'])) {
-                        $supplierOrderId = array_key_exists('order_id', $fulfillProductOrderItemResponse['result']['data']) ? $fulfillProductOrderItemResponse['result']['data']['order_id'] : null;
-    
-                        $iccid = array_key_exists('iccid', $fulfillProductOrderItemResponse['result']['data']) ? $fulfillProductOrderItemResponse['result']['data']['iccid'] : null;
-    
-                        $result_code = array_key_exists('response_code', $fulfillProductOrderItemResponse['result']['data']) ? $fulfillProductOrderItemResponse['result']['data']['response_code'] : null;
-    
-                        $result_message = array_key_exists('message', $fulfillProductOrderItemResponse['result']['data']) ? $fulfillProductOrderItemResponse['result']['data']['message'] : null;
-                    }
-
-                    $data['message'] = $fulfillProductOrderItemResponse['message'];
-                }
-
-                $retrySaveData = [
-                    'retry_fulfillment_status' => $orderItemFulfillmentStatus
-                ];
-                ManualRetryApiCommand::where('id', $manualRetryObj->id)->update(
-                    $retrySaveData
-                );
-
-                $this->orderFulfillmentApiCommand::where('id', $item->id)->update(
-                    [
-                        'order_item_fulfillment_status' => $orderItemFulfillmentStatus,
-                        'fulfilled_at' => $fulfilledAt,
-                        'retry_count' => $retryCount,
-                        'supplier_order_id' => $supplierOrderId,
-                        'iccid' => $iccid,
-                        'result_code' => $result_code,
-                        'result_message' => $result_message
-                    ]
-                );
-
-                $item = $this->orderFulfillmentApiCommand::where('id', $item->id)->first();
-
-                switch ($item->order_item_fulfillment_status) {
-                    case config('order.order_status.fulfilled.status'):
-                        if (is_null($data['message'])) {
-                            $data['message'] = $productInterfaceObj->successItemFulfillmentMessage($item, $extra);
-                        }
-                        break;
-                    case config('order.order_status.unfulfilled.status'):
-                        if (is_null($data['message'])) {
-                            $data['message'] = $productInterfaceObj->failedItemFulfillmentMessage($item, $extra);
-                        }
-                        $data['errors'] = true;
-                        break;
-                }
-            }
-
-            // log
-            $correlationToken = $item->order_item->order->correlation_token;
-            $auditData = $this->auditService->generatePreliminaryEventData(null, $correlationToken);
-            $auditData['al_action_type'] = config('audit.action_types.update.name');
-            $auditData['al_event_name'] = $subProcess['events']['item_fulfillment_processed']['name'];
-            $auditData['al_correlation_id'] = $correlationToken;
-            $auditData['al_is_success'] = $data['success'];
-
-            if ($data['errors'] == null) {
-                $data['success'] = true;
-                $auditData['al_is_success'] = $data['success'];
-            }
-            $data['result'] = $item;
-
-            $auditData['al_message'] = $data['message'];
-
-            FulfillmentProcessed::dispatch($auditData);
-
-        } catch (\Illuminate\Database\QueryException $e) {
-            report($e);
-
-            $code = $this->helperService->generateProcessCode($this->mainProcessKey, $subProcessKey, null, $this->databaseErrorCatalogue()['code']);
-            $data['message'] = __($this->databaseErrorCatalogue()['lang'], ['code' => $code['code']]);
+        $validateProductForManualFulfillmentResponse = $this->productService->validateProductForManualFulfillment($item->order_item->product);
+        if (!$validateProductForManualFulfillmentResponse['success']) {
+            $data = $validateProductForManualFulfillmentResponse;
         }
-        
+
+        $retryCount = intval($item->retry_count); // number of times retry has been attempted for this item, both manual and auto retries
+        if (is_null($data['errors']) && ($retryCount >= intval($item->order_item->product->max_retry_count))) {
+            $data['errors'] = true;
+            $data['message'] = __('order/messages.order_item_fulfillment_max_retry_reached');
+        }
+
+        if (is_null($data['errors'])) {
+            $shouldFullfillItem = $this->shouldFulfillItemManually($item->order_item_fulfillment_status);
+            if (!$shouldFullfillItem) {
+                $data['errors'] = true;
+                $data['message'] = __('order/messages.order_item_fulfillment_retry_not_allowed');
+            }
+        }
+
+        if (is_null($data['errors'])) {
+            $retrySaveData = [
+                'id' => (string) Str::uuid(),
+                'order_fulfillment_id' => $item->id,
+                'retry_user_id' => array_key_exists('retry_user_id', $extra) ? $extra['retry_user_id'] : null,
+                'retry_fulfillment_status' => OrderStatus::CREATED->value,
+                'retried_at' => date(config('citronel.db_date_time_db_format'))
+            ];
+            $manualRetryObj = ManualFulfillmentRetry::create($retrySaveData);
+
+            $statusProcessing = OrderStatus::PROCESSING_RETRY->value;
+            $retryCount = $retryCount + 1;
+            $this->orderFulfillmentModel::where('id', $item->id)->update([
+                'order_item_fulfillment_status' => $statusProcessing
+            ]);
+
+            $productInterfaceObj = $this->helperService->makeObject($item->order_item->product->product_class, ['product' => $item->order_item->product]);
+            $productOrderFulfillmentItemUpdateData = [];
+
+            $getSupplierOrderForManualFulfillmentResponse = $productInterfaceObj->getSupplierOrderForManualFulfillment($item, $extra);
+            if ($getSupplierOrderForManualFulfillmentResponse['success']) {
+                $supplierOrder = $getSupplierOrderForManualFulfillmentResponse['result'];
+
+                $orderItemFulfillmentStatus = OrderStatus::UNFULFILLED->value;
+
+                $processSupplierOrderForManualFulfillmentResponse = $productInterfaceObj->processSupplierOrderForManualFulfillment($item, $extra);
+                if ($processSupplierOrderForManualFulfillmentResponse['success']) {
+                    $orderItemFulfillmentStatus = OrderStatus::FULFILLED->value;
+                    $fulfilledAt = date(config('citronel.db_date_time_db_format'));
+
+                    $generateProductOrderFulfillmentItemUpdateExtra = $processSupplierOrderForManualFulfillmentResponse['result'];
+
+                    $productOrderFulfillmentItemUpdateData = $productInterfaceObj->generateProductOrderFulfillmentItemUpdate($item, $generateProductOrderFulfillmentItemUpdateExtra);
+                }
+
+                $data['message'] = $processSupplierOrderForManualFulfillmentResponse['message'];
+
+            } else {
+                $fulfillProductOrderItemResponse = $productInterfaceObj->fulfillProductOrderItem($item, $extra);
+                if ($fulfillProductOrderItemResponse['success']) {
+                    $orderItemFulfillmentStatus = OrderStatus::FULFILLED->value;
+                    $fulfilledAt = date(config('citronel.db_date_time_db_format'));
+
+                    $generateProductOrderFulfillmentItemUpdateExtra = $fulfillProductOrderItemResponse['result'];
+
+                    $productOrderFulfillmentItemUpdateData = $productInterfaceObj->generateProductOrderFulfillmentItemUpdate($item, $generateProductOrderFulfillmentItemUpdateExtra);
+
+                } else {
+                    $orderItemFulfillmentStatus = OrderStatus::UNFULFILLED->value;
+                }
+
+                $data['message'] = $fulfillProductOrderItemResponse['message'];
+            }
+
+            $retrySaveData = [
+                'retry_fulfillment_status' => $orderItemFulfillmentStatus
+            ];
+            ManualFulfillmentRetry::where('id', $manualRetryObj->id)->update(
+                $retrySaveData
+            );
+
+            $fulfillmentUpdateData = [
+                'order_item_fulfillment_status' => $orderItemFulfillmentStatus,
+                'fulfilled_at' => $fulfilledAt,
+                'retry_count' => $retryCount,
+            ];
+            $fulfillmentUpdateData = array_merge($fulfillmentUpdateData, $productOrderFulfillmentItemUpdateData);
+
+            $this->orderFulfillmentModel::where('id', $item->id)->update($fulfillmentUpdateData);
+
+            $item = $this->orderFulfillmentModel::where('id', $item->id)->first();
+
+            switch ($item->order_item_fulfillment_status) {
+                case OrderStatus::FULFILLED->value:
+                    if (is_null($data['message'])) {
+                        $data['message'] = $productInterfaceObj->successItemFulfillmentMessage($item, $extra);
+                    }
+                    break;
+                case OrderStatus::UNFULFILLED->value:
+                    if (is_null($data['message'])) {
+                        $data['message'] = $productInterfaceObj->failedItemFulfillmentMessage($item, $extra);
+                    }
+                    $data['errors'] = true;
+                    break;
+            }
+        }
+
+        // log
+        $correlationToken = $item->order_item->order->correlation_token;
+        $auditData = $this->auditService->generatePreliminaryEventData(null, $correlationToken);
+        $auditData['al_action_type'] = config('audit.action_types.update.name');
+        $auditData['al_event_name'] = $subProcess['events']['item_fulfillment_processed']['name'];
+        $auditData['al_correlation_id'] = $correlationToken;
+        $auditData['al_is_success'] = $data['success'];
+
+        if (is_null($data['errors'])) {
+            $data['success'] = true;
+            $auditData['al_is_success'] = $data['success'];
+        }
+        $data['result'] = $item;
+
+        $auditData['al_message'] = $data['message'];
+
+        FulfillmentProcessed::dispatch($auditData);
+
         return $data;
     }
 
-    
     /**
      * Check status to know if we need to process manual fulfillment.
      *
@@ -611,7 +592,7 @@ class FulfillmentService
     public function shouldFulfillItemManually($orderItemFulfillmentStatus)
     {
         $statusToCheck = [
-            config('order.order_status.unfulfilled.status'),
+            OrderStatus::UNFULFILLED->value,
         ];
 
         if (in_array($orderItemFulfillmentStatus, $statusToCheck)) {
@@ -619,43 +600,5 @@ class FulfillmentService
         }
 
         return false;
-    }
-    
-    /**
-     * Get order by order reference from supplier
-     * return success only if order exists if we will use it for manual fulfillment
-     *
-     * @param mixed $item [explicite description]
-     * @param array $extra [explicite description]
-     *
-     * @return array
-     */
-    public function getSupplierOrderForManualFulfillment($item, $extra = [])
-    {
-        $data = $this->helperService->returnFormat();
-
-        $bodyData = [
-            'order_reference' => $item->reseller_order_reference
-        ];
-
-        $montyEsimPlatformOrderHistoryService = new MontyEsimPlatformOrderHistoryService();
-        $correlationToken = $item->order_item->order->correlation_token;
-
-        $orderHistoryResponse = $montyEsimPlatformOrderHistoryService->orderHistory($correlationToken, $bodyData);
-        if (!$orderHistoryResponse['success']) {
-            $data['errors'] = true;
-            $data['message'] = $orderHistoryResponse['message'];
-        }
-
-        if (is_null($data['errors'])) {
-            $orderHistoryResult = $orderHistoryResponse['result']['data'];
-            if (array_key_exists('orders', $orderHistoryResult) && count($orderHistoryResult['orders']) > 0) {
-                $order = $orderHistoryResult['orders'][0];
-                $data['result'] = $order;
-                $data['success'] = true;
-            }
-        }
-
-        return $data;
     }
 }

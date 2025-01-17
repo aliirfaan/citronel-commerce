@@ -4,49 +4,35 @@ namespace aliirfaan\CitronelCommerce\Services\Order;
 
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
-use aliirfaan\CitronelErrorCatalogue\Traits\ErrorCatalogue;
-use App\Services\Api\v1\Audit\AuditService;
-use App\Services\Api\v1\Helper\HelperService;
-use App\Models\Api\v1\Order\OrderApiCommand;
-use App\Models\Api\v1\Order\OrderApiQuery;
-use App\Models\Api\v1\OrderItem\OrderItemApiCommand;
-use App\Services\Api\v1\Currency\CurrencyService;
-use App\Models\Api\v1\OrderItem\OrderItemApiQuery;
-use App\Services\Api\v1\MontyEsim\Bundle\MontyEsimPlatformBundleService;
 use Carbon\Carbon;
+use aliirfaan\CitronelErrorCatalogue\Traits\ErrorCatalogue;
+use aliirfaan\LaravelSimpleAuditLog\Services\AuditLogService;
+use aliirfaan\CitronelCommerce\Services\Helper\CitronelCommerceHelperService;
+use aliirfaan\CitronelCommerce\Models\Order\Order;
+use aliirfaan\CitronelCommerce\Models\Order\OrderItem;
+use aliirfaan\CitronelCommerce\Services\Currency\CitronelCurrencyService;
+use aliirfaan\CitronelCommerce\Enums\Order\OrderStatus;
 
-class OrderService
+use App\Services\Api\v1\MontyEsim\Bundle\MontyEsimPlatformBundleService;
+
+class CitronelOrderService
 {
     use ErrorCatalogue;
 
     /**
-     * orderApiCommand
+     * order
      *
      * @var mixed
      */
-    protected $orderApiCommand;
+    protected $orderModel;
     
     /**
-     * orderApiQuery
+     * orderItemModel
      *
      * @var mixed
      */
-    protected $orderApiQuery;
-    
-    /**
-     * orderDetailApiCommand
-     *
-     * @var mixed
-     */
-    protected $orderItemApiCommand;
+    protected $orderItemModel;
 
-    
-    /**
-     * orderItemApiQuery
-     *
-     * @var mixed
-     */
-    protected $orderItemApiQuery;
     
     /**
      * auditService
@@ -63,11 +49,11 @@ class OrderService
     public $helperService;
 
     /**
-     * mainProcessKey
+     * mainProcess
      *
      * @var string
      */
-    public $mainProcessKey;
+    public $mainProcess;
     
     /**
      * currencyService
@@ -80,15 +66,14 @@ class OrderService
 
     public function __construct()
     {
-        $this->orderApiCommand = new OrderApiCommand();
-        $this->orderApiQuery = new OrderApiQuery();
-        $this->orderItemApiCommand = new orderItemApiCommand();
-        $this->orderItemApiQuery = new orderItemApiQuery();
-        $this->auditService = new AuditService();
-        $this->helperService = new HelperService();
-        $this->currencyService = new CurrencyService();
+        $this->orderModel = new Order();
+        $this->orderItemModel = new OrderItem();
+        $this->auditService = new AuditLogService();
+        $this->helperService = new CitronelCommerceHelperService();
+        $this->currencyService = new CitronelCurrencyService();
+        $this->mainProcess = 'order';
+
         $this->montyEsimPlatformBundleService = new MontyEsimPlatformBundleService();
-        $this->mainProcessKey = 'order';
     }
     
     /**
@@ -164,103 +149,85 @@ class OrderService
         $data = $this->helperService->returnFormat();
         $subProcessKey = config('error-catalogue.process.order.sub_process.create.key');
 
-        try {
+        DB::beginTransaction();
 
-            DB::beginTransaction();
+        // create order
+        $orderCurrencyCode = $saveData['order_currency_code'];
+        $currencyRate = $saveData['currency_rate'];
+        $orderSaveData = [
+            'order_guid' => $this->generateOrderGuid(),
+            'customer_id' => array_key_exists('customer_id', $saveData) ? $saveData['customer_id'] : null,
+            'order_status' => OrderStatus::CREATED->value,
+            'currency_rate_id' => $currencyRate->id,
+            'order_currency_code' => $orderCurrencyCode,
+            'expires_at' => $this->calculateOrderExpiry(),
+            'correlation_token' => array_key_exists('correlation_token', $saveData) ? $saveData['correlation_token'] : null,
+        ];
+        $newOrder = $this->orderModel::create($orderSaveData);
 
-            // create order
-            $orderCurrencyCode = $saveData['order_currency_code'];
-            $currencyRate = $saveData['currency_rate'];
-            $orderSaveData = [
-                'order_guid' => $this->generateOrderGuid(),
-                'customer_id' => array_key_exists('customer_id', $saveData) ? $saveData['customer_id']: null,
-                'order_status' => config('order.order_status.created.status'),
-                'currency_rate_id' => $currencyRate->id,
-                'order_currency_code' => $orderCurrencyCode,
-                'expires_at' => $this->calculateOrderExpiry(),
-                'correlation_token' => array_key_exists('correlation_token', $saveData) ? $saveData['correlation_token']: null,
-            ];
-            $newOrder = $this->orderApiCommand::create($orderSaveData);
+        // add order number
+        $orderBaseCurrencySubtotal = 0;
+        $orderBaseCurrencyGrandTotal = 0;
 
-            // add order number
-            $orderBaseCurrencySubtotal = 0;
-            $orderBaseCurrencyGrandTotal = 0;
+        $productTempArray =  array_key_exists('product_temp_array', $extra) ? $extra['product_temp_array'] : null;
+        $correlationToken = array_key_exists('correlation_token', $saveData) ? $saveData['correlation_token'] : null;
 
-            $productTempArray =  array_key_exists('product_temp_array', $extra) ? $extra['product_temp_array'] : null;
-            $correlationToken = array_key_exists('correlation_token', $saveData) ? $saveData['correlation_token']: null;
+        $orderCreatePreProcessExtra = [
+            'correlation_token' => $correlationToken
+        ];
+        foreach ($orderItems as $anOrderItem) {
 
-            $orderCreatePreProcessExtra = [
-                'correlation_token' => $correlationToken
-            ];
-            foreach ($orderItems as $anOrderItem) {
+            // order item create pre process
+            $productId = $anOrderItem['product_id'];
+            $productInterfaceObj = $productTempArray[$productId]['product_class'];
 
-                // order item create pre process
-                $productId = $anOrderItem['product_id'];
-                $productInterfaceObj = $productTempArray[$productId]['product_class'];
-
-                $orderItemCreatePreProcessResponse = $productInterfaceObj->orderItemCreatePreProcess($anOrderItem, $orderCreatePreProcessExtra);
-                if (!$orderItemCreatePreProcessResponse['success']) {
-                    $data['errors'] = true;
-                    $data['message'] = $orderItemCreatePreProcessResponse['message'];
-                    break;
-                }
-
-                $preProcessedOrderItem = $orderItemCreatePreProcessResponse['result'];
-                $anOrderItem = array_merge($anOrderItem, $preProcessedOrderItem);
-
-                $productId = $anOrderItem['product_id'];
-                $productInterfaceObj = $productTempArray[$productId]['product_class'];
-                $saveOrderItemData = $productInterfaceObj->createProductOrderItem($anOrderItem);
-                $saveOrderItemData['order_id'] = $newOrder->id;
-                $newOrderItem = $this->orderItemApiCommand::create($saveOrderItemData);
-
-                $orderBaseCurrencySubtotal = floatval($orderBaseCurrencySubtotal) + floatval(($newOrderItem->product_price * $newOrderItem->quantity));
+            $orderItemCreatePreProcessResponse = $productInterfaceObj->orderItemCreatePreProcess($anOrderItem, $orderCreatePreProcessExtra);
+            if (!$orderItemCreatePreProcessResponse['success']) {
+                $data['errors'] = true;
+                $data['message'] = $orderItemCreatePreProcessResponse['message'];
+                break;
             }
 
-            if (is_null($data['errors'])) {
-                $orderBaseCurrencyGrandTotal = floatval($orderBaseCurrencyGrandTotal) + floatval($orderBaseCurrencySubtotal);
+            $preProcessedOrderItem = $orderItemCreatePreProcessResponse['result'];
+            $anOrderItem = array_merge($anOrderItem, $preProcessedOrderItem);
 
-                $orderSubtotal = $this->currencyService->convertAmount($orderBaseCurrencySubtotal, $orderCurrencyCode, $currencyRate);
-                
-                $orderGrandTotal = $this->currencyService->convertAmount($orderBaseCurrencyGrandTotal, $orderCurrencyCode, $currencyRate);
+            $productId = $anOrderItem['product_id'];
+            $productInterfaceObj = $productTempArray[$productId]['product_class'];
+            $saveOrderItemData = $productInterfaceObj->createProductOrderItem($anOrderItem);
+            $saveOrderItemData['order_id'] = $newOrder->id;
+            $newOrderItem = $this->orderItemModel::create($saveOrderItemData);
 
-                // update order
-                $orderNumber = $this->generateOrderNumber($newOrder->id);
-                $updateOrderSaveData = [
-                    'order_number' => $orderNumber,
-                    'order_base_currency_subtotal' => $orderBaseCurrencySubtotal,
-                    'order_base_currency_grand_total' => $orderBaseCurrencyGrandTotal,
-                    'order_subtotal' => $orderSubtotal,
-                    'order_grand_total' => $orderGrandTotal,
-                ];
-                $this->orderApiCommand::where('id', $newOrder->id)->update($updateOrderSaveData);
+            $orderBaseCurrencySubtotal = floatval($orderBaseCurrencySubtotal) + floatval(($newOrderItem->product_price * $newOrderItem->quantity));
+        }
 
-                DB::commit();
+        if (is_null($data['errors'])) {
+            $orderBaseCurrencyGrandTotal = floatval($orderBaseCurrencyGrandTotal) + floatval($orderBaseCurrencySubtotal);
 
-                $order = $this->orderApiQuery::with('order_items')->where('id', $newOrder->id)->first();
+            $orderSubtotal = $this->currencyService->convertAmount($orderBaseCurrencySubtotal, $orderCurrencyCode, $currencyRate);
 
-                $order->subtotal = $this->currencyService->formatCurrencyAmount($order->order_subtotal, $orderCurrencyCode);
+            $orderGrandTotal = $this->currencyService->convertAmount($orderBaseCurrencyGrandTotal, $orderCurrencyCode, $currencyRate);
 
-                $order->total = $this->currencyService->formatCurrencyAmount($order->order_grand_total, $orderCurrencyCode);
+            // update order
+            $orderNumber = $this->generateOrderNumber($newOrder->id);
+            $updateOrderSaveData = [
+                'order_number' => $orderNumber,
+                'order_base_currency_subtotal' => $orderBaseCurrencySubtotal,
+                'order_base_currency_grand_total' => $orderBaseCurrencyGrandTotal,
+                'order_subtotal' => $orderSubtotal,
+                'order_grand_total' => $orderGrandTotal,
+            ];
+            $this->orderModel::where('id', $newOrder->id)->update($updateOrderSaveData);
 
-                $data['result'] = $order;
-                $data['success'] = true;
-            }
+            DB::commit();
 
-        } catch (\Illuminate\Database\QueryException $e) {
-            report($e);
+            $order = $this->orderModel::with('order_items')->where('id', $newOrder->id)->first();
 
-            $code = $this->helperService->generateProcessCode($this->mainProcessKey, $subProcessKey, null, $this->databaseErrorCatalogue()['code']);
-            $data['message'] = __($this->databaseErrorCatalogue()['lang'], ['code' => $code['code']]);
+            $order->subtotal = $this->currencyService->formatCurrencyAmount($order->order_subtotal, $orderCurrencyCode);
 
-            DB::rollBack();
-        } catch (\Exception $e) {
-            report($e);
+            $order->total = $this->currencyService->formatCurrencyAmount($order->order_grand_total, $orderCurrencyCode);
 
-            $code = $this->helperService->generateProcessCode($this->mainProcessKey, $subProcessKey, null, $this->unknownErrorCatalogue()['code']);
-            $data['message'] = __($this->unknownErrorCatalogue()['lang'], ['code' => $code['code']]);
-
-            DB::rollBack();
+            $data['result'] = $order;
+            $data['success'] = true;
         }
 
         return $data;
@@ -303,9 +270,9 @@ class OrderService
             $updateOrderSaveData['order_grand_total'] = $orderGrandTotal;
         }
 
-        $this->orderApiCommand::where('id', $order->id)->update($updateOrderSaveData);
+        $this->orderModel::where('id', $order->id)->update($updateOrderSaveData);
 
-        $order = $this->orderApiQuery::with('order_items')->where('id', $order->id)->first();
+        $order = $this->orderModel::with('order_items')->where('id', $order->id)->first();
 
         $order->subtotal = $this->currencyService->formatCurrencyAmount($order->order_subtotal, $orderCurrencyCode);
 
@@ -328,7 +295,7 @@ class OrderService
     {
         $data = $this->helperService->returnFormat();
   
-        $result = $this->orderApiQuery::where('id', $id)->first();
+        $result = $this->orderModel::where('id', $id)->first();
         if (is_null($result)) {
           $data['errors'] = true;
         }
@@ -352,7 +319,7 @@ class OrderService
     {
         $data = $this->helperService->returnFormat();
   
-        $result = $this->orderApiQuery::where('order_guid', $id)->first();
+        $result = $this->orderModel::where('order_guid', $id)->first();
         if (is_null($result)) {
           $data['errors'] = true;
         }
@@ -437,7 +404,7 @@ class OrderService
             'quantity' => $saveData['quantity'],
         ];
 
-        $this->orderItemApiCommand::where('id', $orderItem->id)->update($updateOrderItemSaveData);
+        $this->orderModel::where('id', $orderItem->id)->update($updateOrderItemSaveData);
         $order = $orderItem->order;
         $orderCurrencyCode = $order->order_currency_code;
 
@@ -465,12 +432,12 @@ class OrderService
                 'order_grand_total' => $orderGrandTotal,
             ];
 
-            $this->orderApiCommand::where('id', $order->id)->update($updateOrderSaveData);
+            $this->orderModel::where('id', $order->id)->update($updateOrderSaveData);
         }
 
         DB::commit();
 
-        $updatedOrder = $this->orderApiQuery::with('order_items')->where('id', $order->id)->first();
+        $updatedOrder = $this->orderModel::with('order_items')->where('id', $order->id)->first();
 
         $updatedOrder->subtotal = $this->currencyService->formatCurrencyAmount($updatedOrder->order_subtotal, $orderCurrencyCode);
 
@@ -491,7 +458,7 @@ class OrderService
      */
     public function shouldCreatePaymentOrder($orderStatus)
     {
-        return $orderStatus === config('order.order_status.created.status');
+        return $orderStatus === OrderStatus::CREATED->value;
     }
     
     /**
@@ -543,7 +510,7 @@ class OrderService
     {
         $data = $this->helperService->returnFormat();
 
-        $updateOrder = $this->orderApiCommand::where('id', $orderId)->update($saveData);
+        $updateOrder = $this->orderModel::where('id', $orderId)->update($saveData);
         if (!$updateOrder) {
             $data['errors'] = true;
         }
@@ -565,7 +532,7 @@ class OrderService
         $data = $this->helperService->returnFormat();
         $timeLimit = Carbon::now()->subSeconds(intval($seconds));
 
-        $order = $this->orderApiQuery::where('customer_id', $customer->id)
+        $order = $this->orderModel::where('customer_id', $customer->id)
             ->where('updated_at', '>=', $timeLimit)
             ->orderBy('id', 'desc')
             ->first();

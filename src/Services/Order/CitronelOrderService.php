@@ -87,7 +87,7 @@ class CitronelOrderService
     public function calculateOrderExpiry($seconds = null)
     {
         if (is_null($seconds)) {
-            $seconds = config('order.order_expiry_seconds');
+            $seconds = config('citronel-order.order_expiry_seconds');
         }
 
         return date('Y-m-d H:i:s', strtotime('+' . $seconds . ' seconds'));
@@ -115,7 +115,7 @@ class CitronelOrderService
     public function generateOrderNumber($orderIdentifier, $prefix = null, $scopeIdentifier = null, $maxLength = 64)
     {
         if (is_null($prefix)) {
-            $prefix = config('order.order_number_prefix');
+            $prefix = config('citronel-order.order_number_prefix');
         }
 
         $prefix = $prefix . $scopeIdentifier;
@@ -525,7 +525,7 @@ class CitronelOrderService
 
     public function shouldVerifyLastOrderBeforeCreate()
     {
-        return intval(config('order.verify_last_order_before_create'));
+        return intval(config('citronel-order.verify_last_order_before_create'));
     }
 
     public function getLastOrderToVerifyForCustomer($customer, $seconds)
@@ -538,7 +538,7 @@ class CitronelOrderService
             ->orderBy('id', 'desc')
             ->first();
 
-        if (!is_null($order) && $order->order_status === config('order.order_status.created.status')) {
+        if (!is_null($order) && $order->order_status === OrderStatus::CREATED->value) {
             $data['result'] = $order;
         } else {
             $data['errors'] = true;

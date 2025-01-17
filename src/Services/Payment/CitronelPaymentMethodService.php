@@ -39,7 +39,7 @@ class CitronelPaymentMethodService
      */
     public function getDefaultPaymentMethod()
     {
-        return config('payment.payment_method_default');
+        return config('citronel-payment.payment_method_default');
     }
 
     /**
@@ -62,7 +62,7 @@ class CitronelPaymentMethodService
                         if (!is_null($reverseProxyUrl)) {
                             $item->logo = $reverseProxyUrl . '/' . $item->logo;
                         } else {
-                            $item->logo = asset(config('payment.payment_method_logo_path') . $item->logo);
+                            $item->logo = asset(config('citronel-payment.payment_method_logo_path') . $item->logo);
                         }
                     }
 

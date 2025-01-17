@@ -247,7 +247,7 @@ abstract class AbstractPaymentGateway
                 if (!is_null($reverseProxyUrl)) {
                     $mappedConfigurations[$configurationKey] = $reverseProxyUrl . '/' . $value;
                 } else {
-                    $mappedConfigurations[$configurationKey] = asset(config('payment.payment_method_logo_path') . $value);
+                    $mappedConfigurations[$configurationKey] = asset(config('citronel-payment.payment_method_logo_path') . $value);
                 }
             }
         }
@@ -298,7 +298,7 @@ abstract class AbstractPaymentGateway
     {
         $data = $this->helperService->returnFormat();
 
-        $allowedTimeLapse = intval(config('payment.payment_update_time_gap_seconds'));
+        $allowedTimeLapse = intval(config('citronel-payment.payment_update_time_gap_seconds'));
         if ($createdAt < Carbon::now()->subSeconds($allowedTimeLapse)) {
             $data['errors'] = true;
             $data['message'] = __('payment/messages.payment_method_update_time_exceeded');
@@ -384,7 +384,7 @@ abstract class AbstractPaymentGateway
     public function generateGatewayMerchantTransactionNo($identifier, $prefix = null, $scopeIdentifier = null)
     {
         if (is_null($prefix)) {
-            $prefix = config('payment.transaction_number_prefix');
+            $prefix = config('citronel-payment.transaction_number_prefix');
         }
 
         $prefix = $prefix . $this->gatewayMerchantTransactionNoPrefix .$scopeIdentifier;

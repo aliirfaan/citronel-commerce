@@ -12,6 +12,7 @@ use aliirfaan\CitronelJob\Traits\HasJobPolicy;
 use aliirfaan\CitronelCommerce\Services\Product\ProductService;
 use aliirfaan\CitronelCommerce\Models\Order\ManualFulfillmentRetry;
 use aliirfaan\CitronelCommerce\Enums\Order\OrderStatus;
+use aliirfaan\CitronelCommerce\Enums\Payment\PaymentStatus;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -321,7 +322,7 @@ class CitronelFulfillmentService
             ->where('order_id', $orderId)
             ->with([
                 'payments' => function($query){
-                    $query->where('payments.payment_status', 'paid');
+                    $query->where('payments.payment_status', PaymentStatus::PAID->value);
                 }])
             ->get();
     }
@@ -358,7 +359,7 @@ class CitronelFulfillmentService
             ->join('payments', 'payments.order_id', '=', 'order_fulfillments.order_id')
             ->where('order_fulfillments.product_id', $productId)
             ->where('order_fulfillments.order_item_fulfillment_status', $status)
-            ->where('payments.payment_status', 'paid')
+            ->where('payments.payment_status', PaymentStatus::PAID->value)
             ->orderBy('order_fulfillments.fulfilled_at', 'desc')
             ->select(
                 'order_fulfillments.*',
@@ -425,7 +426,7 @@ class CitronelFulfillmentService
             ->join('payments', 'payments.order_id', '=', 'order_fulfillments.order_id')
             ->join('payment_method_configurations', 'payments.payment_method_configuration_id', '=', 'payment_method_configurations.id')
             ->join('payment_methods', 'payment_methods.id', '=', 'payment_method_configurations.payment_method_id')
-            ->where('payments.payment_status', config('payment.payment_status.paid.status'))
+            ->where('payments.payment_status', PaymentStatus::PAID->value)
             ->select(
                 'payments.gateway_merchant_transaction_no',
                 'payments.paid_at',

@@ -470,6 +470,6 @@ class CitronelPaymentService
      */
     public function shouldVerifyLastPaymentBeforeCreate()
     {
-        return intval(config('payment.verify_last_payment_before_create'));
+        return intval(config('citronel-payment.verify_last_payment_before_create'));
     }
 }

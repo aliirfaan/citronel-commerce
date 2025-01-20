@@ -23,12 +23,11 @@
 | time interval to check for last payment verification
 |
 */
-
 return [
     'payment_method_default' => env('PAYMENT_METHOD_DEFAULT', 'credit_card'),
     'transaction_number_prefix' => env('TRANSACTION_NUMBER_PREFIX', 'citrcom'),
     'payment_update_time_gap_seconds' => env('PAYMENT_UPDATE_TIME_GAP_SECONDS', 2400),
     'payment_method_logo_path' => env('PAYMENT_METHOD_LOGO_PATH', 'storage/payment_methods/'),
-    'vat_percentage' => 15,
+    'vat_percentage' => env('VAT_PERCENTAGE', 15),
     'verify_last_payment_before_create' => env('VERIFY_LAST_PAYMENT_BEFORE_CREATE', false)
 ];

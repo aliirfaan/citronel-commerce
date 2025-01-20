@@ -1,0 +1,168 @@
+<?php
+
+/*
+| Main processes are under process key.
+| A main process may have many sub processes.
+| A sub process may have many events.
+| Format: [main-process code]-[sub-process code]-[event code]
+| Example: 101-3-1
+|
+|--------------------------------------------------------------------------
+| Format
+|--------------------------------------------------------------------------
+'customer' => [
+    'code' => '101',
+    'key' => 'customer',
+    'sub_process' => [
+        'register' => [
+            'key' => 'register',
+            'name' => 'register',
+            'code' => '1',
+            'events' => [
+                'otp_sent' => [
+                    'key' => 'otp_sent',
+                    'name' => 'register.otp_sent',
+                    'code' => '1',
+                    'code_status' => 'register.otp_sent'
+                ],
+                'customer_already_exists' => [
+                    'key' => 'customer_already_exists',
+                    'name' => 'customer_already_exists',
+                    'code' => '2',
+                    'code_status' => 'customer_already_exists'
+                ],
+            ]
+        ],
+    ]
+],
+*/
+
+return [
+    'process' => [
+        'order' => [
+            'code' => '201',
+            'key' => 'order',
+            'sub_process' => [
+                'create' => [
+                    'key' => 'create',
+                    'name' => 'create',
+                    'code' => '1',
+                    'events' => [
+                        'invalid_product' => [
+                            'key' => 'invalid_product',
+                            'name' => 'invalid_product',
+                            'code' => '1',
+                            'code_status' => 'invalid_product',
+                        ],
+                        'invalid_pre_process' => [
+                            'key' => 'invalid_pre_process',
+                            'name' => 'invalid_pre_process',
+                            'code' => '2',
+                            'code_status' => 'invalid_pre_process',
+                        ],
+                        'invalid_currency' => [
+                            'key' => 'key',
+                            'name' => 'invalid_currency',
+                            'code' => '3',
+                            'code_status' => null,
+                        ],
+                        'create_failure' => [
+                            'key' => 'key',
+                            'name' => 'create_failure',
+                            'code' => '4',
+                            'code_status' => null,
+                        ],
+                        'created' => [
+                            'key' => 'key',
+                            'name' => 'created',
+                            'code' => '5',
+                            'code_status' => null,
+                        ],
+                        'pending_fulfillment_block' => [
+                            'key' => 'pending_fulfillment_block',
+                            'name' => 'pending_fulfillment_block',
+                            'code' => '6',
+                            'code_status' => null,
+                        ],
+                    ],
+                ],
+                'review' => [
+                    'key' => 'review',
+                    'name' => 'order.review',
+                    'code' => '2',
+                    'events' => [
+                        'invalid_order' => [
+                            'key' => 'invalid_order',
+                            'name' => 'invalid_order',
+                            'code' => '1',
+                            'code_status' => 'invalid_order',
+                        ],
+                        'expired_order' => [
+                            'key' => 'expired_order',
+                            'name' => 'expired_order',
+                            'code' => '2',
+                            'code_status' => 'expired_order',
+                        ],
+                        'invalid_payment_method' => [
+                            'key' => 'invalid_payment_method',
+                            'name' => 'invalid_payment_method',
+                            'code' => '3',
+                            'code_status' => 'invalid_payment_method',
+                        ],
+                    ]
+                ],
+                'item_review' => [
+                    'key' => 'item_review',
+                    'name' => 'order.item_review',
+                    'code' => '3',
+                    'events' => [
+                        'invalid_order' => [
+                            'key' => 'invalid_order',
+                            'name' => 'invalid_order',
+                            'code' => '1',
+                            'code_status' => 'invalid_order',
+                        ],
+                        'expired_order' => [
+                            'key' => 'expired_order',
+                            'name' => 'expired_order',
+                            'code' => '2',
+                            'code_status' => 'expired_order',
+                        ],
+                        'invalid_order_item' => [
+                            'key' => 'invalid_order_item',
+                            'name' => 'invalid_order_item',
+                            'code' => '3',
+                            'code_status' => 'invalid_order_item',
+                        ],
+                    ]
+                ],
+                'fulfillment' => [
+                    'key' => 'fulfillment',
+                    'name' => 'fulfillment',
+                    'code' => '4',
+                    'events' => [
+                        'item_fulfillment_processed' => [
+                            'key' => 'item_fulfillment_processed',
+                            'name' => 'item_fulfillment_processed',
+                            'code' => '1',
+                            'code_status' => 'item_fulfillment_processed',
+                        ],
+                    ]
+                ],
+                'manual_fulfillment' => [
+                    'key' => 'manual_fulfillment',
+                    'name' => 'manual_fulfillment',
+                    'code' => '5',
+                    'events' => [
+                        'invalid_item' => [
+                            'key' => 'invalid_item',
+                            'name' => 'invalid_item',
+                            'code' => '1',
+                            'code_status' => 'invalid_item',
+                        ],
+                    ]
+                ],
+            ]
+        ],
+    ],
+];

@@ -28,7 +28,6 @@
 | fulfillment_failure_support_to_address | String
 | email address to send support notification
 */
-
 return [
     'order_number_prefix' => env('ORDER_NUMBER_PREFIX'),
     'order_history_range_month' => env('ORDER_HISTORY_RANGE_MONTH', 6),

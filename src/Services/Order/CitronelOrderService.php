@@ -13,9 +13,6 @@ use aliirfaan\CitronelCommerce\Models\Order\OrderItem;
 use aliirfaan\CitronelCommerce\Services\Currency\CitronelCurrencyService;
 use aliirfaan\CitronelCommerce\Enums\Order\OrderStatus;
 
-// @todo to remove
-use App\Services\Api\v1\MontyEsim\Bundle\MontyEsimPlatformBundleService;
-
 class CitronelOrderService
 {
     use ErrorCatalogue;
@@ -73,8 +70,6 @@ class CitronelOrderService
         $this->helperService = new CitronelCommerceHelperService();
         $this->currencyService = $currencyService;
         $this->mainProcess = 'order';
-
-        $this->montyEsimPlatformBundleService = new MontyEsimPlatformBundleService();
     }
     
     /**

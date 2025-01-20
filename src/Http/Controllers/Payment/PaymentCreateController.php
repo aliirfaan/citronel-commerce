@@ -49,7 +49,7 @@ class PaymentCreateController extends PaymentController
             $order = $getOrderResponse['result'];
 
             // authorize
-            Gate::forUser($this->actor)->authorize('matchCustomerToken', $order->customer_id);
+            Gate::forUser($this->actor)->authorize('matchActorToken', $order->customer_id);
 
             // check order expiry
             $checkOrderExpiryResponse = $orderService->checkOrderExpiry($order);

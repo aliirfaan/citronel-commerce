@@ -22,7 +22,6 @@ class OrderItem extends Model
         'quantity' => 'integer',
     ];
 
-    // @todo to review to extend this class for custom fields
     protected $fillable = [
         'id', 'order_id', 'product_id', 'product_price', 'quantity', 'order_item_meta'
     ];

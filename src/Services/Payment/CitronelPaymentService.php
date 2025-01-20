@@ -2,6 +2,8 @@
 
 namespace aliirfaan\CitronelCommerce\Services\Payment;
 
+use Illuminate\Support\Str;
+use Carbon\Carbon;
 use aliirfaan\CitronelErrorCatalogue\Services\CitronelErrorCatalogueService;
 use aliirfaan\CitronelCommerce\Services\Helper\CitronelCommerceHelperService;
 use aliirfaan\CitronelCommerce\Models\Payment\Payment;
@@ -11,10 +13,7 @@ use aliirfaan\CitronelCommerce\Enums\Payment\PaymentStatus;
 use aliirfaan\CitronelCommerce\Events\Payment\PaymentProcessed;
 use aliirfaan\CitronelCommerce\Services\Order\OrderMediatorService;
 use aliirfaan\CitronelCommerce\Contracts\Traits\Payment\PaymentServiceManualConfirmationTrait;
-use Illuminate\Support\Str;
-use Carbon\Carbon;
 
-// @todo
 class CitronelPaymentService
 {
     use ErrorCatalogue, PaymentServiceManualConfirmationTrait;

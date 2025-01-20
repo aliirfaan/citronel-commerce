@@ -5,7 +5,6 @@ namespace aliirfaan\CitronelCommerce\Controllers\Payment;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Gate;
-use Exception;
 use aliirfaan\LaravelSimpleAuditLog\Services\AuditLogService;
 use aliirfaan\CitronelCommerce\Services\Payment\CitronelPaymentService;
 use aliirfaan\LaravelSimpleApi\Http\Resources\ApiResponseCollection;
@@ -31,16 +30,12 @@ class CustomerPaymentController extends PaymentController
 
         $this->actor = $request->get('actor', null);
 
-
         $auditData = $auditService->generatePreliminaryEventData($request, $correlationToken, $this->actor);
         $auditData['al_event_name'] = $subProcess['name'];
 
         try{
-
-            $subProcessKey = $subProcess['key'];
-
             // authorize
-            Gate::forUser($this->actor)->authorize('matchCustomerToken', $customer_id);
+            Gate::forUser($this->actor)->authorize('matchActorToken', $customer_id);
 
             $perPage = config('citronel.per_page');
             if ($request->per_page) {

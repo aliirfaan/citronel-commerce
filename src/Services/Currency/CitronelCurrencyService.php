@@ -55,8 +55,7 @@ class CitronelCurrencyService
     public function refreshExchangeRate($correlationToken = null)
     {
         $data = $this->helperService->returnFormat();
-        $subProcessKey = 'refresh_rate';
-
+        
         $data = $this->currencyPlatformService->refreshExchangeRate($correlationToken);
         if ($data['success']) {
             $exchangeRateResult = $data['result'];

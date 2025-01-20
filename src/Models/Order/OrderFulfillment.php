@@ -14,10 +14,8 @@ class OrderFulfillment extends Model
 
     protected $table = 'order_fulfillments';
 
-    // @todo to review to extend this class for custom fields
     protected $hidden = ['created_at', 'updated_at'];
 
-    // @todo to review to extend this class for custom fields
     protected $fillable = [
         'id', 'order_item_id', 'customer_id', 'order_id', 'product_id', 'order_item_meta', 'order_item_fulfillment_status'
     ];

@@ -1,11 +1,13 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\v1\Refund\InitiateOrderRefundController;
-use App\Http\Controllers\Api\v1\Refund\UpdateOrderRefundController;
+use aliirfaan\CitronelCommerce\Controllers\Refund\InitiateOrderRefundController;
+use aliirfaan\CitronelCommerce\Controllers\Refund\UpdateOrderRefundController;
 
-Route::middleware(config('citronel-commerce.middleware.back_office_api'))->group(function () {
-
+Route::group([
+    'prefix' => config('citronel-commerce.back_office_api_route_prefix', ''),
+    'middleware' => config('citronel-commerce.middleware.back_office_api')
+], function () {
     Route::post('/{order_guid}', [InitiateOrderRefundController::class, 'initiateOrderRefund']);
     Route::put('/{payment_refund_id}', [UpdateOrderRefundController::class, 'updateOrderRefund']);
 });

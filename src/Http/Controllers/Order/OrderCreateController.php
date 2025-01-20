@@ -58,7 +58,7 @@ class OrderCreateController extends OrderController
             }
 
             // authorize
-            Gate::forUser($this->actor)->authorize('matchCustomerToken', $requestArray['customer_id']);
+            Gate::forUser($this->actor)->authorize('matchActorToken', $requestArray['customer_id']);
 
             // prevent customer from creating order if he/she has pending fulfilments in the last x seconds
             $pendingFulfillmentTimeframeSeconds = intval(config('order.order_pending_fulfillment_check_timeframe_seconds'));

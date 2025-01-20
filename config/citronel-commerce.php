@@ -4,6 +4,9 @@
 | api_route_prefix | String
 | Prefix for routes
 |
+| back_office_api_route_prefix | String
+| Prefix for back office routes
+|
 | middleware.api | Array
 | Middleware to be applied to all front API routes
 |
@@ -17,6 +20,7 @@
 */
 return [
     'api_route_prefix' => env('CITRONEL_COMMERCE_API_ROUTE_PREFIX', null),
+    'back_office_api_route_prefix' => env('CITRONEL_COMMERCE_BACK_OFFICE_API_ROUTE_PREFIX', null),
     'middleware' => [
         'api' => [
             \aliirfaan\CitronelCore\Http\Middleware\CorrelationToken::class,

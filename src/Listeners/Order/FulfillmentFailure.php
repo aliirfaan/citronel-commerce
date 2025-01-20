@@ -9,6 +9,7 @@ use aliirfaan\CitronelCommerce\Services\Order\CitronelFulfillmentService;
 use aliirfaan\CitronelCommerce\Mail\Order\FulfillmentFailure as FulfillmentFailureMail;
 use aliirfaan\CitronelCommerce\Mail\Order\CustomerFulfillmentFailure;
 use Illuminate\Support\Facades\Mail;
+use aliirfaan\CitronelCommerce\Enums\Order\OrderStatus;
 
 class FulfillmentFailure implements ShouldQueue
 {
@@ -41,7 +42,7 @@ class FulfillmentFailure implements ShouldQueue
             return;
         }
 
-        $unfulfilledStatus = config('order.order_status.unfulfilled.status');
+        $unfulfilledStatus = OrderStatus::UNFULFILLED->value;
         $unfulfilledItems = $this->fulfillmentService->getFulfillmentsByOrderId($event->item->order_id, $unfulfilledStatus);
 
         $payment = $this->fulfillmentService->getSuccessPaymentForOrder($event->item->order_id);

@@ -10,31 +10,7 @@
 |--------------------------------------------------------------------------
 | Format
 |--------------------------------------------------------------------------
-'customer' => [
-    'code' => '101',
-    'key' => 'customer',
-    'sub_process' => [
-        'register' => [
-            'key' => 'register',
-            'name' => 'register',
-            'code' => '1',
-            'events' => [
-                'otp_sent' => [
-                    'key' => 'otp_sent',
-                    'name' => 'register.otp_sent',
-                    'code' => '1',
-                    'code_status' => 'register.otp_sent'
-                ],
-                'customer_already_exists' => [
-                    'key' => 'customer_already_exists',
-                    'name' => 'customer_already_exists',
-                    'code' => '2',
-                    'code_status' => 'customer_already_exists'
-                ],
-            ]
-        ],
-    ]
-],
+| see package citronel-error-catalogue format
 */
 
 return [
@@ -141,9 +117,9 @@ return [
                     'code' => '3',
                     'events' => []
                 ],
-                'get_customer_payments_with_order_items' => [
-                    'key' => 'get_customer_payments_with_order_items',
-                    'name' => 'get_customer_payments_with_order_items',
+                'get_actor_payments_with_order_items' => [
+                    'key' => 'get_actor_payments_with_order_items',
+                    'name' => 'get_actor_payments_with_order_items',
                     'code' => '5',
                     'events' => []
                 ],

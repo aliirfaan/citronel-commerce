@@ -23,4 +23,11 @@ class ManualPaymentConfirmation extends Model
     {
         return $this->belongsTo(Payment::class);
     }
+
+    public function createValidationRules()
+    {
+        return [
+            'update_actor_id' => ['bail', 'required'],
+        ];
+    }
 }

@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use aliirfaan\CitronelCore\Models\Actor\CitronelActor;
 
 return new class extends Migration
 {
@@ -14,8 +15,10 @@ return new class extends Migration
         Schema::create('orders', function (Blueprint $table) {
             $table->id(); // use this to generate order number
             $table->uuid('order_guid')->nullable(true); // use this for update via api so that we do not expose sequential id
-            $table->uuid('customer_id')->nullable(true); // guest order
-            $table->string('order_number')->nullable(true); // this is order numebr communicated to the customer
+            $table->foreignId('actor_id')
+            ->nullable()
+            ->constrained((new CitronelActor)->getTable());
+            $table->string('order_number')->nullable(true); // this is order numebr communicated to the the world
             $table->string('order_status')->nullable(true);
             $table->uuid('order_payment_method_configuration_id')->nullable(true); // latest payment method configuration used for this order, useful before any payment is made and for review
             $table->unsignedBigInteger('currency_rate_id')->nullable(true);
@@ -34,7 +37,6 @@ return new class extends Migration
             $table->timestamps();
 
             $table->foreign('currency_rate_id')->references('id')->on('currency_rates');
-            $table->foreign('customer_id')->references('id')->on('customers');
 
             $table->unique('order_guid');
             $table->unique('order_number');

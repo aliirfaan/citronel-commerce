@@ -663,7 +663,7 @@ w\:* {behavior:url(#default#VML);}
                 <span style='font-size:12.0pt;
         font-family:"Tahoma",sans-serif;mso-fareast-font-family:"Times New Roman";
         color:#55575D'>
-                Customer name: {{ $mailVars['customer']['full_name'] }}
+                Name: {{ $mailVars['actor']['full_name'] }}
                 </span>
                 </td>
             </tr>
@@ -672,7 +672,7 @@ w\:* {behavior:url(#default#VML);}
                 <span style='font-size:12.0pt;
         font-family:"Tahoma",sans-serif;mso-fareast-font-family:"Times New Roman";
         color:#55575D'>
-                Customer email: {{ $mailVars['customer']['email'] }}
+                Email: {{ $mailVars['actor']['email'] }}
                 </span>
                 </td>
             </tr>
@@ -681,7 +681,7 @@ w\:* {behavior:url(#default#VML);}
                 <span style='font-size:12.0pt;
         font-family:"Tahoma",sans-serif;mso-fareast-font-family:"Times New Roman";
         color:#55575D'>
-                Customer mobile number: {{ $mailVars['customer']['mobile_number'] }}
+                Mobile number: {{ $mailVars['actor']['mobile_number'] }}
                 </span>
                 </td>
             </tr>

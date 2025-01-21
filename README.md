@@ -38,7 +38,7 @@ Simple order and payment processing for Laravel API project.
 ## Payment
 
 ## Fulfillment
-
+Add columns to your order fulfillments
 ## Manual fulfillment
 
 ## Refund

@@ -58,13 +58,13 @@ class OrderCreateController extends OrderController
             }
 
             // authorize
-            Gate::forUser($this->actor)->authorize('matchActorToken', $requestArray['customer_id']);
+            Gate::forUser($this->actor)->authorize('matchActorToken', $requestArray['actor_id']);
 
-            // prevent customer from creating order if he/she has pending fulfilments in the last x seconds
+            // prevent actor from creating order if he/she has pending fulfilments in the last x seconds
             $pendingFulfillmentTimeframeSeconds = intval(config('order.order_pending_fulfillment_check_timeframe_seconds'));
             if ($pendingFulfillmentTimeframeSeconds > 0) {
-                $customerPendingFulfillmentsCount = $fulfillmentService->getCustomerPendingFulfillmentsCount($this->actor->id, $pendingFulfillmentTimeframeSeconds);
-                if (intval($customerPendingFulfillmentsCount) > 0) {
+                $actorPendingFulfillmentsCount = $fulfillmentService->getActorPendingFulfillmentsCount($this->actor->id, $pendingFulfillmentTimeframeSeconds);
+                if (intval($actorPendingFulfillmentsCount) > 0) {
                     $subProcessErrorKey = config('error-catalogue.process.order.sub_process.create.events.pending_fulfillment_block.key');
                     $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, $subProcessErrorKey);
 
@@ -85,9 +85,9 @@ class OrderCreateController extends OrderController
             // verify if last payment for last order was accepted at gateway but not processed on platform
             if ($orderService->shouldVerifyLastOrderBeforeCreate()) {
                 $lastOrderVerificationTimeframeSeconds = intval(config('order.last_order_verification_timeframe_seconds'));
-                $getLastOrderToVerifyForCustomerResponse = $orderService->getLastOrderToVerifyForCustomer($this->actor, $lastOrderVerificationTimeframeSeconds);
-                if ($getLastOrderToVerifyForCustomerResponse['success']) {
-                    $lastOrder = $getLastOrderToVerifyForCustomerResponse['result'];
+                $getLastOrderToVerifyForActorResponse = $orderService->getLastOrderToVerifyForActor($this->actor, $lastOrderVerificationTimeframeSeconds);
+                if ($getLastOrderToVerifyForActorResponse['success']) {
+                    $lastOrder = $getLastOrderToVerifyForActorResponse['result'];
 
                     $verifyLastPaymentResponse = $paymentService->verifyLastPaymentForOrder($lastOrder);
                     if ($verifyLastPaymentResponse['success']) {
@@ -229,7 +229,7 @@ class OrderCreateController extends OrderController
 
             // create order
             $createOrderSaveData = [
-                'customer_id' => $this->actor->id,
+                'actor_id' => $this->actor->id,
                 'currency_rate' => $currencyRate,
                 'order_currency_code' => $orderCurrencyCode,
                 'correlation_token' => $correlationToken

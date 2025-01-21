@@ -10,7 +10,7 @@ use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Mail\Mailables\Address;
 
-class CustomerFulfillmentFailure extends Mailable
+class ActorFulfillmentFailure extends Mailable
 {
     use Queueable, SerializesModels;
 
@@ -43,7 +43,7 @@ class CustomerFulfillmentFailure extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'emails.order.customer-unfulfilled',
+            view: 'emails.order.actor-unfulfilled',
             with: [
                 'mailVars' => $this->mailVars,
             ],

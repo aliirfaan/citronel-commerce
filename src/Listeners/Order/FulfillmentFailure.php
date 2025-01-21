@@ -7,7 +7,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use aliirfaan\CitronelCommerce\Events\Order\FulfillmentFailed;
 use aliirfaan\CitronelCommerce\Services\Order\CitronelFulfillmentService;
 use aliirfaan\CitronelCommerce\Mail\Order\FulfillmentFailure as FulfillmentFailureMail;
-use aliirfaan\CitronelCommerce\Mail\Order\CustomerFulfillmentFailure;
+use aliirfaan\CitronelCommerce\Mail\Order\ActorFulfillmentFailure;
 use Illuminate\Support\Facades\Mail;
 use aliirfaan\CitronelCommerce\Enums\Order\OrderStatus;
 
@@ -47,16 +47,17 @@ class FulfillmentFailure implements ShouldQueue
 
         $payment = $this->fulfillmentService->getSuccessPaymentForOrder($event->item->order_id);
 
-        $customer = $unfulfilledItems[0]->customer;
+        $actor = $unfulfilledItems[0]->actor;
         $mailVars = [
-            'customer' => $customer,
+            'actor' => $actor,
             'payment' => $payment,
             'items' => $unfulfilledItems,
         ];
 
-        // notification to customer
+        // notification to actor
+        // @todo get notification to for actor
         if (intval(config('citronel-order.features.fulfillment_failure_customer_notification_enabled'))) {
-            Mail::to($customer->email)->send(new CustomerFulfillmentFailure($mailVars));
+            Mail::to($actor->email)->send(new ActorFulfillmentFailure($mailVars));
 
             // Mark the notification as sent
             $order->fulfillment_fail_notif_sent = true;

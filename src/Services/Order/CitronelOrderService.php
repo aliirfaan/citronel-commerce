@@ -152,7 +152,7 @@ class CitronelOrderService
         $currencyRate = $saveData['currency_rate'];
         $orderSaveData = [
             'order_guid' => $this->generateOrderGuid(),
-            'customer_id' => array_key_exists('customer_id', $saveData) ? $saveData['customer_id'] : null,
+            'actor_id' => array_key_exists('actor_id', $saveData) ? $saveData['actor_id'] : null,
             'order_status' => OrderStatus::CREATED->value,
             'currency_rate_id' => $currencyRate->id,
             'order_currency_code' => $orderCurrencyCode,
@@ -523,12 +523,12 @@ class CitronelOrderService
         return intval(config('citronel-order.verify_last_order_before_create'));
     }
 
-    public function getLastOrderToVerifyForCustomer($customer, $seconds)
+    public function getLastOrderToVerifyForActor($actor, $seconds)
     {
         $data = $this->helperService->returnFormat();
         $timeLimit = Carbon::now()->subSeconds(intval($seconds));
 
-        $order = $this->orderModel::where('customer_id', $customer->id)
+        $order = $this->orderModel::where('actor_id', $actor->id)
             ->where('updated_at', '>=', $timeLimit)
             ->orderBy('id', 'desc')
             ->first();

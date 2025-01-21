@@ -10,9 +10,9 @@
 | middleware.api | Array
 | Middleware to be applied to all front API routes
 |
-| Normally you must authenticate the customer before these 2 middlewares
-| EnsureCustomerIsVerified::class
-| EnsureCustomerIsActive::class
+| Normally you must authenticate the Actor before these 2 middlewares
+| EnsureActorIsVerified::class
+| EnsureActorIsActive::class
 |
 | middleware.back_office_api | Array
 | Middleware to be applied to all back office API routes
@@ -24,8 +24,8 @@ return [
     'middleware' => [
         'api' => [
             \aliirfaan\CitronelCore\Http\Middleware\CorrelationToken::class,
-            \aliirfaan\CitronelCore\Http\Middleware\Customer\EnsureCustomerIsVerified::class,
-            \aliirfaan\CitronelCore\Http\Middleware\Customer\EnsureCustomerIsActive::class
+            \aliirfaan\CitronelCore\Http\Middleware\Actor\EnsureActorIsVerified::class,
+            \aliirfaan\CitronelCore\Http\Middleware\Actor\EnsureActorIsActive::class
         ],
         'back_office_api'=> [
             \aliirfaan\CitronelCore\Http\Middleware\CorrelationToken::class,

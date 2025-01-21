@@ -40,4 +40,28 @@ class OrderItem extends Model
     {
         return $this->hasMany(OrderFulfillment::class, 'order_item_id');
     }
+
+    public function createValidationRules()
+    {
+        return [
+            'product_id' => ['bail', 'required', 'max:20'],
+            'product_price' => ['bail', 'nullable', 'numeric'],
+            'quantity' => ['bail', 'required', 'numeric', 'min:1', 'max:10'],
+            'order_item_meta' => ['bail', 'required', 'array']
+        ];
+    }
+
+    public function reviewValidationRules()
+    {
+        return [
+            'quantity' => ['bail', 'required', 'numeric'],
+        ];
+    }
+
+    public function createValidationRulesMessages()
+    {
+        return [
+            'quantity.max' => __('order/messages.order_item_quantity_max')
+        ];
+    }
 }

@@ -66,7 +66,7 @@ class OrderReviewController extends OrderController
             $order = $getOrderResponse['result'];
 
             // authorize
-            Gate::forUser($this->actor)->authorize('matchActorToken', $order->customer_id);
+            Gate::forUser($this->actor)->authorize('matchActorToken', $order->actor_id);
 
             // check order expiry
             $checkOrderExpiryResponse = $orderService->checkOrderExpiry($order);

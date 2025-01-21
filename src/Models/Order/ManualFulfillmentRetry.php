@@ -24,4 +24,11 @@ class ManualFulfillmentRetry extends Model
     {
         return $this->belongsTo(OrderFulfillment::class);
     }
+
+    public function createValidationRules()
+    {
+        return [
+            'retry_user_id' => ['bail', 'required'],
+        ];
+    }
 }

@@ -117,7 +117,7 @@ class CitronelFulfillmentService
 
                 $orderFulfillmentSaveData = [
                     'order_item_id' => $anOrderItem->id,
-                    'customer_id' => $order->customer_id,
+                    'actor_id' => $order->actor_id,
                     'order_item_fulfillment_status' => OrderStatus::CREATED->value,
                     'order_id' => $order->id,
                     'product_id' => $anOrderItem->product_id,
@@ -345,17 +345,17 @@ class CitronelFulfillmentService
     }
     
     /**
-     * Method getCustomerFulfillmentByProduct
+     * Method getActorFulfillmentsByProduct
      *
-     * @param $customerId $customerId [explicite description]
-     * @param $productId $productId [explicite description]
-     * @param $status $status [explicite description]
+     * @param mixed $actorId [explicite description]
+     * @param mixed $productId [explicite description]
+     * @param string $status [explicite description]
      *
      * @return mixed
      */
-    public function getCustomerFulfillmentsByProduct($customerId, $productId, $status = 'fulfilled')
+    public function getActorFulfillmentsByProduct($actorId, $productId, $status = 'fulfilled')
     {
-        return $this->orderFulfillmentModel->where('order_fulfillments.customer_id', $customerId)
+        return $this->orderFulfillmentModel->where('order_fulfillments.actor_id', $actorId)
             ->join('payments', 'payments.order_id', '=', 'order_fulfillments.order_id')
             ->where('order_fulfillments.product_id', $productId)
             ->where('order_fulfillments.order_item_fulfillment_status', $status)
@@ -368,23 +368,23 @@ class CitronelFulfillmentService
     }
     
     /**
-     * Method getCustomerPendingFulfillmentsCount
+     * Method getActorPendingFulfillmentsCount
      *
-     * Get fulfillment count for a customer where status is processing_retry
+     * Get fulfillment count for an actor where status is processing_retry
      * and created_at is within the last x seconds
-     * This can be used to block order creation if customer has pending fulfillments
+     * This can be used to block order creation if actor has pending fulfillments
      *
-     * @param string $customerId [explicite description]
+     * @param string $actorId [explicite description]
      * @param int $seconds [explicite description]
      *
      * @return int
      */
-    public function getCustomerPendingFulfillmentsCount($customerId, $seconds)
+    public function getActorPendingFulfillmentsCount($actorId, $seconds)
     {
         $status = OrderStatus::PROCESSING_RETRY->value;
         $timeLimit = Carbon::now()->subSeconds(intval($seconds));
 
-        return $this->orderFulfillmentModel->where('order_fulfillments.customer_id', $customerId)
+        return $this->orderFulfillmentModel->where('order_fulfillments.actor_id', $actorId)
             ->where('order_fulfillments.order_item_fulfillment_status', $status)
             ->where('order_fulfillments.created_at', '>=', $timeLimit)
             ->count();

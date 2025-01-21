@@ -9,14 +9,14 @@ use aliirfaan\LaravelSimpleAuditLog\Services\AuditLogService;
 use aliirfaan\CitronelCommerce\Services\Payment\CitronelPaymentService;
 use aliirfaan\LaravelSimpleApi\Http\Resources\ApiResponseCollection;
 
-class CustomerPaymentController extends PaymentController
+class ActorPaymentController extends PaymentController
 {
-    public function customerPaymentsWithOrderItems(Request $request, string $customer_id, AuditLogService $auditService, CitronelPaymentService $paymentService)
+    public function actorPaymentsWithOrderItems(Request $request, string $actor_id, AuditLogService $auditService, CitronelPaymentService $paymentService)
     {
         $correlationToken = $this->helperService->getCorrelationToken($request);
         $reponseHeaders = $this->helperService->correlationResponseHeader($correlationToken);
 
-        $subProcess = config('error-catalogue.process.payment.sub_process.get_customer_payments_with_order_items');
+        $subProcess = config('error-catalogue.process.payment.sub_process.get_actor_payments_with_order_items');
 
         $gatewayMerchantTransactionNo = null;
         $orderNumber = null;
@@ -35,7 +35,7 @@ class CustomerPaymentController extends PaymentController
 
         try{
             // authorize
-            Gate::forUser($this->actor)->authorize('matchActorToken', $customer_id);
+            Gate::forUser($this->actor)->authorize('matchActorToken', $actor_id);
 
             $perPage = config('citronel.per_page');
             if ($request->per_page) {
@@ -51,10 +51,10 @@ class CustomerPaymentController extends PaymentController
                 $pageNumber = (int) $request->page;
             }
 
-            $getCustomerPaymentsWithOrderItems = $paymentService->getCustomerPaymentsWithOrderItems($customer_id, $gatewayMerchantTransactionNo, $orderNumber)
+            $getActorPaymentsWithOrderItems = $paymentService->getActorPaymentsWithOrderItems($actor_id, $gatewayMerchantTransactionNo, $orderNumber)
                 ->paginate($perPage, ['*'], 'page', $pageNumber)
                 ->withQueryString();
-            if ($getCustomerPaymentsWithOrderItems->count() === 0) {
+            if ($getActorPaymentsWithOrderItems->count() === 0) {
                 $this->data['status_code'] = Response::HTTP_NO_CONTENT;
                 $this->resultResponse = new ApiResponseCollection($this->data);
 
@@ -62,7 +62,7 @@ class CustomerPaymentController extends PaymentController
             }
 
             $this->data['success'] = true;
-            $this->data['result'] = $getCustomerPaymentsWithOrderItems;
+            $this->data['result'] = $getActorPaymentsWithOrderItems;
             $this->data['status_code'] = Response::HTTP_OK;
             $this->resultResponse = new ApiResponseCollection($this->data);
 

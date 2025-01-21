@@ -320,13 +320,13 @@ class CitronelPaymentService
         return $data;
     }
 
-    public function getCustomerPaymentsWithOrderItems(string $customerId, string $gatewayMerchantTransactionNo = null, string $orderNumber = null)
+    public function getActorPaymentsWithOrderItems(string $actorId, string $gatewayMerchantTransactionNo = null, string $orderNumber = null)
     {
-        $customerPayments = $this->paymentModel
+        $actorPayments = $this->paymentModel
             ->orderBy('updated_at', 'desc')
-            ->whereRelation('order', 'customer_id', $customerId);
+            ->whereRelation('order', 'actor_id', $actorId);
 
-        return $customerPayments->select('order_id', 'payment_method_configuration_id', 'payment_status', 'gateway_merchant_transaction_no', 'currency_code', 'grand_total', 'paid_at', 'updated_at as payment_updated_at')
+        return $actorPayments->select('order_id', 'payment_method_configuration_id', 'payment_status', 'gateway_merchant_transaction_no', 'currency_code', 'grand_total', 'paid_at', 'updated_at as payment_updated_at')
          ->with(
             'payment_method_configuration:id,payment_method_id',
             'payment_method_configuration.payment_method:id,title',

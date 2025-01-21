@@ -694,7 +694,7 @@ w\:* {behavior:url(#default#VML);}
 																<td style='padding:18.75pt 18.75pt 0cm 18.75pt;word-break:break-word; font-size:12.0pt;
 			font-family:"Tahoma",sans-serif;mso-fareast-font-family:"Times New Roman";
 			color:#000000'>
-																	<p>Dear {{ $mailVars['customer']['full_name'] }},</p>
+																	<p>Dear {{ $mailVars['actor']['full_name'] }},</p>
 																	<p>Your order for my.t eSIM travel is being processed. You’ll be notified by mail once your order is complete.</p>
 																</td>
 															</tr>

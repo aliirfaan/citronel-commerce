@@ -24,7 +24,7 @@ class OrderItemReviewController extends CitronelController
         parent::__construct();
 
         $this->namespace = 'order';
-        $this->mainProcess = config('error-catalogue.process.order.key');
+        $this->mainProcess = $this->errorCatalogueService->getMainProcess('order');
 
         $this->modelApiCommand = $modelApiCommand;
         $this->modelApiQuery = $modelApiQuery;
@@ -35,7 +35,7 @@ class OrderItemReviewController extends CitronelController
         $correlationToken = $this->helperService->getCorrelationToken($request);
         $reponseHeaders = $this->helperService->correlationResponseHeader($correlationToken);
 
-        $subProcess = config('error-catalogue.process.order.sub_process.item_review');
+        $subProcess = $this->errorCatalogueService->getSubProcess('order', 'item_review');
 
         $this->actor = $request->get('actor', null);
 
@@ -65,13 +65,13 @@ class OrderItemReviewController extends CitronelController
 
             $getOrderResponse = $orderService->getOrderByGuid($order_guid);
             if (!$getOrderResponse['success']) {
-                $subProcessErrorKey = config('error-catalogue.process.order.sub_process.item_review.events.invalid_order.key');
-                $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, $subProcessErrorKey);
+                $subProcessEvent = $this->errorCatalogueService->getSubProcessEvent('order', 'item_review', 'invalid_order');
+                $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key']);
 
                 $this->resultResponse = $this->apiHelperService->apiNotFoundErrorResponse($this->namespace, [], null, $this->recordNotFoundErrorCatalogue()['lang'], ['code' => $code['code']]);
 
                 $auditData['al_is_success'] = $this->data['success'];
-                $auditData['al_event_name'] = config('error-catalogue.process.order.sub_process.item_review.events.invalid_order.name');
+                $auditData['al_event_name'] = $subProcessEvent['name'];
                 $auditData['al_code'] = $code['code'];
                 $auditData['al_request'] = $order_guid;
                 $auditData['al_message'] = $code['status'];
@@ -87,10 +87,10 @@ class OrderItemReviewController extends CitronelController
             // check order expiry
             $checkOrderExpiryResponse = $orderService->checkOrderExpiry($order);
             if (!$checkOrderExpiryResponse['success']) {
-                $subProcessErrorKey = config('error-catalogue.process.order.sub_process.item_review.events.expired_order.key');
-                $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, $subProcessErrorKey);
+                $subProcessEvent = $this->errorCatalogueService->getSubProcessEvent('order', 'item_review', 'expired_order');
+                $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key']);
 
-                $auditData['al_event_name'] = config('error-catalogue.process.order.sub_process.item_review.events.expired_order.name');
+                $auditData['al_event_name'] = $subProcessEvent['name'];
                 $auditData['al_is_success'] = $checkOrderExpiryResponse['success'];
                 $auditData['al_code'] = $code['code'];
                 $auditData['al_request'] = $order->id;
@@ -104,13 +104,13 @@ class OrderItemReviewController extends CitronelController
             // get order item
             $orderItem = $order->order_items()->where('id', $order_item_id)->first();
             if (is_null($orderItem)) {
-                $subProcessErrorKey = config('error-catalogue.process.order.sub_process.item_review.events.invalid_order_item.key');
-                $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, $subProcessErrorKey);
+                $subProcessEvent = $this->errorCatalogueService->getSubProcessEvent('order', 'item_review', 'invalid_order_item');
+                $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key']);
 
                 $this->resultResponse = $this->apiHelperService->apiValidationErrorResponse($this->namespace, $validationResponse, null, $this->validationErrorCatalogue()['lang'], ['code' => $code['code']]);
 
                 $auditData['al_is_success'] = $this->data['success'];
-                $auditData['al_event_name'] = config('error-catalogue.process.order.sub_process.item_review.events.invalid_order_item.name');
+                $auditData['al_event_name'] = $subProcessEvent['name'];
                 $auditData['al_code'] = $code['code'];
                 $auditData['al_request'] = $order_guid;
                 $auditData['al_message'] = $code['status'];

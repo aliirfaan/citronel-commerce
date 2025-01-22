@@ -17,7 +17,7 @@ class ManualFulfillmentController extends OrderController
         $correlationToken = $this->helperService->getCorrelationToken($request);
         $reponseHeaders = $this->helperService->correlationResponseHeader($correlationToken);
 
-        $subProcess = config('error-catalogue.process.order.sub_process.manual_fulfillment');
+        $subProcess = $this->errorCatalogueService->getSubProcess('order', 'manual_fulfillment');
 
         $this->actor = $request->get('actor', null);
 
@@ -47,13 +47,13 @@ class ManualFulfillmentController extends OrderController
 
             $orderFulfillmentItemResponse = $fulfillmentService->getFulfillmentById($order_fulfillment_id);
             if (!$orderFulfillmentItemResponse['success']) {
-                $subProcessErrorKey = config('error-catalogue.process.order.sub_process.manual_fulfillment.events.invalid_item.key');
-                $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, $subProcessErrorKey);
+                $subProcessEvent = $this->errorCatalogueService->getSubProcessEvent('order', 'manual_fulfillment', 'invalid_item');
+                $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key'], $this->recordNotFoundErrorCatalogue()['code']);
 
                 $this->resultResponse = $this->apiHelperService->apiNotFoundErrorResponse($this->namespace, [], null, $this->recordNotFoundErrorCatalogue()['lang'], ['code' => $code['code']]);
 
                 $auditData['al_is_success'] = $this->data['success'];
-                $auditData['al_event_name'] = config('error-catalogue.process.order.sub_process.manual_fulfillment.events.invalid_item.name');
+                $auditData['al_event_name'] = $subProcessEvent['name'];
                 $auditData['al_code'] = $code['code'];
                 $auditData['al_request'] = $order_fulfillment_id;
                 $auditData['al_message'] = $code['status'];

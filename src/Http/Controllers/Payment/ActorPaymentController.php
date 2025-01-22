@@ -15,8 +15,8 @@ class ActorPaymentController extends PaymentController
     {
         $correlationToken = $this->helperService->getCorrelationToken($request);
         $reponseHeaders = $this->helperService->correlationResponseHeader($correlationToken);
-
-        $subProcess = config('error-catalogue.process.payment.sub_process.get_actor_payments_with_order_items');
+        
+        $subProcess = $this->errorCatalogueService->getSubProcess('payment', 'get_actor_payments_with_order_items');
 
         $gatewayMerchantTransactionNo = null;
         $orderNumber = null;

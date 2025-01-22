@@ -21,7 +21,7 @@ class PaymentUpdateController extends PaymentController
         $correlationToken = $this->helperService->getCorrelationToken($request);
         $reponseHeaders = $this->helperService->correlationResponseHeader($correlationToken);
 
-        $subProcess = config('error-catalogue.process.payment.sub_process.update');
+        $subProcess = $this->errorCatalogueService->getSubProcess('payment', 'update');
 
         $this->actor = $request->get('actor', null);
 
@@ -55,13 +55,13 @@ class PaymentUpdateController extends PaymentController
             // get payment
             $getPaymentResponse = $paymentService->getPaymentByMerchantGatewayTxNum($requestArray['gateway_merchant_transaction_no']);
             if (!$getPaymentResponse['success']) {
-                $subProcessErrorKey = $subProcess['events']['invalid_payment']['key'];
-                $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, $subProcessErrorKey);
+                $subProcessEvent = $this->errorCatalogueService->getSubProcessEvent('payment', 'update', 'invalid_payment');
+                $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key']);
 
                 $this->resultResponse = $this->apiHelperService->apiNotFoundErrorResponse($this->namespace, [], null, $this->recordNotFoundErrorCatalogue()['lang'], ['code' => $code['code']]);
 
                 $auditData['al_is_success'] = $this->data['success'];
-                $auditData['al_event_name'] = $subProcess['events']['invalid_payment']['name'];
+                $auditData['al_event_name'] = $subProcessEvent['name'];
                 $auditData['al_code'] = $code['code'];
                 $auditData['al_request'] = $requestArray['gateway_merchant_transaction_no'];
                 $auditData['al_message'] = $code['status'];
@@ -74,13 +74,13 @@ class PaymentUpdateController extends PaymentController
             // validate payment method
             $getPaymentMethodConfigurationResponse = $paymentMethodService->getPaymentMethodConfigurationById($payment->payment_method_configuration_id);
             if (!$getPaymentMethodConfigurationResponse['success']) {
-                $subProcessErrorKey = $subProcess['events']['invalid_payment_method']['key'];
-                $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, $subProcessErrorKey);
+                $subProcessEvent = $this->errorCatalogueService->getSubProcessEvent('payment', 'update', 'invalid_payment_method');
+                $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key']);
 
                 $this->resultResponse = $this->apiHelperService->apiNotFoundErrorResponse($this->namespace, [], null, $this->recordNotFoundErrorCatalogue()['lang'], ['code' => $code['code']]);
 
                 $auditData['al_is_success'] = $this->data['success'];
-                $auditData['al_event_name'] = $subProcess['events']['invalid_payment_method']['name'];
+                $auditData['al_event_name'] = $subProcessEvent['name'];
                 $auditData['al_code'] = $code['code'];
                 $auditData['al_request'] = $payment->payment_method_configuration_id;
                 $auditData['al_message'] = $code['status'];
@@ -97,10 +97,10 @@ class PaymentUpdateController extends PaymentController
             $paymentChannel = $requestArray['payment_channel'];
             $validatePaymentChannelResponse = $paymentInterfaceObj->validatePaymentChannel($paymentChannel);
             if (!$validatePaymentChannelResponse['success']) {
-                $subProcessErrorKey = $subProcess['events']['invalid_payment_channel']['key'];
-                $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, $subProcessErrorKey);
+                $subProcessEvent = $this->errorCatalogueService->getSubProcessEvent('payment', 'update', 'invalid_payment_channel');
+                $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessEvent['key']);
 
-                $auditData['al_event_name'] = $subProcess['events']['invalid_currency']['name'];
+                $auditData['al_event_name'] = $subProcessEvent['name'];
                 $auditData['al_is_success'] = $validatePaymentChannelResponse['success']['success'];
                 $auditData['al_code'] = $code['code'];
                 $auditData['al_request'] = $paymentChannel;

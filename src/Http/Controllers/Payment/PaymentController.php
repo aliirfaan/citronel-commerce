@@ -15,7 +15,7 @@ class PaymentController extends CitronelController
         parent::__construct();
 
         $this->namespace = 'payment';
-        $this->mainProcess = config('error-catalogue.process.payment.key');
+        $this->mainProcess = $this->errorCatalogueService->getMainProcess('payment');
 
         $this->modelApiCommand = $modelApiCommand;
         $this->modelApiQuery = $modelApiQuery;

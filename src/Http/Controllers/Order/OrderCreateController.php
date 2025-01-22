@@ -26,7 +26,7 @@ class OrderCreateController extends OrderController
         $correlationToken = $this->helperService->getCorrelationToken($request);
         $reponseHeaders = $this->helperService->correlationResponseHeader($correlationToken);
 
-        $subProcess = config('error-catalogue.process.order.sub_process.create');
+        $subProcess = $this->errorCatalogueService->getSubProcess('order', 'create');
 
         $this->actor = $request->get('actor', null);
 
@@ -65,8 +65,8 @@ class OrderCreateController extends OrderController
             if ($pendingFulfillmentTimeframeSeconds > 0) {
                 $actorPendingFulfillmentsCount = $fulfillmentService->getActorPendingFulfillmentsCount($this->actor->id, $pendingFulfillmentTimeframeSeconds);
                 if (intval($actorPendingFulfillmentsCount) > 0) {
-                    $subProcessErrorKey = config('error-catalogue.process.order.sub_process.create.events.pending_fulfillment_block.key');
-                    $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, $subProcessErrorKey);
+                    $subProcessEvent = $this->errorCatalogueService->getSubProcessEvent('order', 'create', 'pending_fulfillment_block');
+                    $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key']);
 
                     $waitTimeInSeconds = intval(config('order.order_create_resume_time_seconds'));
                     $waitTimeHumanized = Carbon::now()->addSeconds($waitTimeInSeconds)->diffForHumans(Carbon::now(), true);
@@ -139,13 +139,13 @@ class OrderCreateController extends OrderController
                 $productId = $anOrderItem['product_id'];
                 $getProductResponse = $productService->getProductById($productId);
                 if (!$getProductResponse['success']) {
-                    $subProcessErrorKey = config('error-catalogue.process.order.sub_process.create.events.invalid_product.key');
-                    $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, $subProcessErrorKey);
+                    $subProcessEvent = $this->errorCatalogueService->getSubProcessEvent('order', 'create', 'invalid_product');
+                    $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key']);
 
                     $this->resultResponse = $this->apiHelperService->apiValidationErrorResponse($this->namespace, $validationResponse, null, $this->validationErrorCatalogue()['lang'], ['code' => $code['code']]);
 
                     $auditData['al_is_success'] = $this->data['success'];
-                    $auditData['al_event_name'] = config('error-catalogue.process.order.sub_process.create.events.invalid_product.name');
+                    $auditData['al_event_name'] = $subProcessEvent['name'];
                     $auditData['al_code'] = $code['code'];
                     $auditData['al_request'] = json_encode($anOrderItem);
                     $auditData['al_message'] = $code['status'];
@@ -190,10 +190,10 @@ class OrderCreateController extends OrderController
 
                 $orderItemCreatePreProcessResponse = $productInterfaceObj->orderItemCreatePreProcess($anOrderItem);
                 if (!$orderItemCreatePreProcessResponse['success']) {
-                    $subProcessErrorKey = config('error-catalogue.process.order.sub_process.create.events.invalid_pre_process.key');
-                    $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, $subProcessErrorKey);
+                    $subProcessEvent = $this->errorCatalogueService->getSubProcessEvent('order', 'create', 'invalid_pre_process');
+                    $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key']);
 
-                    $auditData['al_event_name'] = config('error-catalogue.process.order.sub_process.create.events.invalid_pre_process.name');
+                    $auditData['al_event_name'] = $subProcessEvent['name'];
                     $auditData['al_is_success'] = $orderItemCreatePreProcessResponse['success'];
                     $auditData['al_code'] = $code['code'];
                     $auditData['al_request'] = json_encode($anOrderItem);
@@ -212,10 +212,10 @@ class OrderCreateController extends OrderController
             // get current currency rate
             $getCurrencyRateResponse = $currencyService->getLatestCurrencyRate();
             if (is_null($getCurrencyRateResponse)) {
-                $subProcessErrorKey = config('error-catalogue.process.order.sub_process.create.events.invalid_currency.key');
-                $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, $subProcessErrorKey);
+                $subProcessEvent = $this->errorCatalogueService->getSubProcessEvent('order', 'create', 'invalid_currency');
+                $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key']);
 
-                $auditData['al_event_name'] = config('error-catalogue.process.order.sub_process.create.events.invalid_currency.name');
+                $auditData['al_event_name'] = $subProcessEvent['name'];
                 $auditData['al_is_success'] = $getCurrencyRateResponse['success'];
                 $auditData['al_code'] = $code['code'];
                 $auditData['al_request'] = $orderCurrencyCode;
@@ -240,10 +240,10 @@ class OrderCreateController extends OrderController
             ];
             $createOrderResponse = $orderService->createOrder($createOrderSaveData, $orderItems, $createOrderExtra);
             if (!$createOrderResponse['success']) {
-                $subProcessErrorKey = config('error-catalogue.process.order.sub_process.create.events.create_failure.key');
-                $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, $subProcessErrorKey);
+                $subProcessEvent = $this->errorCatalogueService->getSubProcessEvent('order', 'create', 'create_failure');
+                $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key']);
 
-                $auditData['al_event_name'] = config('error-catalogue.process.order.sub_process.create.events.create_failure.name');
+                $auditData['al_event_name'] = $subProcessEvent['name'];
                 $auditData['al_is_success'] = $createOrderResponse['success'];
                 $auditData['al_code'] = $code['code'];
                 $auditData['al_message'] = $createOrderResponse['message'];

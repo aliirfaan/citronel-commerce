@@ -19,7 +19,7 @@ class OrderReviewController extends OrderController
         $correlationToken = $this->helperService->getCorrelationToken($request);
         $reponseHeaders = $this->helperService->correlationResponseHeader($correlationToken);
 
-        $subProcess = config('error-catalogue.process.order.sub_process.review');
+        $subProcess = $this->errorCatalogueService->getSubProcess('order', 'review');
 
         $this->actor = $request->get('actor', null);
 
@@ -49,13 +49,13 @@ class OrderReviewController extends OrderController
 
             $getOrderResponse = $orderService->getOrderByGuid($order_guid);
             if (!$getOrderResponse['success']) {
-                $subProcessErrorKey = config('error-catalogue.process.order.sub_process.review.events.invalid_order.key');
-                $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, $subProcessErrorKey);
+                $subProcessEvent = $this->errorCatalogueService->getSubProcessEvent('order', 'review', 'invalid_order');
+                $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key']);
 
                 $this->resultResponse = $this->apiHelperService->apiNotFoundErrorResponse($this->namespace, [], null, $this->recordNotFoundErrorCatalogue()['lang'], ['code' => $code['code']]);
 
                 $auditData['al_is_success'] = $this->data['success'];
-                $auditData['al_event_name'] = config('error-catalogue.process.order.sub_process.review.events.invalid_order.name');
+                $auditData['al_event_name'] = $subProcessEvent['name'];
                 $auditData['al_code'] = $code['code'];
                 $auditData['al_request'] = $order_guid;
                 $auditData['al_message'] = $code['status'];
@@ -71,10 +71,10 @@ class OrderReviewController extends OrderController
             // check order expiry
             $checkOrderExpiryResponse = $orderService->checkOrderExpiry($order);
             if (!$checkOrderExpiryResponse['success']) {
-                $subProcessErrorKey = config('error-catalogue.process.order.sub_process.review.events.expired_order.key');
-                $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, $subProcessErrorKey);
+                $subProcessEvent = $this->errorCatalogueService->getSubProcessEvent('order', 'review', 'expired_order');
+                $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key']);
 
-                $auditData['al_event_name'] = config('error-catalogue.process.order.sub_process.review.events.expired_order.name');
+                $auditData['al_event_name'] = $subProcessEvent['name'];
                 $auditData['al_is_success'] = $checkOrderExpiryResponse['success'];
                 $auditData['al_code'] = $code['code'];
                 $auditData['al_request'] = $order->id;
@@ -88,13 +88,13 @@ class OrderReviewController extends OrderController
             // validate payment method
             $getPaymentMethodConfigurationResponse = $paymentMethodService->getPaymentMethodConfigurationById($requestArray['order_payment_method_configuration_id']);
             if (!$getPaymentMethodConfigurationResponse['success']) {
-                $subProcessErrorKey = config('error-catalogue.process.order.sub_process.review.events.invalid_payment_method.key');
-                $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, $subProcessErrorKey);
+                $subProcessEvent = $this->errorCatalogueService->getSubProcessEvent('order', 'review', 'invalid_payment_method');
+                $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key']);
 
                 $this->resultResponse = $this->apiHelperService->apiNotFoundErrorResponse($this->namespace, [], null, $this->recordNotFoundErrorCatalogue()['lang'], ['code' => $code['code']]);
 
                 $auditData['al_is_success'] = $this->data['success'];
-                $auditData['al_event_name'] = config('error-catalogue.process.order.sub_process.create.events.invalid_payment_method.name');
+                $auditData['al_event_name'] = $subProcessEvent['name'];
                 $auditData['al_code'] = $code['code'];
                 $auditData['al_request'] = $order_guid;
                 $auditData['al_message'] = $code['status'];

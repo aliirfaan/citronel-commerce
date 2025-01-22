@@ -15,7 +15,7 @@ class OrderController extends CitronelController
         parent::__construct();
 
         $this->namespace = 'order';
-        $this->mainProcess = config('error-catalogue.process.order.key');
+        $this->mainProcess = $this->errorCatalogueService->getMainProcess('order');
 
         $this->modelApiCommand = $modelApiCommand;
         $this->modelApiQuery = $modelApiQuery;

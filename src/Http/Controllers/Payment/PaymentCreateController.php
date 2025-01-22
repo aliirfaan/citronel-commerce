@@ -20,7 +20,7 @@ class PaymentCreateController extends PaymentController
         $correlationToken = $this->helperService->getCorrelationToken($request);
         $reponseHeaders = $this->helperService->correlationResponseHeader($correlationToken);
 
-        $subProcess = config('error-catalogue.process.payment.sub_process.create');
+        $subProcess = $this->errorCatalogueService->getSubProcess('payment', 'create');
 
         $this->actor = $request->get('actor', null);
 
@@ -32,13 +32,13 @@ class PaymentCreateController extends PaymentController
             
             $getOrderResponse = $orderService->getOrderByGuid($order_guid);
             if (!$getOrderResponse['success']) {
-                $subProcessErrorKey = $subProcess['events']['invalid_order']['key'];
-                $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, $subProcessErrorKey);
+                $subProcessEvent = $this->errorCatalogueService->getSubProcessEvent('payment', 'create', 'invalid_order');
+                $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key']);
 
                 $this->resultResponse = $this->apiHelperService->apiNotFoundErrorResponse($this->namespace, [], null, $this->recordNotFoundErrorCatalogue()['lang'], ['code' => $code['code']]);
 
                 $auditData['al_is_success'] = $this->data['success'];
-                $auditData['al_event_name'] = $subProcess['events']['invalid_order']['name'];
+                $auditData['al_event_name'] = $subProcessEvent['name'];
                 $auditData['al_code'] = $code['code'];
                 $auditData['al_request'] = $order_guid;
                 $auditData['al_message'] = $code['status'];

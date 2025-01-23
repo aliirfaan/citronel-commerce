@@ -30,6 +30,8 @@ class CitronelCommerceProvider extends \Illuminate\Support\ServiceProvider
 
             __DIR__.'/../config/citronel-refund.php' => config_path('citronel-refund.php'),
         ]);
+
+        $this->loadTranslationsFrom(__DIR__.'/../../resources/lang', 'citronel-commerce');
     }
 
     public function register()

@@ -12,6 +12,7 @@ use aliirfaan\CitronelCommerce\Models\Order\Order;
 use aliirfaan\CitronelCommerce\Models\Order\OrderItem;
 use aliirfaan\CitronelCommerce\Services\Currency\CitronelCurrencyService;
 use aliirfaan\CitronelCommerce\Enums\Order\OrderStatus;
+use aliirfaan\CitronelErrorCatalogue\Services\CitronelErrorCatalogueService;
 
 class CitronelOrderService
 {
@@ -60,7 +61,7 @@ class CitronelOrderService
      */
     private $currencyService;
 
-    private $montyEsimPlatformBundleService;
+    protected $errorCatalogueService;
 
     public function __construct(CitronelCurrencyService $currencyService)
     {
@@ -69,6 +70,7 @@ class CitronelOrderService
         $this->auditService = new AuditLogService();
         $this->helperService = new CitronelCommerceHelperService();
         $this->currencyService = $currencyService;
+        $this->errorCatalogueService = new CitronelErrorCatalogueService();
         $this->mainProcess = 'order';
     }
     
@@ -143,7 +145,7 @@ class CitronelOrderService
     public function createOrder($saveData, $orderItems, $extra = [])
     {
         $data = $this->helperService->returnFormat();
-        $subProcessKey = config('error-catalogue.process.order.sub_process.create.key');
+        $subProcess = $this->errorCatalogueService->getSubProcess('order', 'create');
 
         DB::beginTransaction();
 

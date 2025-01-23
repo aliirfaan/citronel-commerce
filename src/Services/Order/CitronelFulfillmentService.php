@@ -13,6 +13,7 @@ use aliirfaan\CitronelCommerce\Services\Product\ProductService;
 use aliirfaan\CitronelCommerce\Models\Order\ManualFulfillmentRetry;
 use aliirfaan\CitronelCommerce\Enums\Order\OrderStatus;
 use aliirfaan\CitronelCommerce\Enums\Payment\PaymentStatus;
+use aliirfaan\CitronelErrorCatalogue\Services\CitronelErrorCatalogueService;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -56,12 +57,15 @@ class CitronelFulfillmentService
      */
     protected $productService;
 
+    protected $errorCatalogueService;
+
     public function __construct()
     {
         $this->orderFulfillmentModel = new OrderFulfillment();
         $this->auditService = new AuditLogService();
         $this->helperService = new CitronelCommerceHelperService();
         $this->productService = new ProductService();
+        $this->errorCatalogueService = new CitronelErrorCatalogueService();
         $this->mainProcess = 'order';
     }
     
@@ -78,7 +82,7 @@ class CitronelFulfillmentService
     public function createOrderFulfillment($order)
     {
         $data = $this->helperService->returnFormat();
-        $subProcess = config('error-catalogue.process.order.sub_process.fulfillment');
+        $subProcess = $this->errorCatalogueService->getSubProcess('order', 'fulfillment');
 
         if ($this->orderFulfillmentModel->where('order_id', $order->id)->exists()) {
             return;
@@ -152,7 +156,7 @@ class CitronelFulfillmentService
     public function fulfillItem($item, $extra = [])
     {
         $data = $this->helperService->returnFormat();
-        $subProcess = config('error-catalogue.process.order.sub_process.fulfillment');
+        $subProcess = $this->errorCatalogueService->getSubProcess('order', 'fulfillment');
         $subProcessKey = $subProcess['key'];
 
         $orderItemFulfillmentStatus = $item->order_item_fulfillment_status;
@@ -452,7 +456,7 @@ class CitronelFulfillmentService
     public function manuallyFulfillItem($item, $extra = [])
     {
         $data = $this->helperService->returnFormat();
-        $subProcess = config('error-catalogue.process.order.sub_process.fulfillment');
+        $subProcess = $this->errorCatalogueService->getSubProcess('order', 'fulfillment');
 
         $productInterfaceObj = null;
 

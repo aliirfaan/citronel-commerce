@@ -36,6 +36,8 @@ trait PaymentServiceManualConfirmationTrait
      */
     protected $auditService;
 
+    protected $errorCatalogueService;
+
     /**
      * Method validatePaymentForManualSuccessConfirmation
      *
@@ -85,7 +87,7 @@ trait PaymentServiceManualConfirmationTrait
     public function manuallyConfirmPayment($payment, $paymentGatewayService, $extra = [], $channel = 'manual')
     {
         $data = $this->helperService->returnFormat();
-        $subProcess = config('error-catalogue.process.payment.sub_process.manual_payment_update');
+        $subProcess = $this->errorCatalogueService->getSubProcess('payment', 'manual_payment_update');
         $shouldUpdateOrder = false;
 
         $manuallyConfirmPaymentResponse = $paymentGatewayService->manuallyConfirmPayment($payment, $extra);

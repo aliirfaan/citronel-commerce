@@ -16,7 +16,7 @@ class UpdateOrderRefundController extends RefundController
         $correlationToken = $this->helperService->getCorrelationToken($request);
         $reponseHeaders = $this->helperService->correlationResponseHeader($correlationToken);
 
-        $subProcess = config('error-catalogue.process.refund.sub_process.update_refund_order');
+        $subProcess = $this->errorCatalogueService->getSubProcess('refund', 'update_refund_order');
 
         $this->actor = $request->get('actor', null);
 

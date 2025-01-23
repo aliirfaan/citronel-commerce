@@ -24,8 +24,8 @@ return [
     'middleware' => [
         'api' => [
             \aliirfaan\CitronelCore\Http\Middleware\CorrelationToken::class,
-            \aliirfaan\CitronelCore\Http\Middleware\Actor\EnsureActorIsVerified::class,
-            \aliirfaan\CitronelCore\Http\Middleware\Actor\EnsureActorIsActive::class
+            \aliirfaan\CitronelAuth\Http\Middleware\Actor\EnsureActorIsVerified::class,
+            \aliirfaan\CitronelAuth\Http\Middleware\Actor\EnsureActorIsActive::class
         ],
         'back_office_api'=> [
             \aliirfaan\CitronelCore\Http\Middleware\CorrelationToken::class,

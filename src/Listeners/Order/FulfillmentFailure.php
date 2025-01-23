@@ -6,10 +6,11 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use aliirfaan\CitronelCommerce\Events\Order\FulfillmentFailed;
 use aliirfaan\CitronelCommerce\Services\Order\CitronelFulfillmentService;
-use aliirfaan\CitronelCommerce\Mail\Order\FulfillmentFailure as FulfillmentFailureMail;
-use aliirfaan\CitronelCommerce\Mail\Order\ActorFulfillmentFailure;
+use aliirfaan\CitronelCommerce\Mail\Order\SupportFulfillmentFailure;
 use Illuminate\Support\Facades\Mail;
 use aliirfaan\CitronelCommerce\Enums\Order\OrderStatus;
+use Illuminate\Support\Facades\Notification;
+use aliirfaan\CitronelCommerce\Notifications\Order\ActorFulfillmentFailure as NotificationActorFulfillmentFailure;
 
 class FulfillmentFailure implements ShouldQueue
 {
@@ -48,26 +49,25 @@ class FulfillmentFailure implements ShouldQueue
         $payment = $this->fulfillmentService->getSuccessPaymentForOrder($event->item->order_id);
 
         $actor = $unfulfilledItems[0]->actor;
-        $mailVars = [
+        $notificationVars = [
             'actor' => $actor,
             'payment' => $payment,
             'items' => $unfulfilledItems,
         ];
 
         // notification to actor
-        // @todo get notification to for actor
         if (intval(config('citronel-order.features.fulfillment_failure_customer_notification_enabled'))) {
-            Mail::to($actor->email)->send(new ActorFulfillmentFailure($mailVars));
+            Notification::send($actor, new NotificationActorFulfillmentFailure($notificationVars));
 
             // Mark the notification as sent
             $order->fulfillment_fail_notif_sent = true;
             $order->save();
         }
 
-        // notification to support
+        // email notification to support
         if (intval(config('citronel-order.features.fulfillment_failure_support_notification_enabled'))) {
             $supportEmailToAddress = config('citronel-order.fulfillment_failure_support_to_address');
-            Mail::to($supportEmailToAddress)->send(new FulfillmentFailureMail($mailVars));
+            Mail::to($supportEmailToAddress)->send(new SupportFulfillmentFailure($notificationVars));
         }
     }
 }

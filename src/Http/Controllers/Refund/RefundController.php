@@ -15,7 +15,7 @@ class RefundController extends CitronelController
         parent::__construct();
 
         $this->namespace = 'refund';
-        $this->mainProcess = config('error-catalogue.process.refund.key');
+        $this->mainProcess = $this->errorCatalogueService->getMainProcess('refund');
 
         $this->modelApiCommand = $modelApiCommand;
         $this->modelApiQuery = $modelApiQuery;

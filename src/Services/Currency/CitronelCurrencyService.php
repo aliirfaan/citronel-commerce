@@ -2,7 +2,6 @@
 
 namespace aliirfaan\CitronelCommerce\Services\Currency;
 
-use aliirfaan\CitronelCommerce\Services\Helper\CitronelCommerceHelperService;
 use aliirfaan\CitronelCommerce\Models\CurrencyRate;
 use aliirfaan\CitronelCommerce\Contracts\CurrencyPlatform\CurrencyPlatformInterface;
 
@@ -41,7 +40,10 @@ class CitronelCurrencyService
         $this->mainProcess = 'currency_service';
         
         $this->currencyRateModel = new CurrencyRate();
-        $this->helperService = new CitronelCommerceHelperService();
+
+        $helperServiceClass = config('citronel-commerce.helper_service');
+        $this->helperService = app($helperServiceClass);
+
         $this->currencyPlatformService = $currencyPlatformService;
     }
     

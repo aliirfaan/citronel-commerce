@@ -141,7 +141,10 @@ abstract class AbstractPaymentGateway
     public function __construct($paymentMethod)
     {
         $this->paymentMethod = $paymentMethod;
-        $this->helperService = new CitronelCommerceHelperService();
+
+        $helperServiceClass = config('citronel-commerce.helper_service');
+        $this->helperService = app($helperServiceClass);
+
         $this->paymentService = new CitronelPaymentService();
     }
 

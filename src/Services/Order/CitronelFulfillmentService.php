@@ -4,7 +4,6 @@ namespace aliirfaan\CitronelCommerce\Services\Order;
 
 use aliirfaan\CitronelErrorCatalogue\Traits\ErrorCatalogue;
 use aliirfaan\CitronelCommerce\Models\Order\OrderFulfillment;
-use aliirfaan\CitronelCommerce\Services\Helper\CitronelCommerceHelperService;
 use aliirfaan\LaravelSimpleAuditLog\Services\AuditLogService;
 use aliirfaan\CitronelCommerce\Events\Order\FulfillmentProcessed;
 use aliirfaan\CitronelCommerce\Events\Order\FulfillmentFailed;
@@ -63,7 +62,10 @@ class CitronelFulfillmentService
     {
         $this->orderFulfillmentModel = new OrderFulfillment();
         $this->auditService = new AuditLogService();
-        $this->helperService = new CitronelCommerceHelperService();
+
+        $helperServiceClass = config('citronel-commerce.helper_service');
+        $this->helperService = app($helperServiceClass);
+
         $this->productService = new ProductService();
         $this->errorCatalogueService = new CitronelErrorCatalogueService();
         $this->mainProcess = 'order';

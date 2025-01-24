@@ -5,7 +5,6 @@ namespace aliirfaan\CitronelCommerce\Services\Payment;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 use aliirfaan\CitronelErrorCatalogue\Services\CitronelErrorCatalogueService;
-use aliirfaan\CitronelCommerce\Services\Helper\CitronelCommerceHelperService;
 use aliirfaan\CitronelCommerce\Models\Payment\Payment;
 use aliirfaan\LaravelSimpleAuditLog\Services\AuditLogService;
 use aliirfaan\CitronelErrorCatalogue\Traits\ErrorCatalogue;
@@ -69,7 +68,10 @@ class CitronelPaymentService
     {
         $this->paymentModel = new Payment();
         $this->auditService = new AuditLogService();
-        $this->helperService = new CitronelCommerceHelperService();
+
+        $helperServiceClass = config('citronel-commerce.helper_service');
+        $this->helperService = app($helperServiceClass);
+
         $this->errorCatalogueService = new CitronelErrorCatalogueService();
         $this->orderMediatorService = new OrderMediatorService();
         $this->mainProcess = 'payment_service';

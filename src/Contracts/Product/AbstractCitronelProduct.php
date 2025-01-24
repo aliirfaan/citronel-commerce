@@ -41,6 +41,8 @@ abstract class AbstractCitronelProduct
         $this->productModel = new Product();
         $this->product = $product;
         $this->productService = new CitronelProductService();
-        $this->helperService = new CitronelCommerceHelperService();
+
+        $helperServiceClass = config('citronel-commerce.helper_service');
+        $this->helperService = app($helperServiceClass);
     }
 }

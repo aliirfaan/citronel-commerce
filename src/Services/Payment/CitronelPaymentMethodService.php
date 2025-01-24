@@ -2,7 +2,6 @@
 
 namespace aliirfaan\CitronelCommerce\Services\Payment;
 
-use aliirfaan\CitronelCommerce\Services\Helper\CitronelCommerceHelperService;
 use aliirfaan\CitronelCommerce\Models\Payment\PaymentMethodConfiguration;
 
 class CitronelPaymentMethodService
@@ -28,7 +27,9 @@ class CitronelPaymentMethodService
      */
     public function __construct()
     {
-        $this->helperService = new CitronelCommerceHelperService();
+        $helperServiceClass = config('citronel-commerce.helper_service');
+        $this->helperService = app($helperServiceClass);
+
         $this->paymentMethodConfigurationModel = new PaymentMethodConfiguration();
     }
 

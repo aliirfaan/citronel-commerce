@@ -4,7 +4,6 @@ namespace aliirfaan\CitronelCommerce\Jobs\CurrencyPlatform;
 
 use aliirfaan\CitronelJob\Jobs\CitronelJob;
 use aliirfaan\CitronelCommerce\Services\Currency\CitronelCurrencyService;
-use aliirfaan\CitronelCommerce\Services\Helper\CitronelCommerceHelperService;
 
 class RefreshCurrencyRate extends CitronelJob
 {
@@ -24,7 +23,9 @@ class RefreshCurrencyRate extends CitronelJob
     {
         parent::__construct($jobPolicyId);
 
-        $this->helperService = new CitronelCommerceHelperService();
+        $helperServiceClass = config('citronel-commerce.helper_service');
+        $this->helperService = app($helperServiceClass);
+
         $this->currencyService = $currencyService;
     }
 

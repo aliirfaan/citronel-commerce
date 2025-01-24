@@ -17,6 +17,9 @@
 | middleware.back_office_api | Array
 | Middleware to be applied to all back office API routes
 |
+| helper_service | String
+| Helper service class to be used
+|
 */
 return [
     'api_route_prefix' => env('CITRONEL_COMMERCE_API_ROUTE_PREFIX', null),
@@ -32,4 +35,5 @@ return [
             \aliirfaan\CitronelCore\Http\Middleware\CheckBackOfficeApiKey::class
         ],
     ],
+    'helper_service' => env('CITRONEL_COMMERCE_HELPER_SERVICE', aliirfaan\CitronelCommerce\Services\Helper\CitronelCommerceHelperService::class),
 ];

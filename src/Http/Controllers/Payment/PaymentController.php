@@ -19,5 +19,8 @@ class PaymentController extends CitronelController
 
         $this->modelApiCommand = $modelApiCommand;
         $this->modelApiQuery = $modelApiQuery;
+
+        $helperServiceClass = config('citronel-commerce.helper_service');
+        $this->helperService = app($helperServiceClass);
     }
 }

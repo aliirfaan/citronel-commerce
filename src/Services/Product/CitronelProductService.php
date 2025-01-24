@@ -3,7 +3,6 @@
 namespace aliirfaan\CitronelCommerce\Services\Product;
 
 use aliirfaan\CitronelErrorCatalogue\Traits\ErrorCatalogue;
-use aliirfaan\CitronelCommerce\Services\Helper\CitronelCommerceHelperService;
 use aliirfaan\CitronelCommerce\Models\Product\Product;
 
 class CitronelProductService
@@ -39,7 +38,10 @@ class CitronelProductService
     public function __construct()
     {
         $this->productModel = new Product();
-        $this->helperService = new CitronelCommerceHelperService();
+        
+        $helperServiceClass = config('citronel-commerce.helper_service');
+        $this->helperService = app($helperServiceClass);
+
         $this->mainProcess = 'product';
     }
 

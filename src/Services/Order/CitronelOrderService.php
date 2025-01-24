@@ -7,7 +7,6 @@ use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use aliirfaan\CitronelErrorCatalogue\Traits\ErrorCatalogue;
 use aliirfaan\LaravelSimpleAuditLog\Services\AuditLogService;
-use aliirfaan\CitronelCommerce\Services\Helper\CitronelCommerceHelperService;
 use aliirfaan\CitronelCommerce\Models\Order\Order;
 use aliirfaan\CitronelCommerce\Models\Order\OrderItem;
 use aliirfaan\CitronelCommerce\Services\Currency\CitronelCurrencyService;
@@ -68,7 +67,10 @@ class CitronelOrderService
         $this->orderModel = new Order();
         $this->orderItemModel = new OrderItem();
         $this->auditService = new AuditLogService();
-        $this->helperService = new CitronelCommerceHelperService();
+
+        $helperServiceClass = config('citronel-commerce.helper_service');
+        $this->helperService = app($helperServiceClass);
+
         $this->currencyService = $currencyService;
         $this->errorCatalogueService = new CitronelErrorCatalogueService();
         $this->mainProcess = 'order';

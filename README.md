@@ -42,3 +42,38 @@ Add columns to your order fulfillments
 ## Manual fulfillment
 
 ## Refund
+
+# Use with aliirfaan/citronel-auth
+
+## citronel-commerce
+* Add middleware to check if actor token is valid
+
+set order_has_actor to false if order is not attached to an actor
+Add policy to check if linked actor is the one doing the action: // authorize - MatchActorToken middleware
+
+
+## extend aliirfaan\CitronelCommerce\Models\Order\Order
+```php
+<?php
+
+use aliirfaan\CitronelCommerce\Models\Order\Order;
+use aliirfaan\CitronelCore\Models\Actor\CitronelActor;
+
+class MyOrder extends Order
+{
+    // actor relationship
+    public function actor(): BelongsTo
+    {
+        return $this->belongsTo(CitronelActor::class);
+    }
+
+    // create order validation rules
+    public function createValidationRules()
+    {
+        $actorValidationRules = ['actor_id' => ['bail', 'required', 'uuid']];
+
+        return array_merge($actorValidationRules, parent::createValidationRules());
+    }
+}
+
+```

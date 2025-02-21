@@ -27,6 +27,10 @@
 |
 | fulfillment_failure_support_to_address | String
 | email address to send support notification
+|
+| order_has_actor | Bool
+| whether an order is attached to an actor
+|
 */
 return [
     'order_number_prefix' => env('ORDER_NUMBER_PREFIX'),
@@ -35,10 +39,13 @@ return [
     'order_pending_fulfillment_check_timeframe_seconds' => env('ORDER_PENDING_FULFILLMENT_CHECK_TIMEFRAME_SECONDS', 300),
     'order_create_resume_time_seconds' => env('ORDER_CREATE_RESUME_TIME_SECONDS', 300),
     'verify_last_order_before_create' => env('VERIFY_LAST_ORDER_BEFORE_CREATE', false),
+    'verify_pending_fulfillments_before_create' => env('VERIFY_PENDING_FULFILLMENTS_BEFORE_CREATE', false),
     'last_order_verification_timeframe_seconds' => env('LAST_ORDER_VERIFICATION_TIMEFRAME_SECONDS', 1800),
     'features' => [
         'fulfillment_failure_customer_notification_enabled' => env('FULFILLMENT_FAILURE_CUSTOMER_NOTIFICATION_ENABLED', false),
         'fulfillment_failure_support_notification_enabled' => env('FULFILLMENT_FAILURE_SUPPORT_NOTIFICATION_ENABLED', false),
     ],
     'fulfillment_failure_support_to_address' => env('FULFILLMENT_FAILURE_SUPPORT_TO_ADDRESS', null),
+    
+    'order_has_actor' => env('ORDER_HAS_ACTOR', true),
 ];

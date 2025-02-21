@@ -158,7 +158,7 @@ class CitronelOrderService
             'order_guid' => $this->generateOrderGuid(),
             'actor_id' => array_key_exists('actor_id', $saveData) ? $saveData['actor_id'] : null,
             'order_status' => OrderStatus::CREATED->value,
-            'currency_rate_id' => $currencyRate->id,
+            'currency_rate_id' => $currencyRate ? $currencyRate->id : null,
             'order_currency_code' => $orderCurrencyCode,
             'expires_at' => $this->calculateOrderExpiry(),
             'correlation_token' => array_key_exists('correlation_token', $saveData) ? $saveData['correlation_token'] : null,
@@ -203,9 +203,13 @@ class CitronelOrderService
         if (is_null($data['errors'])) {
             $orderBaseCurrencyGrandTotal = floatval($orderBaseCurrencyGrandTotal) + floatval($orderBaseCurrencySubtotal);
 
-            $orderSubtotal = $this->currencyService->convertAmount($orderBaseCurrencySubtotal, $orderCurrencyCode, $currencyRate);
+            $orderSubtotal = $orderBaseCurrencySubtotal;
+            $orderGrandTotal = $orderBaseCurrencyGrandTotal;
+            if ($orderCurrencyCode !== $this->currencyService->getBaseCurrencyCode()) {
+                $orderSubtotal = $this->currencyService->convertAmount($orderBaseCurrencySubtotal, $orderCurrencyCode, $currencyRate);
 
-            $orderGrandTotal = $this->currencyService->convertAmount($orderBaseCurrencyGrandTotal, $orderCurrencyCode, $currencyRate);
+                $orderGrandTotal = $this->currencyService->convertAmount($orderBaseCurrencyGrandTotal, $orderCurrencyCode, $currencyRate);
+            }
 
             // update order
             $orderNumber = $this->generateOrderNumber($newOrder->id);
@@ -548,5 +552,9 @@ class CitronelOrderService
         }
 
         return $data;
+    }
+    public function shouldVerifyPendingFulfillmentsBeforeCreate()
+    {
+        return intval(config('citronel-order.verify_pending_fulfillments_before_create'));
     }
 }

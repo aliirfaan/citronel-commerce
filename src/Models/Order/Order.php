@@ -71,11 +71,17 @@ class Order extends Model
      */
     public function createValidationRules()
     {
-        return [
+        $rules = [
             'actor_id' => ['bail', 'required', 'uuid'],
             'order_currency_code' => ['nullable', new CurrencyCode],
             'order_items' => ['bail', 'required', 'array', 'size:1'],
         ];
+
+        if (!config('citronel-order.order_has_actor')) {
+            unset($rules['actor_id']);
+        }
+
+        return $rules;
     }
 
     public function reviewValidationRules()

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api\v1\Order;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
 use Illuminate\Http\Response;
 use aliirfaan\LaravelSimpleApi\Http\Resources\ApiResponseCollection;
 use aliirfaan\LaravelSimpleAuditLog\Services\AuditLogService;
@@ -35,7 +34,7 @@ class OrderItemReviewController extends CitronelController
         $correlationToken = $this->helperService->getCorrelationToken($request);
         $reponseHeaders = $this->helperService->correlationResponseHeader($correlationToken);
 
-        $subProcess = $this->errorCatalogueService->getSubProcess('order', 'item_review');
+        $subProcess = $this->errorCatalogueService->getSubProcess($this->mainProcess['key'], 'item_review');
 
         $this->actor = $request->get('actor', null);
 
@@ -80,9 +79,6 @@ class OrderItemReviewController extends CitronelController
                 return $this->sendApiResponse($this->resultResponse, $this->resultResponse->collection['status_code'], $reponseHeaders);
             }
             $order = $getOrderResponse['result'];
-
-            // authorize
-            Gate::forUser($this->actor)->authorize('matchActorToken', $order->actor_id);
 
             // check order expiry
             $checkOrderExpiryResponse = $orderService->checkOrderExpiry($order);

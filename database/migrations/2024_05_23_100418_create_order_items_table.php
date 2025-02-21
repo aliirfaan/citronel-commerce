@@ -18,7 +18,6 @@ return new class extends Migration
             $table->decimal('product_price', 13, 2)->nullable(true);
             $table->integer('quantity')->nullable(true);
             $table->text('order_item_meta')->nullable(true);
-            $table->string('bundle_code')->nullable(true); // redundant, but for easy access
             $table->timestamps();
 
             $table->foreign('order_id')->references('id')->on('orders');

@@ -46,6 +46,11 @@ class FulfillmentFailure implements ShouldQueue
         $unfulfilledStatus = OrderStatus::UNFULFILLED->value;
         $unfulfilledItems = $this->fulfillmentService->getFulfillmentsByOrderId($event->item->order_id, $unfulfilledStatus);
 
+        if (is_null($unfulfilledItems[0]->actor)) {
+            // no actor attached to order fulfillment
+            return;
+        }
+
         $payment = $this->fulfillmentService->getSuccessPaymentForOrder($event->item->order_id);
 
         $actor = $unfulfilledItems[0]->actor;

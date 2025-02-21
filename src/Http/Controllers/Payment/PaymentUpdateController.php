@@ -21,7 +21,7 @@ class PaymentUpdateController extends PaymentController
         $correlationToken = $this->helperService->getCorrelationToken($request);
         $reponseHeaders = $this->helperService->correlationResponseHeader($correlationToken);
 
-        $subProcess = $this->errorCatalogueService->getSubProcess('payment', 'update');
+        $subProcess = $this->errorCatalogueService->getSubProcess($this->mainProcess['key'], 'update');
 
         $this->actor = $request->get('actor', null);
 

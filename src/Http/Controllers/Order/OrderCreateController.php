@@ -3,7 +3,6 @@
 namespace aliirfaan\CitronelCommerce\Controllers\Order;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
 use Illuminate\Http\Response;
 use Carbon\Carbon;
 use aliirfaan\LaravelSimpleApi\Http\Resources\ApiResponseCollection;
@@ -26,7 +25,7 @@ class OrderCreateController extends OrderController
         $correlationToken = $this->helperService->getCorrelationToken($request);
         $reponseHeaders = $this->helperService->correlationResponseHeader($correlationToken);
 
-        $subProcess = $this->errorCatalogueService->getSubProcess('order', 'create');
+        $subProcess = $this->errorCatalogueService->getSubProcess($this->mainProcess['key'], 'create');
 
         $this->actor = $request->get('actor', null);
 
@@ -57,28 +56,28 @@ class OrderCreateController extends OrderController
                 return $this->sendApiResponse($this->resultResponse, $this->resultResponse->collection['status_code'], $reponseHeaders);
             }
 
-            // authorize
-            Gate::forUser($this->actor)->authorize('matchActorToken', $requestArray['actor_id']);
+            if ($orderService->shouldVerifyPendingFulfillmentsBeforeCreate())
+            {
+                // prevent actor from creating order if he/she has pending fulfilments in the last x seconds
+                $pendingFulfillmentTimeframeSeconds = intval(config('order.order_pending_fulfillment_check_timeframe_seconds'));
+                if ($pendingFulfillmentTimeframeSeconds > 0) {
+                    $actorPendingFulfillmentsCount = $fulfillmentService->getActorPendingFulfillmentsCount($this->actor->id, $pendingFulfillmentTimeframeSeconds);
+                    if (intval($actorPendingFulfillmentsCount) > 0) {
+                        $subProcessEvent = $this->errorCatalogueService->getSubProcessEvent('order', 'create', 'pending_fulfillment_block');
+                        $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key']);
 
-            // prevent actor from creating order if he/she has pending fulfilments in the last x seconds
-            $pendingFulfillmentTimeframeSeconds = intval(config('order.order_pending_fulfillment_check_timeframe_seconds'));
-            if ($pendingFulfillmentTimeframeSeconds > 0) {
-                $actorPendingFulfillmentsCount = $fulfillmentService->getActorPendingFulfillmentsCount($this->actor->id, $pendingFulfillmentTimeframeSeconds);
-                if (intval($actorPendingFulfillmentsCount) > 0) {
-                    $subProcessEvent = $this->errorCatalogueService->getSubProcessEvent('order', 'create', 'pending_fulfillment_block');
-                    $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key']);
+                        $waitTimeInSeconds = intval(config('order.order_create_resume_time_seconds'));
+                        $waitTimeHumanized = Carbon::now()->addSeconds($waitTimeInSeconds)->diffForHumans(Carbon::now(), true);
+                        $orderCreationHoldMessage = __('order/messages.order_create_on_hold', ['wait_time' => $waitTimeHumanized]);
 
-                    $waitTimeInSeconds = intval(config('order.order_create_resume_time_seconds'));
-                    $waitTimeHumanized = Carbon::now()->addSeconds($waitTimeInSeconds)->diffForHumans(Carbon::now(), true);
-                    $orderCreationHoldMessage = __('order/messages.order_create_on_hold', ['wait_time' => $waitTimeHumanized]);
+                        $this->resultResponse = $this->apiHelperService->apiValidationErrorResponse($this->namespace, [], $orderCreationHoldMessage);
 
-                    $this->resultResponse = $this->apiHelperService->apiValidationErrorResponse($this->namespace, [], $orderCreationHoldMessage);
-
-                    $auditData['al_is_success'] = $this->data['success'];
-                    $auditData['al_code'] = $code['code'];
-                    AuditLogged::dispatch($auditData);
-                
-                    return $this->sendApiResponse($this->resultResponse, $this->resultResponse->collection['status_code'], $reponseHeaders);
+                        $auditData['al_is_success'] = $this->data['success'];
+                        $auditData['al_code'] = $code['code'];
+                        AuditLogged::dispatch($auditData);
+                    
+                        return $this->sendApiResponse($this->resultResponse, $this->resultResponse->collection['status_code'], $reponseHeaders);
+                    }
                 }
             }
 
@@ -210,26 +209,29 @@ class OrderCreateController extends OrderController
             $orderCurrencyCode = array_key_exists('order_currency_code', $requestArray) ? strtoupper($requestArray['order_currency_code']) : $currencyService->getDefaultCurrencyCode();
 
             // get current currency rate
-            $getCurrencyRateResponse = $currencyService->getLatestCurrencyRate();
-            if (is_null($getCurrencyRateResponse)) {
-                $subProcessEvent = $this->errorCatalogueService->getSubProcessEvent('order', 'create', 'invalid_currency');
-                $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key']);
+            $currencyRate = null;
+            if ($orderCurrencyCode !== $currencyService->getBaseCurrencyCode()) {
+                $getCurrencyRateResponse = $currencyService->getLatestCurrencyRate();
+                if (is_null($getCurrencyRateResponse)) {
+                    $subProcessEvent = $this->errorCatalogueService->getSubProcessEvent('order', 'create', 'invalid_currency');
+                    $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key']);
 
-                $auditData['al_event_name'] = $subProcessEvent['name'];
-                $auditData['al_is_success'] = $getCurrencyRateResponse['success'];
-                $auditData['al_code'] = $code['code'];
-                $auditData['al_request'] = $orderCurrencyCode;
-                AuditLogged::dispatch($auditData);
+                    $auditData['al_event_name'] = $subProcessEvent['name'];
+                    $auditData['al_is_success'] = $getCurrencyRateResponse['success'];
+                    $auditData['al_code'] = $code['code'];
+                    $auditData['al_request'] = $orderCurrencyCode;
+                    AuditLogged::dispatch($auditData);
 
-                $this->resultResponse = $this->apiHelperService->apiValidationErrorResponse($this->namespace, [], null, $this->validationErrorCatalogue()['lang'], ['code' => $code['code']]);
-            
-                return $this->sendApiResponse($this->resultResponse, $this->resultResponse->collection['status_code'], $reponseHeaders);
+                    $this->resultResponse = $this->apiHelperService->apiValidationErrorResponse($this->namespace, [], null, $this->validationErrorCatalogue()['lang'], ['code' => $code['code']]);
+                
+                    return $this->sendApiResponse($this->resultResponse, $this->resultResponse->collection['status_code'], $reponseHeaders);
+                }
+                $currencyRate = $getCurrencyRateResponse;
             }
-            $currencyRate = $getCurrencyRateResponse;
 
             // create order
             $createOrderSaveData = [
-                'actor_id' => $this->actor->id,
+                'actor_id' => $this->actor ? $this->actor->id : null,
                 'currency_rate' => $currencyRate,
                 'order_currency_code' => $orderCurrencyCode,
                 'correlation_token' => $correlationToken

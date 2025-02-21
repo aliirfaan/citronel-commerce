@@ -51,29 +51,8 @@ Add columns to your order fulfillments
 set order_has_actor to false if order is not attached to an actor
 Add policy to check if linked actor is the one doing the action: // authorize - MatchActorToken middleware
 
-
-## extend aliirfaan\CitronelCommerce\Models\Order\Order
-```php
-<?php
-
-use aliirfaan\CitronelCommerce\Models\Order\Order;
-use aliirfaan\CitronelCore\Models\Actor\CitronelActor;
-
-class MyOrder extends Order
-{
-    // actor relationship
-    public function actor(): BelongsTo
-    {
-        return $this->belongsTo(CitronelActor::class);
-    }
-
-    // create order validation rules
-    public function createValidationRules()
-    {
-        $actorValidationRules = ['actor_id' => ['bail', 'required', 'uuid']];
-
-        return array_merge($actorValidationRules, parent::createValidationRules());
-    }
-}
-
-```
+// add middleware
+            \aliirfaan\CitronelAuth\Http\Middleware\Actor\EnsureActorIsVerified::class,
+            \aliirfaan\CitronelAuth\Http\Middleware\Actor\EnsureActorIsActive::class,
+            ActorTokenIsValid,
+            MatchActorToken

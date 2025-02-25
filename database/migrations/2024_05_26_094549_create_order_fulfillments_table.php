@@ -3,7 +3,6 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use aliirfaan\CitronelAuth\Models\Actor\CitronelActor;
 
 return new class extends Migration
 {
@@ -15,11 +14,7 @@ return new class extends Migration
         Schema::create('order_fulfillments', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->uuid('order_item_id');
-
-            $table->foreignId('actor_id')
-            ->nullable()
-            ->constrained((new CitronelActor)->getTable());
-
+            $table->uuid('actor_id')->nullable(true);
             $table->unsignedBigInteger('order_id'); // redundant, but for easy access
             $table->string('product_id');
             $table->text('order_item_meta')->nullable(true);
@@ -37,6 +32,7 @@ return new class extends Migration
 
             $table->foreign('order_item_id')->references('id')->on('order_items');
 
+            $table->index('actor_id');
             $table->index('order_id');
             $table->index('product_id');
             $table->index('order_item_fulfillment_status');

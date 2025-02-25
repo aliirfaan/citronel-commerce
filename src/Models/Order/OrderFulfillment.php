@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
-use aliirfaan\CitronelCore\Models\Actor\CitronelActor;
 
 class OrderFulfillment extends Model
 {
@@ -23,10 +22,5 @@ class OrderFulfillment extends Model
     public function order_item(): BelongsTo
     {
         return $this->belongsTo(OrderItem::class);
-    }
-
-    public function actor(): BelongsTo
-    {
-        return $this->belongsTo(CitronelActor::class);
     }
 }

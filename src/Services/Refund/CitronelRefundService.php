@@ -6,7 +6,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use aliirfaan\CitronelErrorCatalogue\Traits\ErrorCatalogue;
 use aliirfaan\LaravelSimpleAuditLog\Services\AuditLogService;
-use aliirfaan\CitronelCommerce\Models\Order\Order;
 use aliirfaan\CitronelCommerce\Models\Order\OrderItem;
 use aliirfaan\CitronelCommerce\Services\Currency\CitronelCurrencyService;
 use aliirfaan\CitronelCommerce\Models\Order\OrderFulfillment;
@@ -15,6 +14,7 @@ use aliirfaan\CitronelCommerce\Models\OrderFulfillmentRefund\OrderFulfillmentRef
 use aliirfaan\CitronelCommerce\Enums\Order\OrderStatus;
 use aliirfaan\CitronelCommerce\Enums\Refund\RefundStatus;
 use aliirfaan\CitronelCommerce\Enums\Refund\ReturnStatus;
+use aliirfaan\CitronelCommerce\Services\Order\CitronelOrderService;
 
 class CitronelRefundService
 {
@@ -90,10 +90,10 @@ class CitronelRefundService
 
     protected $orderFulfillmentRefundApiCommand;
 
-    public function __construct(CitronelCurrencyService $currencyService)
+    public function __construct(CitronelCurrencyService $currencyService, CitronelOrderService $orderService)
     {
-        $this->orderApiCommand = new Order();
-        $this->orderApiQuery = new Order();
+        $this->orderApiCommand = $orderService->orderModel;
+        $this->orderApiQuery = $orderService->orderModel;
         $this->orderItemApiCommand = new OrderItem();
         $this->orderItemApiQuery = new OrderItem();
         $this->orderFulfillmentApiQuery = new OrderFulfillment();

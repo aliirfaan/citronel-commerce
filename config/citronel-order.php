@@ -28,9 +28,8 @@
 | fulfillment_failure_support_to_address | String
 | email address to send support notification
 |
-| order_has_actor | Bool
-| whether an order is attached to an actor
-|
+| order_model | String
+| Order model to be used
 */
 return [
     'order_number_prefix' => env('ORDER_NUMBER_PREFIX'),
@@ -46,6 +45,5 @@ return [
         'fulfillment_failure_support_notification_enabled' => env('FULFILLMENT_FAILURE_SUPPORT_NOTIFICATION_ENABLED', false),
     ],
     'fulfillment_failure_support_to_address' => env('FULFILLMENT_FAILURE_SUPPORT_TO_ADDRESS', null),
-    
-    'order_has_actor' => env('ORDER_HAS_ACTOR', true),
+    'order_model' => aliirfaan\CitronelCommerce\Models\Order\Order::class,
 ];

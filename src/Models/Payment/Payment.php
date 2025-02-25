@@ -4,9 +4,11 @@ namespace aliirfaan\CitronelCommerce\Models\Payment;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use aliirfaan\CitronelCommerce\Models\Order\Order;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+
+// @todo to load class from config
+use aliirfaan\CitronelCommerce\Models\Order\Order;
 
 class Payment extends Model
 {

@@ -7,7 +7,6 @@ use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use aliirfaan\CitronelErrorCatalogue\Traits\ErrorCatalogue;
 use aliirfaan\LaravelSimpleAuditLog\Services\AuditLogService;
-use aliirfaan\CitronelCommerce\Models\Order\Order;
 use aliirfaan\CitronelCommerce\Models\Order\OrderItem;
 use aliirfaan\CitronelCommerce\Services\Currency\CitronelCurrencyService;
 use aliirfaan\CitronelCommerce\Enums\Order\OrderStatus;
@@ -22,7 +21,7 @@ class CitronelOrderService
      *
      * @var mixed
      */
-    protected $orderModel;
+    public $orderModel;
     
     /**
      * orderItemModel
@@ -64,7 +63,7 @@ class CitronelOrderService
 
     public function __construct(CitronelCurrencyService $currencyService)
     {
-        $this->orderModel = new Order();
+        $this->loadOrderModel();
         $this->orderItemModel = new OrderItem();
         $this->auditService = new AuditLogService();
 
@@ -553,8 +552,14 @@ class CitronelOrderService
 
         return $data;
     }
+
     public function shouldVerifyPendingFulfillmentsBeforeCreate()
     {
         return intval(config('citronel-order.verify_pending_fulfillments_before_create'));
+    }
+
+    public function loadOrderModel()
+    {
+        $this->orderModel = app(config('citronel-order.order_model'));
     }
 }

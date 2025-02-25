@@ -5,9 +5,7 @@ namespace aliirfaan\CitronelCommerce\Models\Order;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use aliirfaan\CitronelCommerce\Models\Payment\Payment;
-use aliirfaan\CitronelCore\Models\Actor\CitronelActor;
 use aliirfaan\CitronelCommerce\Rules\CurrencyCode;
 
 class Order extends Model
@@ -61,27 +59,16 @@ class Order extends Model
         return $this->hasMany(Payment::class, 'order_id');
     }
 
-    public function actor(): BelongsTo
-    {
-        return $this->belongsTo(CitronelActor::class);
-    }
-
     /**
      * We are limiting  order items to only 1
      */
     public function createValidationRules()
     {
-        $rules = [
-            'actor_id' => ['bail', 'required', 'uuid'],
+        return [
+            'actor_id' => ['nullable'],
             'order_currency_code' => ['nullable', new CurrencyCode],
             'order_items' => ['bail', 'required', 'array', 'size:1'],
         ];
-
-        if (!config('citronel-order.order_has_actor')) {
-            unset($rules['actor_id']);
-        }
-
-        return $rules;
     }
 
     public function reviewValidationRules()

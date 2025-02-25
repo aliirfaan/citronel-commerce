@@ -7,9 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 
-// @todo to load class from config
-use aliirfaan\CitronelCommerce\Models\Order\Order;
-
 class Payment extends Model
 {
     use HasFactory;
@@ -42,7 +39,9 @@ class Payment extends Model
 
     public function order(): BelongsTo
     {
-        return $this->belongsTo(Order::class);
+        $orderModel = config('citronel-order.order_model');
+
+        return $this->belongsTo($orderModel);
     }
 
     public function payment_method_configuration(): BelongsTo

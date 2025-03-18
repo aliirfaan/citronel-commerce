@@ -3,6 +3,7 @@
     "description": "This package provides classes to create simple e-commerce flow using products, order, payments and fulfillments.",
     "type": "library",
     "license": "MIT",
+    "version": "1.0.0",
     "authors": [
         {
             "name": "aliirfaan",
@@ -15,7 +16,7 @@
         }
     },
     "require": {
-        "php": ">=8.1.0",
+        "php": ">=8.0.0",
         "aliirfaan/citronel-core": "^2.0",
         "aliirfaan/citronel-job": "^1.0"
     },

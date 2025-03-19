@@ -32,6 +32,8 @@ class CitronelCommerceProvider extends \Illuminate\Support\ServiceProvider
         ]);
 
         $this->loadTranslationsFrom(__DIR__.'/../../resources/lang', 'citronel-commerce');
+
+        $this->registerRoutes();
     }
 
     public function register()
@@ -56,5 +58,33 @@ class CitronelCommerceProvider extends \Illuminate\Support\ServiceProvider
             $parameter = config('citronel-currency-platform.currency_platform'); // or any other way to get the parameter
             return new CitronelCurrencyService($parameter);
         });
+    }
+
+    protected function registerRoutes()
+    {
+        // Load default routes if user hasn't published custom versions
+        $this->loadRoutesFrom(__DIR__.'/../routes/api/order/back-office-order-api.php');
+
+        $this->loadRoutesFrom(__DIR__.'/../routes/api/order/order-api.php');
+
+        $this->loadRoutesFrom(__DIR__.'/../routes/api/payment/back-office-payment-api.php');
+
+        $this->loadRoutesFrom(__DIR__.'/../routes/api/payment/payment-api.php');
+
+        $this->loadRoutesFrom(__DIR__.'/../routes/api/refund/back-office-refund-api.php');
+
+        // Publish all route files
+        $this->publishes([
+            __DIR__.'/../routes/api/order/back-office-order-api.php' => base_path('routes/vendor/citronel-commerce/order/back-office-order-api.php'),
+
+            __DIR__.'/../routes/api/order/order-api.php' => base_path('routes/vendor/citronel-commerce/order/order-api.php'),
+
+            __DIR__.'/../routes/api/payment/back-office-payment-api.php' => base_path('routes/vendor/citronel-commerce/payment/back-office-payment-api.php'),
+
+            __DIR__.'/../routes/api/payment/payment-api.php' => base_path('routes/vendor/citronel-commerce/payment/payment-api.php'),
+
+            __DIR__.'/../routes/api/refund/back-office-refund-api.php' => base_path('routes/vendor/citronel-commerce/refund/back-office-refund-api.php'),
+
+        ], 'citronel-commerce-routes');
     }
 }

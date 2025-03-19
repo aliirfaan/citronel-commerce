@@ -156,6 +156,16 @@ interface ProductOrderItemInterface
      * @return mixed
      */
     public function getProductOrderFulfillmentItemType($item = null, $extra = []);
-
+    
+    /**
+     * Method generateProductOrderFulfillmentItemUpdate
+     *
+     * Generate the update array for the order fulfillment item
+     *
+     * @param $item $item [explicite description]
+     * @param $extra $extra [explicite description]
+     *
+     * @return mixed
+     */
     public function generateProductOrderFulfillmentItemUpdate($item = null, $extra = []);
 }

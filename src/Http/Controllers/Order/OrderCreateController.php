@@ -160,7 +160,7 @@ class OrderCreateController extends OrderController
                 // validate order for this specific product
                 $validationRules = $productInterfaceObj->orderItemCreateValidationRules();
                 if (!empty($validationRules)) {
-                    $validationResponse = $this->apiHelperService->validateRequestFields($anOrderItem, $validationRules);
+                    $validationResponse = $this->apiHelperService->validateRequestFields($anOrderItem, $validationRules['rules'], $validationRules['messages'], $validationRules['attributes']);
 
                     if (!is_null($validationResponse)) {
                         $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, null, $this->validationErrorCatalogue()['code']);

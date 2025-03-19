@@ -27,6 +27,12 @@ return new class extends Migration
             $table->integer('retry_count')->nullable(true);
             $table->string('result_code')->nullable(true);
             $table->text('result_message')->nullable(true);
+            $table->string('product_code')->nullable(true); // external code to identify product like a SKU
+            $table->string('custom_value_1')->nullable(true);
+            $table->string('custom_value_2')->nullable(true);
+            $table->string('custom_value_3')->nullable(true);
+            $table->string('custom_value_4')->nullable(true);
+            $table->string('custom_value_5')->nullable(true);
             $table->timestamps();
             
 
@@ -43,6 +49,12 @@ return new class extends Migration
             $table->index('fulfilled_at');
             $table->index('retry_count');
             $table->index('result_code');
+            $table->index('product_code');
+            $table->index('custom_value_1');
+            $table->index('custom_value_2');
+            $table->index('custom_value_3');
+            $table->index('custom_value_4');
+            $table->index('custom_value_5');
         });
     }
 

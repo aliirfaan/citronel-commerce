@@ -119,8 +119,7 @@ class OrderItemReviewController extends CitronelController
             $productInterfaceObj = $this->helperService->makeObject($orderItem->product->product_class, ['product'=> $orderItem->product]);
 
             $validationRules = $productInterfaceObj->orderItemUpdateValidationRules();
-            $validationRulesCustomMessages = $productInterfaceObj->orderItemUpdateValidationRulesMessages();
-            $validationResponse = $this->apiHelperService->validateRequestFields($requestArray, $validationRules, $validationRulesCustomMessages);
+            $validationResponse = $this->apiHelperService->validateRequestFields($requestArray, $validationRules['rules'], $validationRules['messages'], $validationRules['attributes']);
             if (!is_null($validationResponse)) {
                 $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, null, $this->validationErrorCatalogue()['code']);
                 $this->resultResponse = $this->apiHelperService->apiValidationErrorResponse($this->namespace, $validationResponse, null, $this->validationErrorCatalogue()['lang'], ['code' => $code['code']]);

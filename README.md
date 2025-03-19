@@ -26,6 +26,9 @@ Simple order and payment processing for Laravel API project.
 - Payment refunds
 
 ## Product
+* migrate products table
+* expects service class in App/Services/Api/v1
+* extends AbstractCitronelProduct implements ProductOrderItemInterface, ProductPaymentInterface, ProductOrderFulfillmentRefundInterface 
 
 ## Order
 
@@ -115,6 +118,10 @@ class MyOrder extends Order
 }
 ```
 
+## update order model in config
+```php
+'order_model' => Models\MyOrder::class,
+```
 
 ## citronel-commerce
 * Add middleware to check if actor token is valid

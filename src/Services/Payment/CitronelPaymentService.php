@@ -11,7 +11,7 @@ use aliirfaan\CitronelErrorCatalogue\Traits\ErrorCatalogue;
 use aliirfaan\CitronelCommerce\Enums\Payment\PaymentStatus;
 use aliirfaan\CitronelCommerce\Events\Payment\PaymentProcessed;
 use aliirfaan\CitronelCommerce\Services\Order\OrderMediatorService;
-use aliirfaan\CitronelCommerce\Contracts\Traits\Payment\PaymentServiceManualConfirmationTrait;
+use aliirfaan\CitronelCommerce\Traits\Payment\PaymentServiceManualConfirmationTrait;
 
 class CitronelPaymentService
 {

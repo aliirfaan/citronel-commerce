@@ -154,7 +154,7 @@ class CitronelOrderService
         $orderCurrencyCode = $saveData['order_currency_code'];
         $currencyRate = $saveData['currency_rate'];
         $orderSaveData = [
-            'order_guid' => $this->generateOrderGuid(),
+            'order_guid' => array_key_exists('order_guid', $saveData) ? $saveData['order_guid'] : $this->generateOrderGuid(),
             'actor_id' => array_key_exists('actor_id', $saveData) ? $saveData['actor_id'] : null,
             'order_status' => OrderStatus::CREATED->value,
             'currency_rate_id' => $currencyRate ? $currencyRate->id : null,

@@ -28,7 +28,9 @@ class OrderItem extends Model
 
     public function order(): BelongsTo
     {
-        return $this->belongsTo(Order::class);
+        $orderModel = config('citronel-order.order_model');
+        
+        return $this->belongsTo($orderModel);
     }
 
     public function product(): BelongsTo

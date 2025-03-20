@@ -2,7 +2,7 @@
 
 namespace aliirfaan\CitronelCommerce\Services\Currency;
 
-use aliirfaan\CitronelCommerce\Models\CurrencyRate;
+use aliirfaan\CitronelCommerce\Models\CurrencyRate\CurrencyRate;
 use aliirfaan\CitronelCommerce\Contracts\CurrencyPlatform\CurrencyPlatformInterface;
 
 class CitronelCurrencyService
@@ -35,7 +35,7 @@ class CitronelCurrencyService
      */
     public $mainProcess;
 
-    public function __construct(CurrencyPlatformInterface $currencyPlatformService)
+    public function __construct(?CurrencyPlatformInterface $currencyPlatformService = null)
     {
         $this->mainProcess = 'currency_service';
         

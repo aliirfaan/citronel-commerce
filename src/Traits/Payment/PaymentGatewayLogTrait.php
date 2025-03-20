@@ -1,6 +1,6 @@
 <?php
 
-namespace aliirfaan\CitronelCommerce\Contracts\Traits\Payment;
+namespace aliirfaan\CitronelCommerce\Traits\Payment;
 
 use Illuminate\Support\Facades\Log;
 

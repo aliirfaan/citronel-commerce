@@ -26,10 +26,10 @@ return [
     'back_office_api_route_prefix' => env('CITRONEL_COMMERCE_BACK_OFFICE_API_ROUTE_PREFIX', null),
     'middleware' => [
         'api' => [
-            \aliirfaan\CitronelCore\Http\Middleware\CorrelationToken::class
+            \aliirfaan\CitronelCore\Http\Middleware\CitronelCorrelationToken::class
         ],
         'back_office_api'=> [
-            \aliirfaan\CitronelCore\Http\Middleware\CorrelationToken::class,
+            \aliirfaan\CitronelCore\Http\Middleware\CitronelCorrelationToken::class,
             \aliirfaan\CitronelCore\Http\Middleware\CheckBackOfficeApiKey::class
         ],
     ],

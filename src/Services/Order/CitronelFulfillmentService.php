@@ -8,7 +8,7 @@ use aliirfaan\LaravelSimpleAuditLog\Services\AuditLogService;
 use aliirfaan\CitronelCommerce\Events\Order\FulfillmentProcessed;
 use aliirfaan\CitronelCommerce\Events\Order\FulfillmentFailed;
 use aliirfaan\CitronelJob\Traits\HasJobPolicy;
-use aliirfaan\CitronelCommerce\Services\Product\ProductService;
+use aliirfaan\CitronelCommerce\Services\Product\CitronelProductService;
 use aliirfaan\CitronelCommerce\Models\Order\ManualFulfillmentRetry;
 use aliirfaan\CitronelCommerce\Enums\Order\OrderStatus;
 use aliirfaan\CitronelCommerce\Enums\Payment\PaymentStatus;
@@ -66,7 +66,7 @@ class CitronelFulfillmentService
         $helperServiceClass = config('citronel-commerce.helper_service');
         $this->helperService = app($helperServiceClass);
 
-        $this->productService = new ProductService();
+        $this->productService = new CitronelProductService();
         $this->errorCatalogueService = new CitronelErrorCatalogueService();
         $this->mainProcess = 'order';
     }

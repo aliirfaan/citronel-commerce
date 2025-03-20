@@ -1,6 +1,6 @@
 <?php
 
-namespace aliirfaan\CitronelCommerce\Contracts\Traits\Payment;
+namespace aliirfaan\CitronelCommerce\Traits\Payment;
 
 use aliirfaan\CitronelCommerce\Enums\Payment\PaymentStatus;
 use aliirfaan\CitronelCommerce\Models\Payment\ManualPaymentConfirmation;
@@ -36,7 +36,12 @@ trait PaymentServiceManualConfirmationTrait
      */
     protected $auditService;
 
-    protected $errorCatalogueService;
+    /**
+     * errorCatalogueService
+     *
+     * @var mixed
+     */
+    public $errorCatalogueService;
 
     /**
      * Method validatePaymentForManualSuccessConfirmation

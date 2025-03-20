@@ -6,10 +6,10 @@ use \Carbon\Carbon;
 use Illuminate\Support\Arr;
 use aliirfaan\CitronelCommerce\Services\Payment\CitronelPaymentService;
 use aliirfaan\CitronelCommerce\Services\Helper\CitronelCommerceHelperService;
-use aliirfaan\CitronelCommerce\Contracts\Traits\Payment\PaymentGatewayLogTrait;
-use aliirfaan\CitronelCommerce\Contracts\Traits\Payment\PaymentGatewayCurrencyTrait;
-use aliirfaan\CitronelCommerce\Contracts\Traits\Payment\PaymentGatewayMessageTrait;
-use aliirfaan\CitronelCommerce\Contracts\Traits\Payment\PaymentGatewayManualConfirmationTrait;
+use aliirfaan\CitronelCommerce\Traits\Payment\PaymentGatewayLogTrait;
+use aliirfaan\CitronelCommerce\Traits\Payment\PaymentGatewayCurrencyTrait;
+use aliirfaan\CitronelCommerce\Traits\Payment\PaymentGatewayMessageTrait;
+use aliirfaan\CitronelCommerce\Traits\Payment\PaymentGatewayManualConfirmationTrait;
 
 abstract class AbstractPaymentGateway
 {

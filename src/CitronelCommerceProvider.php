@@ -63,27 +63,37 @@ class CitronelCommerceProvider extends \Illuminate\Support\ServiceProvider
     protected function registerRoutes()
     {
         // Load default routes if user hasn't published custom versions
-        $this->loadRoutesFrom(__DIR__.'/../routes/api/order/back-office-order-api.php');
+        $published = base_path('routes/vendor/citronel-commerce/api/order/back-office-order-api.php');
+        $default = __DIR__.'/../routes/api/order/back-office-order-api.php';
+        $this->loadRoutesFrom(file_exists($published) ? $published : $default);
 
-        $this->loadRoutesFrom(__DIR__.'/../routes/api/order/order-api.php');
+        $published = base_path('routes/vendor/citronel-commerce/api/order/order-api.php');
+        $default = __DIR__.'/../routes/api/order/order-api.php';
+        $this->loadRoutesFrom(file_exists($published) ? $published : $default);
 
-        $this->loadRoutesFrom(__DIR__.'/../routes/api/payment/back-office-payment-api.php');
+        $published = base_path('routes/vendor/citronel-commerce/api/payment/back-office-payment-api.php');
+        $default = __DIR__.'/../routes/api/payment/back-office-payment-api.php';
+        $this->loadRoutesFrom(file_exists($published) ? $published : $default);
 
-        $this->loadRoutesFrom(__DIR__.'/../routes/api/payment/payment-api.php');
+        $published = base_path('routes/vendor/citronel-commerce/api/payment/payment-api.php');
+        $default = __DIR__.'/../routes/api/payment/payment-api.php';
+        $this->loadRoutesFrom(file_exists($published) ? $published : $default);
 
-        $this->loadRoutesFrom(__DIR__.'/../routes/api/refund/back-office-refund-api.php');
-
+        $published = base_path('routes/vendor/citronel-commerce/api/refund/back-office-refund-api.php');
+        $default = __DIR__.'/../routes/api/refund/back-office-refund-api.php';
+        $this->loadRoutesFrom(file_exists($published) ? $published : $default);
+        
         // Publish all route files
         $this->publishes([
-            __DIR__.'/../routes/api/order/back-office-order-api.php' => base_path('routes/vendor/citronel-commerce/order/back-office-order-api.php'),
+            __DIR__.'/../routes/api/order/back-office-order-api.php' => base_path('routes/vendor/citronel-commerce/api/order/back-office-order-api.php'),
 
-            __DIR__.'/../routes/api/order/order-api.php' => base_path('routes/vendor/citronel-commerce/order/order-api.php'),
+            __DIR__.'/../routes/api/order/order-api.php' => base_path('routes/vendor/citronel-commerce/api/order/order-api.php'),
 
-            __DIR__.'/../routes/api/payment/back-office-payment-api.php' => base_path('routes/vendor/citronel-commerce/payment/back-office-payment-api.php'),
+            __DIR__.'/../routes/api/payment/back-office-payment-api.php' => base_path('routes/vendor/citronel-commerce/api/payment/back-office-payment-api.php'),
 
-            __DIR__.'/../routes/api/payment/payment-api.php' => base_path('routes/vendor/citronel-commerce/payment/payment-api.php'),
+            __DIR__.'/../routes/api/payment/payment-api.php' => base_path('routes/vendor/citronel-commerce/api/payment/payment-api.php'),
 
-            __DIR__.'/../routes/api/refund/back-office-refund-api.php' => base_path('routes/vendor/citronel-commerce/refund/back-office-refund-api.php'),
+            __DIR__.'/../routes/api/refund/back-office-refund-api.php' => base_path('routes/vendor/citronel-commerce/api/refund/back-office-refund-api.php'),
 
         ], 'citronel-commerce-routes');
     }

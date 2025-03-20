@@ -50,8 +50,21 @@ Add columns to your order fulfillments
 
 ## Create a migration to link order to an actor
 ```bash
-php artisan make:migration alter_actor_id_in_orders_table --table=orders
+$ php artisan make:migration alter_actor_id_in_orders_table --table=orders
 ```
+
+## Routes
+* Publish routes if you want to override them
+``` bash
+$ php artisan vendor:publish --tag=citronel-commerce-routes
+```
+* Make sure to review routes and remove endpoints you do not want to expose
+
+* Review route prefix
+
+
+## Middleware
+* Review route middleware
 
 ```php
 // use actor

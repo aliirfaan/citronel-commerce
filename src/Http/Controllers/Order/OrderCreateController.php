@@ -139,9 +139,9 @@ class OrderCreateController extends OrderController
                 $getProductResponse = $productService->getProductById($productId);
                 if (!$getProductResponse['success']) {
                     $subProcessEvent = $this->errorCatalogueService->getSubProcessEvent('order', 'create', 'invalid_product');
-                    $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key']);
-
-                    $this->resultResponse = $this->apiHelperService->apiValidationErrorResponse($this->namespace, $validationResponse, null, $this->validationErrorCatalogue()['lang'], ['code' => $code['code']]);
+                    $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $this->subProcess['key'], null, $this->recordNotFoundErrorCatalogue()['code']);
+    
+                    $this->resultResponse = $this->apiHelperService->apiNotFoundErrorResponse($this->namespace, [], null, $this->recordNotFoundErrorCatalogue()['lang'], ['code' => $code['code']]);
 
                     $auditData['al_is_success'] = $this->data['success'];
                     $auditData['al_event_name'] = $subProcessEvent['name'];
@@ -204,7 +204,7 @@ class OrderCreateController extends OrderController
                     return $this->sendApiResponse($this->resultResponse, $this->resultResponse->collection['status_code'], $reponseHeaders);
                 }
             }
-
+            
             // at this point we have valid data to create order
             $orderCurrencyCode = array_key_exists('order_currency_code', $requestArray) ? strtoupper($requestArray['order_currency_code']) : $currencyService->getDefaultCurrencyCode();
 
@@ -236,6 +236,10 @@ class OrderCreateController extends OrderController
                 'order_currency_code' => $orderCurrencyCode,
                 'correlation_token' => $correlationToken
             ];
+            if (array_key_exists('custom_order_data', $requestArray)) {
+                $createOrderSaveData = array_merge($createOrderSaveData, $requestArray['custom_order_data']);
+            }
+
             $createOrderExtra = [
                 'product_temp_array' => $productTempArray,
                 'correlation_token' => $correlationToken

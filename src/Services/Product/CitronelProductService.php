@@ -57,7 +57,9 @@ class CitronelProductService
     {
         $data = $this->helperService->returnFormat();
   
-        $result = $this->productModel->getProductById($id, $active);
+        $result = $this->productModel->where('id', $id)
+        ->where('active', $active)
+        ->first();
         if (is_null($result)) {
           $data['errors'] = true;
         }

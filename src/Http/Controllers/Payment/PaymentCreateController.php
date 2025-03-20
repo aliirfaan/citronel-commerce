@@ -23,8 +23,8 @@ class PaymentCreateController extends PaymentController
 
         $this->actor = $request->get('actor', null);
 
-        $auditData = $auditService->generatePreliminaryAuditData($request, $correlationToken, $this->actor);
-        $auditData['al_event_name'] = $subProcess['name'];
+        $this->auditData = $auditService->generatePreliminaryAuditData($request, $correlationToken, $this->actor);
+        $this->auditData['al_event_name'] = $subProcess['name'];
 
         try {
             $subProcessKey = $subProcess['key'];
@@ -36,12 +36,12 @@ class PaymentCreateController extends PaymentController
 
                 $this->resultResponse = $this->apiHelperService->apiNotFoundErrorResponse($this->namespace, [], null, $this->recordNotFoundErrorCatalogue()['lang'], ['code' => $code['code']]);
 
-                $auditData['al_is_success'] = $this->data['success'];
-                $auditData['al_event_name'] = $subProcessEvent['name'];
-                $auditData['al_code'] = $code['code'];
-                $auditData['al_request'] = $order_guid;
-                $auditData['al_message'] = $code['status'];
-                AuditLogged::dispatch($auditData);
+                $this->auditData['al_is_success'] = $this->data['success'];
+                $this->auditData['al_event_name'] = $subProcessEvent['name'];
+                $this->auditData['al_code'] = $code['code'];
+                $this->auditData['al_request'] = $order_guid;
+                $this->auditData['al_message'] = $code['status'];
+                AuditLogged::dispatch($this->auditData);
             
                 return $this->sendApiResponse($this->resultResponse, $this->resultResponse->collection['status_code'], $reponseHeaders);
             }
@@ -53,11 +53,11 @@ class PaymentCreateController extends PaymentController
                 $subProcessErrorKey = $subProcess['events']['expired_order']['key'];
                 $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, $subProcessErrorKey);
 
-                $auditData['al_event_name'] = $subProcess['events']['expired_order']['name'];
-                $auditData['al_is_success'] = $checkOrderExpiryResponse['success'];
-                $auditData['al_code'] = $code['code'];
-                $auditData['al_request'] = $order->id;
-                AuditLogged::dispatch($auditData);
+                $this->auditData['al_event_name'] = $subProcess['events']['expired_order']['name'];
+                $this->auditData['al_is_success'] = $checkOrderExpiryResponse['success'];
+                $this->auditData['al_code'] = $code['code'];
+                $this->auditData['al_request'] = $order->id;
+                AuditLogged::dispatch($this->auditData);
 
                 $this->resultResponse = $this->apiHelperService->apiValidationErrorResponse($this->namespace, [], null, $checkOrderExpiryResponse['message'], ['code' => $code['code']]);
             
@@ -69,11 +69,11 @@ class PaymentCreateController extends PaymentController
                 $subProcessErrorKey = $subProcess['events']['invalid_order_for_payment']['key'];
                 $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, $subProcessErrorKey);
 
-                $auditData['al_event_name'] = $subProcess['events']['invalid_order_for_payment']['name'];
-                $auditData['al_is_success'] = $validateOrderForPaymentResponse['success'];
-                $auditData['al_code'] = $code['code'];
-                $auditData['al_request'] = $order->id;
-                AuditLogged::dispatch($auditData);
+                $this->auditData['al_event_name'] = $subProcess['events']['invalid_order_for_payment']['name'];
+                $this->auditData['al_is_success'] = $validateOrderForPaymentResponse['success'];
+                $this->auditData['al_code'] = $code['code'];
+                $this->auditData['al_request'] = $order->id;
+                AuditLogged::dispatch($this->auditData);
 
                 $this->resultResponse = $this->apiHelperService->apiValidationErrorResponse($this->namespace, [], null, $validateOrderForPaymentResponse['message'], ['code' => $code['code']]);
             
@@ -88,12 +88,12 @@ class PaymentCreateController extends PaymentController
 
                 $this->resultResponse = $this->apiHelperService->apiNotFoundErrorResponse($this->namespace, [], null, $this->recordNotFoundErrorCatalogue()['lang'], ['code' => $code['code']]);
 
-                $auditData['al_is_success'] = $this->data['success'];
-                $auditData['al_event_name'] = $subProcess['events']['invalid_payment_method']['name'];
-                $auditData['al_code'] = $code['code'];
-                $auditData['al_request'] = $order_guid;
-                $auditData['al_message'] = $code['status'];
-                AuditLogged::dispatch($auditData);
+                $this->auditData['al_is_success'] = $this->data['success'];
+                $this->auditData['al_event_name'] = $subProcess['events']['invalid_payment_method']['name'];
+                $this->auditData['al_code'] = $code['code'];
+                $this->auditData['al_request'] = $order_guid;
+                $this->auditData['al_message'] = $code['status'];
+                AuditLogged::dispatch($this->auditData);
             
                 return $this->sendApiResponse($this->resultResponse, $this->resultResponse->collection['status_code'], $reponseHeaders);
             }
@@ -108,11 +108,11 @@ class PaymentCreateController extends PaymentController
                 $subProcessErrorKey = $subProcess['events']['invalid_currency']['key'];
                 $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, $subProcessErrorKey);
 
-                $auditData['al_event_name'] = $subProcess['events']['invalid_currency']['name'];
-                $auditData['al_is_success'] = $isCurrencyAllowedResponse['success'];
-                $auditData['al_code'] = $code['code'];
-                $auditData['al_request'] = $order->id;
-                AuditLogged::dispatch($auditData);
+                $this->auditData['al_event_name'] = $subProcess['events']['invalid_currency']['name'];
+                $this->auditData['al_is_success'] = $isCurrencyAllowedResponse['success'];
+                $this->auditData['al_code'] = $code['code'];
+                $this->auditData['al_request'] = $order->id;
+                AuditLogged::dispatch($this->auditData);
 
                 $this->resultResponse = $this->apiHelperService->apiValidationErrorResponse($this->namespace, [], null, $isCurrencyAllowedResponse['message'], ['code' => $code['code']]);
             
@@ -125,11 +125,11 @@ class PaymentCreateController extends PaymentController
                 $subProcessErrorKey = $subProcess['events']['invalid_amount']['key'];
                 $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, $subProcessErrorKey);
 
-                $auditData['al_event_name'] = $subProcess['events']['invalid_amount']['name'];
-                $auditData['al_is_success'] = $validatePaymentMethodAmountResponse['success'];
-                $auditData['al_code'] = $code['code'];
-                $auditData['al_request'] = $order->id;
-                AuditLogged::dispatch($auditData);
+                $this->auditData['al_event_name'] = $subProcess['events']['invalid_amount']['name'];
+                $this->auditData['al_is_success'] = $validatePaymentMethodAmountResponse['success'];
+                $this->auditData['al_code'] = $code['code'];
+                $this->auditData['al_request'] = $order->id;
+                AuditLogged::dispatch($this->auditData);
 
                 $this->resultResponse = $this->apiHelperService->apiValidationErrorResponse($this->namespace, [], null, $validatePaymentMethodAmountResponse['message'], ['code' => $code['code']]);
             
@@ -182,11 +182,11 @@ class PaymentCreateController extends PaymentController
                 $subProcessErrorKey = $subProcess['events']['register_gateway_order_failure']['key'];
                 $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, $subProcessErrorKey);
 
-                $auditData['al_event_name'] = $subProcess['events']['register_gateway_order_failure']['name'];
-                $auditData['al_is_success'] = $registerGatewayOrderResponse['success'];
-                $auditData['al_code'] = $code['code'];
-                $auditData['al_message'] = $registerGatewayOrderResponse['message'];
-                AuditLogged::dispatch($auditData);
+                $this->auditData['al_event_name'] = $subProcess['events']['register_gateway_order_failure']['name'];
+                $this->auditData['al_is_success'] = $registerGatewayOrderResponse['success'];
+                $this->auditData['al_code'] = $code['code'];
+                $this->auditData['al_message'] = $registerGatewayOrderResponse['message'];
+                AuditLogged::dispatch($this->auditData);
 
                 $this->resultResponse = $this->apiHelperService->apiProcessingErrorResponse($this->namespace, [], $registerGatewayOrderResponse['message']);
 

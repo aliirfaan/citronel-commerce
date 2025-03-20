@@ -188,7 +188,7 @@ class CitronelOrderService
             }
 
             $preProcessedOrderItem = $orderItemCreatePreProcessResponse['result'];
-            $anOrderItem = array_merge($anOrderItem, $preProcessedOrderItem);
+            $anOrderItem = is_array($preProcessedOrderItem) ? array_merge($anOrderItem, $preProcessedOrderItem) : $anOrderItem;
 
             $productId = $anOrderItem['product_id'];
             $productInterfaceObj = $productTempArray[$productId]['product_class'];

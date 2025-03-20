@@ -30,8 +30,8 @@ class ActorPaymentController extends PaymentController
 
         $this->actor = $request->get('actor', null);
 
-        $auditData = $auditService->generatePreliminaryAuditData($request, $correlationToken, $this->actor);
-        $auditData['al_event_name'] = $subProcess['name'];
+        $this->auditData = $auditService->generatePreliminaryAuditData($request, $correlationToken, $this->actor);
+        $this->auditData['al_event_name'] = $subProcess['name'];
 
         try{
             // authorize

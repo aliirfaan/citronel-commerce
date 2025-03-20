@@ -20,8 +20,8 @@ class UpdateOrderRefundController extends RefundController
 
         $this->actor = $request->get('actor', null);
 
-        $auditData = $auditService->generatePreliminaryAuditData($request, $correlationToken, $this->actor);
-        $auditData['al_event_name'] = $subProcess['name'];
+        $this->auditData = $auditService->generatePreliminaryAuditData($request, $correlationToken, $this->actor);
+        $this->auditData['al_event_name'] = $subProcess['name'];
         
         $requestArray = $request->json()->all();
 
@@ -35,11 +35,11 @@ class UpdateOrderRefundController extends RefundController
                 $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, null, $this->validationErrorCatalogue()['code']);
                 $this->resultResponse = $this->apiHelperService->apiValidationErrorResponse($this->namespace, $validationResponse, null, $this->validationErrorCatalogue()['lang'], ['code' => $code['code']]);
 
-                $auditData['al_is_success'] = $this->data['success'];
-                $auditData['al_code'] = $code['code'];
-                $auditData['al_request'] = json_encode($requestArray);
-                $auditData['al_response'] = json_encode($validationResponse);
-                AuditLogged::dispatch($auditData);
+                $this->auditData['al_is_success'] = $this->data['success'];
+                $this->auditData['al_code'] = $code['code'];
+                $this->auditData['al_request'] = json_encode($requestArray);
+                $this->auditData['al_response'] = json_encode($validationResponse);
+                AuditLogged::dispatch($this->auditData);
             
                 return $this->sendApiResponse($this->resultResponse, $this->resultResponse->collection['status_code'], $reponseHeaders);
             }
@@ -51,12 +51,12 @@ class UpdateOrderRefundController extends RefundController
 
                 $this->resultResponse = $this->apiHelperService->apiNotFoundErrorResponse($this->namespace, [], null, $this->recordNotFoundErrorCatalogue()['lang'], ['code' => $code['code']]);
 
-                $auditData['al_is_success'] = $this->data['success'];
-                $auditData['al_event_name'] = $subProcess['events']['invalid_payment_refund']['name'];
-                $auditData['al_code'] = $code['code'];
-                $auditData['al_request'] = $payment_refund_id;
-                $auditData['al_message'] = $code['status'];
-                AuditLogged::dispatch($auditData);
+                $this->auditData['al_is_success'] = $this->data['success'];
+                $this->auditData['al_event_name'] = $subProcess['events']['invalid_payment_refund']['name'];
+                $this->auditData['al_code'] = $code['code'];
+                $this->auditData['al_request'] = $payment_refund_id;
+                $this->auditData['al_message'] = $code['status'];
+                AuditLogged::dispatch($this->auditData);
             
                 return $this->sendApiResponse($this->resultResponse, $this->resultResponse->collection['status_code'], $reponseHeaders);
             }
@@ -74,12 +74,12 @@ class UpdateOrderRefundController extends RefundController
 
                 $this->resultResponse = $this->apiHelperService->apiProcessingErrorResponse($this->namespace, [], $updateOrderRefundResponse['message']);
 
-                $auditData['al_is_success'] = $this->data['success'];
-                $auditData['al_event_name'] = $subProcess['events']['refund_initiation_failed']['name'];
-                $auditData['al_code'] = $code['code'];
-                $auditData['al_request'] = json_encode($requestArray);
-                $auditData['al_message'] = $code['status'];
-                AuditLogged::dispatch($auditData);
+                $this->auditData['al_is_success'] = $this->data['success'];
+                $this->auditData['al_event_name'] = $subProcess['events']['refund_initiation_failed']['name'];
+                $this->auditData['al_code'] = $code['code'];
+                $this->auditData['al_request'] = json_encode($requestArray);
+                $this->auditData['al_message'] = $code['status'];
+                AuditLogged::dispatch($this->auditData);
             
                 return $this->sendApiResponse($this->resultResponse, $this->resultResponse->collection['status_code'], $reponseHeaders);
             }

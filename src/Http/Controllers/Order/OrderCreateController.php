@@ -29,8 +29,8 @@ class OrderCreateController extends OrderController
 
         $this->actor = $request->get('actor', null);
 
-        $auditData = $auditService->generatePreliminaryAuditData($request, $correlationToken, $this->actor);
-        $auditData['al_event_name'] = $subProcess['name'];
+        $this->auditData = $auditService->generatePreliminaryAuditData($request, $correlationToken, $this->actor);
+        $this->auditData['al_event_name'] = $subProcess['name'];
         
         $requestArray = $request->json()->all();
 
@@ -47,11 +47,11 @@ class OrderCreateController extends OrderController
                 $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, null, $this->validationErrorCatalogue()['code']);
                 $this->resultResponse = $this->apiHelperService->apiValidationErrorResponse($this->namespace, $validationResponse, null, $this->validationErrorCatalogue()['lang'], ['code' => $code['code']]);
 
-                $auditData['al_is_success'] = $this->data['success'];
-                $auditData['al_code'] = $code['code'];
-                $auditData['al_request'] = json_encode($requestArray);
-                $auditData['al_response'] = json_encode($validationResponse);
-                AuditLogged::dispatch($auditData);
+                $this->auditData['al_is_success'] = $this->data['success'];
+                $this->auditData['al_code'] = $code['code'];
+                $this->auditData['al_request'] = json_encode($requestArray);
+                $this->auditData['al_response'] = json_encode($validationResponse);
+                AuditLogged::dispatch($this->auditData);
             
                 return $this->sendApiResponse($this->resultResponse, $this->resultResponse->collection['status_code'], $reponseHeaders);
             }
@@ -72,9 +72,9 @@ class OrderCreateController extends OrderController
 
                         $this->resultResponse = $this->apiHelperService->apiValidationErrorResponse($this->namespace, [], $orderCreationHoldMessage);
 
-                        $auditData['al_is_success'] = $this->data['success'];
-                        $auditData['al_code'] = $code['code'];
-                        AuditLogged::dispatch($auditData);
+                        $this->auditData['al_is_success'] = $this->data['success'];
+                        $this->auditData['al_code'] = $code['code'];
+                        AuditLogged::dispatch($this->auditData);
                     
                         return $this->sendApiResponse($this->resultResponse, $this->resultResponse->collection['status_code'], $reponseHeaders);
                     }
@@ -123,11 +123,11 @@ class OrderCreateController extends OrderController
                     $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, null, $this->validationErrorCatalogue()['code']);
                     $this->resultResponse = $this->apiHelperService->apiValidationErrorResponse($this->namespace, $validationResponse, null, $this->validationErrorCatalogue()['lang'], ['code' => $code['code']]);
     
-                    $auditData['al_is_success'] = $this->data['success'];
-                    $auditData['al_code'] = $code['code'];
-                    $auditData['al_request'] = json_encode($anOrderItem);
-                    $auditData['al_response'] = json_encode($validationResponse);
-                    AuditLogged::dispatch($auditData);
+                    $this->auditData['al_is_success'] = $this->data['success'];
+                    $this->auditData['al_code'] = $code['code'];
+                    $this->auditData['al_request'] = json_encode($anOrderItem);
+                    $this->auditData['al_response'] = json_encode($validationResponse);
+                    AuditLogged::dispatch($this->auditData);
                 
                     return $this->sendApiResponse($this->resultResponse, $this->resultResponse->collection['status_code'], $reponseHeaders);
                 }
@@ -143,12 +143,12 @@ class OrderCreateController extends OrderController
     
                     $this->resultResponse = $this->apiHelperService->apiNotFoundErrorResponse($this->namespace, [], null, $this->recordNotFoundErrorCatalogue()['lang'], ['code' => $code['code']]);
 
-                    $auditData['al_is_success'] = $this->data['success'];
-                    $auditData['al_event_name'] = $subProcessEvent['name'];
-                    $auditData['al_code'] = $code['code'];
-                    $auditData['al_request'] = json_encode($anOrderItem);
-                    $auditData['al_message'] = $code['status'];
-                    AuditLogged::dispatch($auditData);
+                    $this->auditData['al_is_success'] = $this->data['success'];
+                    $this->auditData['al_event_name'] = $subProcessEvent['name'];
+                    $this->auditData['al_code'] = $code['code'];
+                    $this->auditData['al_request'] = json_encode($anOrderItem);
+                    $this->auditData['al_message'] = $code['status'];
+                    AuditLogged::dispatch($this->auditData);
                 
                     return $this->sendApiResponse($this->resultResponse, $this->resultResponse->collection['status_code'], $reponseHeaders);
                 }
@@ -166,11 +166,11 @@ class OrderCreateController extends OrderController
                         $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, null, $this->validationErrorCatalogue()['code']);
                         $this->resultResponse = $this->apiHelperService->apiValidationErrorResponse($this->namespace, $validationResponse, null, $this->validationErrorCatalogue()['lang'], ['code' => $code['code']]);
         
-                        $auditData['al_is_success'] = $this->data['success'];
-                        $auditData['al_code'] = $code['code'];
-                        $auditData['al_request'] = json_encode($anOrderItem);
-                        $auditData['al_response'] = json_encode($validationResponse);
-                        AuditLogged::dispatch($auditData);
+                        $this->auditData['al_is_success'] = $this->data['success'];
+                        $this->auditData['al_code'] = $code['code'];
+                        $this->auditData['al_request'] = json_encode($anOrderItem);
+                        $this->auditData['al_response'] = json_encode($validationResponse);
+                        AuditLogged::dispatch($this->auditData);
                     
                         return $this->sendApiResponse($this->resultResponse, $this->resultResponse->collection['status_code'], $reponseHeaders);
                     }
@@ -192,12 +192,12 @@ class OrderCreateController extends OrderController
                     $subProcessEvent = $this->errorCatalogueService->getSubProcessEvent('order', 'create', 'invalid_pre_process');
                     $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key']);
 
-                    $auditData['al_event_name'] = $subProcessEvent['name'];
-                    $auditData['al_is_success'] = $orderItemCreatePreProcessResponse['success'];
-                    $auditData['al_code'] = $code['code'];
-                    $auditData['al_request'] = json_encode($anOrderItem);
-                    $auditData['al_message'] = $orderItemCreatePreProcessResponse['message'];
-                    AuditLogged::dispatch($auditData);
+                    $this->auditData['al_event_name'] = $subProcessEvent['name'];
+                    $this->auditData['al_is_success'] = $orderItemCreatePreProcessResponse['success'];
+                    $this->auditData['al_code'] = $code['code'];
+                    $this->auditData['al_request'] = json_encode($anOrderItem);
+                    $this->auditData['al_message'] = $orderItemCreatePreProcessResponse['message'];
+                    AuditLogged::dispatch($this->auditData);
 
                     $this->resultResponse = $this->apiHelperService->apiValidationErrorResponse($this->namespace, [], $orderItemCreatePreProcessResponse['message']);
                 
@@ -216,11 +216,11 @@ class OrderCreateController extends OrderController
                     $subProcessEvent = $this->errorCatalogueService->getSubProcessEvent('order', 'create', 'invalid_currency');
                     $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key']);
 
-                    $auditData['al_event_name'] = $subProcessEvent['name'];
-                    $auditData['al_is_success'] = $getCurrencyRateResponse['success'];
-                    $auditData['al_code'] = $code['code'];
-                    $auditData['al_request'] = $orderCurrencyCode;
-                    AuditLogged::dispatch($auditData);
+                    $this->auditData['al_event_name'] = $subProcessEvent['name'];
+                    $this->auditData['al_is_success'] = $getCurrencyRateResponse['success'];
+                    $this->auditData['al_code'] = $code['code'];
+                    $this->auditData['al_request'] = $orderCurrencyCode;
+                    AuditLogged::dispatch($this->auditData);
 
                     $this->resultResponse = $this->apiHelperService->apiValidationErrorResponse($this->namespace, [], null, $this->validationErrorCatalogue()['lang'], ['code' => $code['code']]);
                 
@@ -249,11 +249,11 @@ class OrderCreateController extends OrderController
                 $subProcessEvent = $this->errorCatalogueService->getSubProcessEvent('order', 'create', 'create_failure');
                 $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key']);
 
-                $auditData['al_event_name'] = $subProcessEvent['name'];
-                $auditData['al_is_success'] = $createOrderResponse['success'];
-                $auditData['al_code'] = $code['code'];
-                $auditData['al_message'] = $createOrderResponse['message'];
-                AuditLogged::dispatch($auditData);
+                $this->auditData['al_event_name'] = $subProcessEvent['name'];
+                $this->auditData['al_is_success'] = $createOrderResponse['success'];
+                $this->auditData['al_code'] = $code['code'];
+                $this->auditData['al_message'] = $createOrderResponse['message'];
+                AuditLogged::dispatch($this->auditData);
 
                 $this->resultResponse = $this->apiHelperService->apiValidationErrorResponse($this->namespace, [], $createOrderResponse['message']);
             
@@ -272,12 +272,12 @@ class OrderCreateController extends OrderController
             $this->data['status_code'] = Response::HTTP_OK;
             $this->resultResponse = new ApiResponseCollection($this->data);
 
-            $auditData['al_action_type'] = config('audit.action_types.create.name');
-            $auditData['al_event_name'] = $subProcess['events']['created']['name'];
-            $auditData['al_is_success'] = $this->data['success'];
-            $auditData['al_response'] = $newOrder->id;
+            $this->auditData['al_action_type'] = config('audit.action_types.create.name');
+            $this->auditData['al_event_name'] = $subProcess['events']['created']['name'];
+            $this->auditData['al_is_success'] = $this->data['success'];
+            $this->auditData['al_response'] = $newOrder->id;
 
-            OrderCreated::dispatch($auditData);
+            OrderCreated::dispatch($this->auditData);
 
         } catch (\Exception $e) {
             $this->resultResponse = $this->handleException($e);

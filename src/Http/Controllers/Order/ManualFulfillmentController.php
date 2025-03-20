@@ -21,8 +21,8 @@ class ManualFulfillmentController extends OrderController
 
         $this->actor = $request->get('actor', null);
 
-        $auditData = $auditService->generatePreliminaryAuditData($request, $correlationToken, $this->actor);
-        $auditData['al_event_name'] = $subProcess['name'];
+        $this->auditData = $auditService->generatePreliminaryAuditData($request, $correlationToken, $this->actor);
+        $this->auditData['al_event_name'] = $subProcess['name'];
         
         $requestArray = $request->json()->all();
 
@@ -36,11 +36,11 @@ class ManualFulfillmentController extends OrderController
                 $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, null, $this->validationErrorCatalogue()['code']);
                 $this->resultResponse = $this->apiHelperService->apiValidationErrorResponse($this->namespace, $validationResponse, null, $this->validationErrorCatalogue()['lang'], ['code' => $code['code']]);
 
-                $auditData['al_is_success'] = $this->data['success'];
-                $auditData['al_code'] = $code['code'];
-                $auditData['al_request'] = json_encode($requestArray);
-                $auditData['al_response'] = json_encode($validationResponse);
-                AuditLogged::dispatch($auditData);
+                $this->auditData['al_is_success'] = $this->data['success'];
+                $this->auditData['al_code'] = $code['code'];
+                $this->auditData['al_request'] = json_encode($requestArray);
+                $this->auditData['al_response'] = json_encode($validationResponse);
+                AuditLogged::dispatch($this->auditData);
             
                 return $this->sendApiResponse($this->resultResponse, $this->resultResponse->collection['status_code'], $reponseHeaders);
             }
@@ -52,12 +52,12 @@ class ManualFulfillmentController extends OrderController
 
                 $this->resultResponse = $this->apiHelperService->apiNotFoundErrorResponse($this->namespace, [], null, $this->recordNotFoundErrorCatalogue()['lang'], ['code' => $code['code']]);
 
-                $auditData['al_is_success'] = $this->data['success'];
-                $auditData['al_event_name'] = $subProcessEvent['name'];
-                $auditData['al_code'] = $code['code'];
-                $auditData['al_request'] = $order_fulfillment_id;
-                $auditData['al_message'] = $code['status'];
-                AuditLogged::dispatch($auditData);
+                $this->auditData['al_is_success'] = $this->data['success'];
+                $this->auditData['al_event_name'] = $subProcessEvent['name'];
+                $this->auditData['al_code'] = $code['code'];
+                $this->auditData['al_request'] = $order_fulfillment_id;
+                $this->auditData['al_message'] = $code['status'];
+                AuditLogged::dispatch($this->auditData);
             
                 return $this->sendApiResponse($this->resultResponse, $this->resultResponse->collection['status_code'], $reponseHeaders);
             }

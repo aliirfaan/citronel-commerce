@@ -31,14 +31,14 @@ class OrderItemReviewController extends CitronelController
 
     public function review(Request $request, $order_guid, $order_item_id, AuditLogService $auditService, CitronelCurrencyService $currencyService, CitronelOrderService $orderService, CitronelPaymentMethodService $paymentMethodService)
     {
-        $correlationToken = $this->helperService->getCorrelationToken($request);
-        $reponseHeaders = $this->helperService->correlationResponseHeader($correlationToken);
+        $correlationToken = $this->helperService->getCorrelationTokenFromHeader($request);
+        $reponseHeaders = $this->helperService->setCorrelationResponseHeader($correlationToken);
 
         $subProcess = $this->errorCatalogueService->getSubProcess($this->mainProcess['key'], 'item_review');
 
         $this->actor = $request->get('actor', null);
 
-        $auditData = $auditService->generatePreliminaryEventData($request, $correlationToken, $this->actor);
+        $auditData = $auditService->generatePreliminaryAuditData($request, $correlationToken, $this->actor);
         $auditData['al_event_name'] = $subProcess['name'];
         
         $requestArray = $request->json()->all();
@@ -50,7 +50,7 @@ class OrderItemReviewController extends CitronelController
             $validationRules = $this->modelApiCommand->reviewValidationRules();
             $validationResponse = $this->apiHelperService->validateRequestFields($requestArray, $validationRules);
             if (!is_null($validationResponse)) {
-                $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, null, $this->validationErrorCatalogue()['code']);
+                $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, null, $this->validationErrorCatalogue()['code']);
                 $this->resultResponse = $this->apiHelperService->apiValidationErrorResponse($this->namespace, $validationResponse, null, $this->validationErrorCatalogue()['lang'], ['code' => $code['code']]);
 
                 $auditData['al_is_success'] = $this->data['success'];
@@ -65,7 +65,7 @@ class OrderItemReviewController extends CitronelController
             $getOrderResponse = $orderService->getOrderByGuid($order_guid);
             if (!$getOrderResponse['success']) {
                 $subProcessEvent = $this->errorCatalogueService->getSubProcessEvent('order', 'item_review', 'invalid_order');
-                $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key']);
+                $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key']);
 
                 $this->resultResponse = $this->apiHelperService->apiNotFoundErrorResponse($this->namespace, [], null, $this->recordNotFoundErrorCatalogue()['lang'], ['code' => $code['code']]);
 
@@ -84,7 +84,7 @@ class OrderItemReviewController extends CitronelController
             $checkOrderExpiryResponse = $orderService->checkOrderExpiry($order);
             if (!$checkOrderExpiryResponse['success']) {
                 $subProcessEvent = $this->errorCatalogueService->getSubProcessEvent('order', 'item_review', 'expired_order');
-                $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key']);
+                $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key']);
 
                 $auditData['al_event_name'] = $subProcessEvent['name'];
                 $auditData['al_is_success'] = $checkOrderExpiryResponse['success'];
@@ -101,7 +101,7 @@ class OrderItemReviewController extends CitronelController
             $orderItem = $order->order_items()->where('id', $order_item_id)->first();
             if (is_null($orderItem)) {
                 $subProcessEvent = $this->errorCatalogueService->getSubProcessEvent('order', 'item_review', 'invalid_order_item');
-                $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key']);
+                $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key']);
 
                 $this->resultResponse = $this->apiHelperService->apiValidationErrorResponse($this->namespace, $validationResponse, null, $this->validationErrorCatalogue()['lang'], ['code' => $code['code']]);
 
@@ -121,7 +121,7 @@ class OrderItemReviewController extends CitronelController
             $validationRules = $productInterfaceObj->orderItemUpdateValidationRules();
             $validationResponse = $this->apiHelperService->validateRequestFields($requestArray, $validationRules['rules'], $validationRules['messages'], $validationRules['attributes']);
             if (!is_null($validationResponse)) {
-                $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, null, $this->validationErrorCatalogue()['code']);
+                $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, null, $this->validationErrorCatalogue()['code']);
                 $this->resultResponse = $this->apiHelperService->apiValidationErrorResponse($this->namespace, $validationResponse, null, $this->validationErrorCatalogue()['lang'], ['code' => $code['code']]);
 
                 $auditData['al_is_success'] = $this->data['success'];

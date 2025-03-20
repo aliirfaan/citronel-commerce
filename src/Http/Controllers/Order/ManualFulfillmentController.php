@@ -14,14 +14,14 @@ class ManualFulfillmentController extends OrderController
 {
     public function fulfillItem(Request $request, $order_fulfillment_id,AuditLogService $auditService, CitronelFulfillmentService $fulfillmentService, ManualFulfillmentRetry $manualRetryApiCommand)
     {
-        $correlationToken = $this->helperService->getCorrelationToken($request);
-        $reponseHeaders = $this->helperService->correlationResponseHeader($correlationToken);
+        $correlationToken = $this->helperService->getCorrelationTokenFromHeader($request);
+        $reponseHeaders = $this->helperService->setCorrelationResponseHeader($correlationToken);
 
         $subProcess = $this->errorCatalogueService->getSubProcess('order', 'manual_fulfillment');
 
         $this->actor = $request->get('actor', null);
 
-        $auditData = $auditService->generatePreliminaryEventData($request, $correlationToken, $this->actor);
+        $auditData = $auditService->generatePreliminaryAuditData($request, $correlationToken, $this->actor);
         $auditData['al_event_name'] = $subProcess['name'];
         
         $requestArray = $request->json()->all();
@@ -33,7 +33,7 @@ class ManualFulfillmentController extends OrderController
             $validationRules = $manualRetryApiCommand->createValidationRules();
             $validationResponse = $this->apiHelperService->validateRequestFields($requestArray, $validationRules);
             if (!is_null($validationResponse)) {
-                $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, null, $this->validationErrorCatalogue()['code']);
+                $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, null, $this->validationErrorCatalogue()['code']);
                 $this->resultResponse = $this->apiHelperService->apiValidationErrorResponse($this->namespace, $validationResponse, null, $this->validationErrorCatalogue()['lang'], ['code' => $code['code']]);
 
                 $auditData['al_is_success'] = $this->data['success'];
@@ -48,7 +48,7 @@ class ManualFulfillmentController extends OrderController
             $orderFulfillmentItemResponse = $fulfillmentService->getFulfillmentById($order_fulfillment_id);
             if (!$orderFulfillmentItemResponse['success']) {
                 $subProcessEvent = $this->errorCatalogueService->getSubProcessEvent('order', 'manual_fulfillment', 'invalid_item');
-                $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key'], $this->recordNotFoundErrorCatalogue()['code']);
+                $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key'], $this->recordNotFoundErrorCatalogue()['code']);
 
                 $this->resultResponse = $this->apiHelperService->apiNotFoundErrorResponse($this->namespace, [], null, $this->recordNotFoundErrorCatalogue()['lang'], ['code' => $code['code']]);
 

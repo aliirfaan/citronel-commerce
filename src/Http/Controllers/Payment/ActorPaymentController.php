@@ -13,8 +13,8 @@ class ActorPaymentController extends PaymentController
 {
     public function actorPaymentsWithOrderItems(Request $request, string $actor_id, AuditLogService $auditService, CitronelPaymentService $paymentService)
     {
-        $correlationToken = $this->helperService->getCorrelationToken($request);
-        $reponseHeaders = $this->helperService->correlationResponseHeader($correlationToken);
+        $correlationToken = $this->helperService->getCorrelationTokenFromHeader($request);
+        $reponseHeaders = $this->helperService->setCorrelationResponseHeader($correlationToken);
         
         $subProcess = $this->errorCatalogueService->getSubProcess('payment', 'get_actor_payments_with_order_items');
 
@@ -30,7 +30,7 @@ class ActorPaymentController extends PaymentController
 
         $this->actor = $request->get('actor', null);
 
-        $auditData = $auditService->generatePreliminaryEventData($request, $correlationToken, $this->actor);
+        $auditData = $auditService->generatePreliminaryAuditData($request, $correlationToken, $this->actor);
         $auditData['al_event_name'] = $subProcess['name'];
 
         try{

@@ -62,6 +62,9 @@ $ php artisan vendor:publish --tag=citronel-commerce-routes
 
 * Review route prefix
 
+## Config
+* add error catalogue
+
 
 ## Middleware
 * Review route middleware

@@ -234,7 +234,7 @@ class CitronelPaymentService
         $payment = $this->paymentModel::where('id', $payment->id)->first();
 
         // log
-        $auditData = $this->auditService->generatePreliminaryEventData(null, $correlationToken);
+        $auditData = $this->auditService->generatePreliminaryAuditData(null, $correlationToken);
         $auditData['al_target_id'] = $payment->id;
         $auditData['al_action_type'] = config('audit.action_types.update.name');
         $auditData['al_event_name'] = $subProcess['name'];

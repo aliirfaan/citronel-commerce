@@ -230,7 +230,7 @@ class CitronelFulfillmentService
 
         // log
         $correlationToken = $item->order_item->order->correlation_token;
-        $auditData = $this->auditService->generatePreliminaryEventData(null, $correlationToken);
+        $auditData = $this->auditService->generatePreliminaryAuditData(null, $correlationToken);
         $auditData['al_action_type'] = config('audit.action_types.update.name');
         $auditData['al_event_name'] = $subProcess['events']['item_fulfillment_processed']['name'];
         $auditData['al_correlation_id'] = $correlationToken;
@@ -570,7 +570,7 @@ class CitronelFulfillmentService
 
         // log
         $correlationToken = $item->order_item->order->correlation_token;
-        $auditData = $this->auditService->generatePreliminaryEventData(null, $correlationToken);
+        $auditData = $this->auditService->generatePreliminaryAuditData(null, $correlationToken);
         $auditData['al_action_type'] = config('audit.action_types.update.name');
         $auditData['al_event_name'] = $subProcess['events']['item_fulfillment_processed']['name'];
         $auditData['al_correlation_id'] = $correlationToken;

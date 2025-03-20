@@ -17,14 +17,14 @@ class ManualPaymentConfirmationController extends PaymentController
 {
     public function confirmPayment(Request $request, $gateway_merchant_transaction_no, AuditLogService $auditService, CitronelPaymentService $paymentService, ManualFulfillmentRetry $manualPaymentConfirmationApiCommand, CitronelPaymentMethodService $paymentMethodService, CitronelOrderService $orderService)
     {
-        $correlationToken = $this->helperService->getCorrelationToken($request);
-        $reponseHeaders = $this->helperService->correlationResponseHeader($correlationToken);
+        $correlationToken = $this->helperService->getCorrelationTokenFromHeader($request);
+        $reponseHeaders = $this->helperService->setCorrelationResponseHeader($correlationToken);
 
         $subProcess = $this->errorCatalogueService->getSubProcess('payment', 'manual_payment_update');
 
         $this->actor = $request->get('actor', null);
 
-        $auditData = $auditService->generatePreliminaryEventData($request, $correlationToken, $this->actor);
+        $auditData = $auditService->generatePreliminaryAuditData($request, $correlationToken, $this->actor);
         $auditData['al_event_name'] = $subProcess['name'];
         
         $requestArray = $request->json()->all();
@@ -36,7 +36,7 @@ class ManualPaymentConfirmationController extends PaymentController
             $validationRules = $manualPaymentConfirmationApiCommand->createValidationRules();
             $validationResponse = $this->apiHelperService->validateRequestFields($requestArray, $validationRules);
             if (!is_null($validationResponse)) {
-                $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, null, $this->validationErrorCatalogue()['code']);
+                $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, null, $this->validationErrorCatalogue()['code']);
                 $this->resultResponse = $this->apiHelperService->apiValidationErrorResponse($this->namespace, $validationResponse, null, $this->validationErrorCatalogue()['lang'], ['code' => $code['code']]);
 
                 $auditData['al_is_success'] = $this->data['success'];
@@ -52,7 +52,7 @@ class ManualPaymentConfirmationController extends PaymentController
             $getPaymentResponse = $paymentService->getPaymentByMerchantGatewayTxNum($gateway_merchant_transaction_no);
             if (!$getPaymentResponse['success']) {
                 $subProcessEvent = $this->errorCatalogueService->getSubProcessEvent('payment', 'manual_payment_update', 'invalid_item');
-                $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key']);
+                $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key']);
 
                 $this->resultResponse = $this->apiHelperService->apiNotFoundErrorResponse($this->namespace, [], null, $this->recordNotFoundErrorCatalogue()['lang'], ['code' => $code['code']]);
 
@@ -79,7 +79,7 @@ class ManualPaymentConfirmationController extends PaymentController
             $getPaymentMethodConfigurationResponse = $paymentMethodService->getPaymentMethodConfigurationById($payment->payment_method_configuration_id);
             if (!$getPaymentMethodConfigurationResponse['success']) {
                 $subProcessEvent = $this->errorCatalogueService->getSubProcessEvent('payment', 'manual_payment_update', 'invalid_payment_method');
-                $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key']);
+                $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key']);
 
                 $this->resultResponse = $this->apiHelperService->apiNotFoundErrorResponse($this->namespace, [], null, $this->recordNotFoundErrorCatalogue()['lang'], ['code' => $code['code']]);
 
@@ -101,7 +101,7 @@ class ManualPaymentConfirmationController extends PaymentController
             $validationRules = $paymentInterfaceObj->manualPaymentConfirmationValidationRules();
             $validationResponse = $this->apiHelperService->validateRequestFields($requestArray, $validationRules);
             if (!is_null($validationResponse)) {
-                $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, null, $this->validationErrorCatalogue()['code']);
+                $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, null, $this->validationErrorCatalogue()['code']);
                 $this->resultResponse = $this->apiHelperService->apiValidationErrorResponse($this->namespace, $validationResponse, null, $this->validationErrorCatalogue()['lang'], ['code' => $code['code']]);
 
                 $auditData['al_is_success'] = $this->data['success'];

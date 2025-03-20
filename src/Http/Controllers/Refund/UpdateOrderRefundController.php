@@ -13,14 +13,14 @@ class UpdateOrderRefundController extends RefundController
 {
     public function updateOrderRefund(Request $request, $payment_refund_id, AuditLogService $auditService, CitronelRefundService $refundService)
     {
-        $correlationToken = $this->helperService->getCorrelationToken($request);
-        $reponseHeaders = $this->helperService->correlationResponseHeader($correlationToken);
+        $correlationToken = $this->helperService->getCorrelationTokenFromHeader($request);
+        $reponseHeaders = $this->helperService->setCorrelationResponseHeader($correlationToken);
 
         $subProcess = $this->errorCatalogueService->getSubProcess('refund', 'update_refund_order');
 
         $this->actor = $request->get('actor', null);
 
-        $auditData = $auditService->generatePreliminaryEventData($request, $correlationToken, $this->actor);
+        $auditData = $auditService->generatePreliminaryAuditData($request, $correlationToken, $this->actor);
         $auditData['al_event_name'] = $subProcess['name'];
         
         $requestArray = $request->json()->all();
@@ -32,7 +32,7 @@ class UpdateOrderRefundController extends RefundController
             $validationRules = $this->modelApiQuery->updateRefundValidationRules();
             $validationResponse = $this->apiHelperService->validateRequestFields($requestArray, $validationRules);
             if (!is_null($validationResponse)) {
-                $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, null, $this->validationErrorCatalogue()['code']);
+                $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, null, $this->validationErrorCatalogue()['code']);
                 $this->resultResponse = $this->apiHelperService->apiValidationErrorResponse($this->namespace, $validationResponse, null, $this->validationErrorCatalogue()['lang'], ['code' => $code['code']]);
 
                 $auditData['al_is_success'] = $this->data['success'];
@@ -47,7 +47,7 @@ class UpdateOrderRefundController extends RefundController
             $getPaymentRefundByIdResponse = $refundService->getPaymentRefundById($payment_refund_id);
             if (!$getPaymentRefundByIdResponse['success']) {
                 $subProcessErrorKey = $subProcess['events']['invalid_payment_refund']['key'];
-                $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, $subProcessErrorKey);
+                $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, $subProcessErrorKey);
 
                 $this->resultResponse = $this->apiHelperService->apiNotFoundErrorResponse($this->namespace, [], null, $this->recordNotFoundErrorCatalogue()['lang'], ['code' => $code['code']]);
 
@@ -70,7 +70,7 @@ class UpdateOrderRefundController extends RefundController
             $updateOrderRefundResponse = $refundService->updateOrderRefund($paymentRefund, $updateOrderRefundExtra);
             if (!$updateOrderRefundResponse['success']) {
                 $subProcessErrorKey = $subProcess['events']['refund_initiation_failed']['key'];
-                $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, $subProcessErrorKey);
+                $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, $subProcessErrorKey);
 
                 $this->resultResponse = $this->apiHelperService->apiProcessingErrorResponse($this->namespace, [], $updateOrderRefundResponse['message']);
 

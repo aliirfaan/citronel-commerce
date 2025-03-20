@@ -22,14 +22,14 @@ class OrderCreateController extends OrderController
 {
     public function create(Request $request, AuditLogService $auditService, OrderItem $orderItemApi, CitronelProductService $productService, CitronelCurrencyService $currencyService, CitronelOrderService $orderService, CitronelPaymentMethodService $paymentMethodService, CitronelFulfillmentService $fulfillmentService, CitronelPaymentService $paymentService)
     {
-        $correlationToken = $this->helperService->getCorrelationToken($request);
-        $reponseHeaders = $this->helperService->correlationResponseHeader($correlationToken);
+        $correlationToken = $this->helperService->getCorrelationTokenFromHeader($request);
+        $reponseHeaders = $this->helperService->setCorrelationResponseHeader($correlationToken);
 
         $subProcess = $this->errorCatalogueService->getSubProcess($this->mainProcess['key'], 'create');
 
         $this->actor = $request->get('actor', null);
 
-        $auditData = $auditService->generatePreliminaryEventData($request, $correlationToken, $this->actor);
+        $auditData = $auditService->generatePreliminaryAuditData($request, $correlationToken, $this->actor);
         $auditData['al_event_name'] = $subProcess['name'];
         
         $requestArray = $request->json()->all();
@@ -44,7 +44,7 @@ class OrderCreateController extends OrderController
             $validationRules = $this->modelApiCommand->createValidationRules();
             $validationResponse = $this->apiHelperService->validateRequestFields($requestArray, $validationRules);
             if (!is_null($validationResponse)) {
-                $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, null, $this->validationErrorCatalogue()['code']);
+                $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, null, $this->validationErrorCatalogue()['code']);
                 $this->resultResponse = $this->apiHelperService->apiValidationErrorResponse($this->namespace, $validationResponse, null, $this->validationErrorCatalogue()['lang'], ['code' => $code['code']]);
 
                 $auditData['al_is_success'] = $this->data['success'];
@@ -64,7 +64,7 @@ class OrderCreateController extends OrderController
                     $actorPendingFulfillmentsCount = $fulfillmentService->getActorPendingFulfillmentsCount($this->actor->id, $pendingFulfillmentTimeframeSeconds);
                     if (intval($actorPendingFulfillmentsCount) > 0) {
                         $subProcessEvent = $this->errorCatalogueService->getSubProcessEvent('order', 'create', 'pending_fulfillment_block');
-                        $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key']);
+                        $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key']);
 
                         $waitTimeInSeconds = intval(config('order.order_create_resume_time_seconds'));
                         $waitTimeHumanized = Carbon::now()->addSeconds($waitTimeInSeconds)->diffForHumans(Carbon::now(), true);
@@ -120,7 +120,7 @@ class OrderCreateController extends OrderController
             foreach ($orderItems as $anOrderItem) {
                 $validationResponse = $this->apiHelperService->validateRequestFields($anOrderItem, $validationRules, $validationRulesCustomMessages);
                 if (!is_null($validationResponse)) {
-                    $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, null, $this->validationErrorCatalogue()['code']);
+                    $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, null, $this->validationErrorCatalogue()['code']);
                     $this->resultResponse = $this->apiHelperService->apiValidationErrorResponse($this->namespace, $validationResponse, null, $this->validationErrorCatalogue()['lang'], ['code' => $code['code']]);
     
                     $auditData['al_is_success'] = $this->data['success'];
@@ -139,7 +139,7 @@ class OrderCreateController extends OrderController
                 $getProductResponse = $productService->getProductById($productId);
                 if (!$getProductResponse['success']) {
                     $subProcessEvent = $this->errorCatalogueService->getSubProcessEvent('order', 'create', 'invalid_product');
-                    $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key']);
+                    $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key']);
 
                     $this->resultResponse = $this->apiHelperService->apiValidationErrorResponse($this->namespace, $validationResponse, null, $this->validationErrorCatalogue()['lang'], ['code' => $code['code']]);
 
@@ -163,7 +163,7 @@ class OrderCreateController extends OrderController
                     $validationResponse = $this->apiHelperService->validateRequestFields($anOrderItem, $validationRules['rules'], $validationRules['messages'], $validationRules['attributes']);
 
                     if (!is_null($validationResponse)) {
-                        $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, null, $this->validationErrorCatalogue()['code']);
+                        $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, null, $this->validationErrorCatalogue()['code']);
                         $this->resultResponse = $this->apiHelperService->apiValidationErrorResponse($this->namespace, $validationResponse, null, $this->validationErrorCatalogue()['lang'], ['code' => $code['code']]);
         
                         $auditData['al_is_success'] = $this->data['success'];
@@ -190,7 +190,7 @@ class OrderCreateController extends OrderController
                 $orderItemCreatePreProcessResponse = $productInterfaceObj->orderItemCreatePreProcess($anOrderItem);
                 if (!$orderItemCreatePreProcessResponse['success']) {
                     $subProcessEvent = $this->errorCatalogueService->getSubProcessEvent('order', 'create', 'invalid_pre_process');
-                    $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key']);
+                    $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key']);
 
                     $auditData['al_event_name'] = $subProcessEvent['name'];
                     $auditData['al_is_success'] = $orderItemCreatePreProcessResponse['success'];
@@ -214,7 +214,7 @@ class OrderCreateController extends OrderController
                 $getCurrencyRateResponse = $currencyService->getLatestCurrencyRate();
                 if (is_null($getCurrencyRateResponse)) {
                     $subProcessEvent = $this->errorCatalogueService->getSubProcessEvent('order', 'create', 'invalid_currency');
-                    $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key']);
+                    $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key']);
 
                     $auditData['al_event_name'] = $subProcessEvent['name'];
                     $auditData['al_is_success'] = $getCurrencyRateResponse['success'];
@@ -243,7 +243,7 @@ class OrderCreateController extends OrderController
             $createOrderResponse = $orderService->createOrder($createOrderSaveData, $orderItems, $createOrderExtra);
             if (!$createOrderResponse['success']) {
                 $subProcessEvent = $this->errorCatalogueService->getSubProcessEvent('order', 'create', 'create_failure');
-                $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key']);
+                $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key']);
 
                 $auditData['al_event_name'] = $subProcessEvent['name'];
                 $auditData['al_is_success'] = $createOrderResponse['success'];

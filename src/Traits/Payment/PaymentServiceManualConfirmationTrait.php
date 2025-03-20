@@ -167,7 +167,7 @@ trait PaymentServiceManualConfirmationTrait
 
             // log
             $correlationToken = $payment->order->correlation_token;
-            $auditData = $this->auditService->generatePreliminaryEventData(null, $correlationToken);
+            $auditData = $this->auditService->generatePreliminaryAuditData(null, $correlationToken);
             $auditData['al_target_id'] = $payment->id;
             $auditData['al_action_type'] = config('audit.action_types.update.name');
             $auditData['al_event_name'] = $subProcess['name'];

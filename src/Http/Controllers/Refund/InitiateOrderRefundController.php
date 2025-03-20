@@ -1,6 +1,6 @@
 <?php
 
-namespace aliirfaan\CitronelCommerce\Controllers\Refund;
+namespace aliirfaan\CitronelCommerce\Http\Controllers\Refund;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;

@@ -1,9 +1,9 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use aliirfaan\CitronelCommerce\Controllers\Payment\PaymentCreateController;
-use aliirfaan\CitronelCommerce\Controllers\Payment\PaymentUpdateController;
-use aliirfaan\CitronelCommerce\Controllers\Payment\ActorPaymentController;
+use aliirfaan\CitronelCommerce\Http\Controllers\Payment\PaymentCreateController;
+use aliirfaan\CitronelCommerce\Http\Controllers\Payment\PaymentUpdateController;
+use aliirfaan\CitronelCommerce\Http\Controllers\Payment\ActorPaymentController;
 
 Route::group([
     'prefix' => config('citronel-commerce.api_route_prefix', ''),

@@ -1,6 +1,6 @@
 <?php
 
-namespace aliirfaan\CitronelCommerce\Controllers\Payment;
+namespace aliirfaan\CitronelCommerce\Http\Controllers\Payment;
 
 use aliirfaan\CitronelCore\Http\Controllers\CitronelController;
 use aliirfaan\CitronelCore\Traits\CitronelApiControllerTrait;

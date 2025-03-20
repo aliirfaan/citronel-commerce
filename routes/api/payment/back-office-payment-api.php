@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use aliirfaan\CitronelCommerce\Controllers\Payment\ManualPaymentConfirmationController;
+use aliirfaan\CitronelCommerce\Http\Controllers\Payment\ManualPaymentConfirmationController;
 
 Route::group([
     'prefix' => config('citronel-commerce.back_office_api_route_prefix', ''),

@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use aliirfaan\CitronelCommerce\Controllers\Order\ManualFulfillmentController;
+use aliirfaan\CitronelCommerce\Http\Controllers\Order\ManualFulfillmentController;
 
 Route::group([
     'prefix' => config('citronel-commerce.back_office_api_route_prefix', ''),

@@ -1,6 +1,6 @@
 <?php
 
-namespace aliirfaan\CitronelCommerce\Controllers\Order;
+namespace aliirfaan\CitronelCommerce\Http\Controllers\Order;
 
 use aliirfaan\CitronelCore\Http\Controllers\CitronelController;
 use aliirfaan\CitronelCore\Traits\CitronelApiControllerTrait;

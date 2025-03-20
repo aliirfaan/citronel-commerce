@@ -1,6 +1,6 @@
 <?php
 
-namespace aliirfaan\CitronelCommerce\Controllers\ProductCategoryController;
+namespace aliirfaan\CitronelCommerce\Http\Controllers\ProductCategoryController;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;

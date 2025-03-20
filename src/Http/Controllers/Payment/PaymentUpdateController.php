@@ -1,6 +1,6 @@
 <?php
 
-namespace aliirfaan\CitronelCommerce\Controllers\Payment;
+namespace aliirfaan\CitronelCommerce\Http\Controllers\Payment;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;

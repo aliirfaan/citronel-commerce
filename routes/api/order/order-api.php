@@ -1,9 +1,9 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use aliirfaan\CitronelCommerce\Controllers\Order\OrderCreateController;
-use aliirfaan\CitronelCommerce\Controllers\Order\OrderReviewController;
-use aliirfaan\CitronelCommerce\Controllers\Order\OrderItemReviewController;
+use aliirfaan\CitronelCommerce\Http\Controllers\Order\OrderCreateController;
+use aliirfaan\CitronelCommerce\Http\Controllers\Order\OrderReviewController;
+use aliirfaan\CitronelCommerce\Http\Controllers\Order\OrderItemReviewController;
 
 Route::group([
     'prefix' => config('citronel-commerce.api_route_prefix', ''),

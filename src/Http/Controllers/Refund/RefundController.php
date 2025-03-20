@@ -1,6 +1,6 @@
 <?php
 
-namespace aliirfaan\CitronelCommerce\Controllers\Refund;
+namespace aliirfaan\CitronelCommerce\Http\Controllers\Refund;
 
 use aliirfaan\CitronelCore\Http\Controllers\CitronelController;
 use aliirfaan\CitronelCore\Traits\CitronelApiControllerTrait;

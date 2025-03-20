@@ -1,8 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use aliirfaan\CitronelCommerce\Controllers\Refund\InitiateOrderRefundController;
-use aliirfaan\CitronelCommerce\Controllers\Refund\UpdateOrderRefundController;
+use aliirfaan\CitronelCommerce\Http\Controllers\Refund\InitiateOrderRefundController;
+use aliirfaan\CitronelCommerce\Http\Controllers\Refund\UpdateOrderRefundController;
 
 Route::group([
     'prefix' => config('citronel-commerce.back_office_api_route_prefix', ''),

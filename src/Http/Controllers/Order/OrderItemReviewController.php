@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api\v1\Order;
+namespace aliirfaan\CitronelCommerce\Http\Controllers\Order;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;

@@ -470,14 +470,14 @@ class CitronelFulfillmentService
         $retryCount = intval($item->retry_count); // number of times retry has been attempted for this item, both manual and auto retries
         if (is_null($data['errors']) && ($retryCount >= intval($item->order_item->product->max_retry_count))) {
             $data['errors'] = true;
-            $data['message'] = __('order/messages.order_item_fulfillment_max_retry_reached');
+            $data['message'] = __('citronel-commerce::order/messages.order_item_fulfillment_max_retry_reached');
         }
 
         if (is_null($data['errors'])) {
             $shouldFullfillItem = $this->shouldFulfillItemManually($item->order_item_fulfillment_status);
             if (!$shouldFullfillItem) {
                 $data['errors'] = true;
-                $data['message'] = __('order/messages.order_item_fulfillment_retry_not_allowed');
+                $data['message'] = __('citronel-commerce::order/messages.order_item_fulfillment_retry_not_allowed');
             }
         }
 

@@ -19,15 +19,15 @@ class PaymentCreateController extends PaymentController
         $correlationToken = $this->helperService->getCorrelationTokenFromHeader($request);
         $reponseHeaders = $this->helperService->setCorrelationResponseHeader($correlationToken);
 
-        $subProcess = $this->errorCatalogueService->getSubProcess($this->mainProcess['key'], 'create');
+        $this->subProcess = $this->errorCatalogueService->getSubProcess($this->mainProcess['key'], 'create');
 
         $this->actor = $request->get('actor', null);
 
         $this->auditData = $auditService->generatePreliminaryAuditData($request, $correlationToken, $this->actor);
-        $this->auditData['al_event_name'] = $subProcess['name'];
+        $this->auditData['al_event_name'] = $this->subProcess['name'];
 
         try {
-            $subProcessKey = $subProcess['key'];
+            $subProcessKey = $this->subProcess['key'];
             
             $getOrderResponse = $orderService->getOrderByGuid($order_guid);
             if (!$getOrderResponse['success']) {
@@ -50,10 +50,10 @@ class PaymentCreateController extends PaymentController
             // check order expiry
             $checkOrderExpiryResponse = $orderService->checkOrderExpiry($order);
             if (!$checkOrderExpiryResponse['success']) {
-                $subProcessErrorKey = $subProcess['events']['expired_order']['key'];
+                $subProcessErrorKey = $this->subProcess['events']['expired_order']['key'];
                 $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, $subProcessErrorKey);
 
-                $this->auditData['al_event_name'] = $subProcess['events']['expired_order']['name'];
+                $this->auditData['al_event_name'] = $this->subProcess['events']['expired_order']['name'];
                 $this->auditData['al_is_success'] = $checkOrderExpiryResponse['success'];
                 $this->auditData['al_code'] = $code['code'];
                 $this->auditData['al_request'] = $order->id;
@@ -66,10 +66,10 @@ class PaymentCreateController extends PaymentController
 
             $validateOrderForPaymentResponse = $orderService->validateOrderForPayment($order);
             if (!$validateOrderForPaymentResponse['success']) {
-                $subProcessErrorKey = $subProcess['events']['invalid_order_for_payment']['key'];
+                $subProcessErrorKey = $this->subProcess['events']['invalid_order_for_payment']['key'];
                 $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, $subProcessErrorKey);
 
-                $this->auditData['al_event_name'] = $subProcess['events']['invalid_order_for_payment']['name'];
+                $this->auditData['al_event_name'] = $this->subProcess['events']['invalid_order_for_payment']['name'];
                 $this->auditData['al_is_success'] = $validateOrderForPaymentResponse['success'];
                 $this->auditData['al_code'] = $code['code'];
                 $this->auditData['al_request'] = $order->id;
@@ -83,13 +83,13 @@ class PaymentCreateController extends PaymentController
             // validate payment method
             $getPaymentMethodConfigurationResponse = $paymentMethodService->getPaymentMethodConfigurationById($order->order_payment_method_configuration_id);
             if (!$getPaymentMethodConfigurationResponse['success']) {
-                $subProcessErrorKey = $subProcess['events']['invalid_payment_method']['key'];
+                $subProcessErrorKey = $this->subProcess['events']['invalid_payment_method']['key'];
                 $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, $subProcessErrorKey);
 
                 $this->resultResponse = $this->apiHelperService->apiNotFoundErrorResponse($this->namespace, [], null, $this->recordNotFoundErrorCatalogue()['lang'], ['code' => $code['code']]);
 
                 $this->auditData['al_is_success'] = $this->data['success'];
-                $this->auditData['al_event_name'] = $subProcess['events']['invalid_payment_method']['name'];
+                $this->auditData['al_event_name'] = $this->subProcess['events']['invalid_payment_method']['name'];
                 $this->auditData['al_code'] = $code['code'];
                 $this->auditData['al_request'] = $order_guid;
                 $this->auditData['al_message'] = $code['status'];
@@ -105,10 +105,10 @@ class PaymentCreateController extends PaymentController
             // validate currency for this payment method
             $isCurrencyAllowedResponse = $paymentInterfaceObj->isCurrencyAllowed($order->order_currency_code);
             if (!$isCurrencyAllowedResponse['success']) {
-                $subProcessErrorKey = $subProcess['events']['invalid_currency']['key'];
+                $subProcessErrorKey = $this->subProcess['events']['invalid_currency']['key'];
                 $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, $subProcessErrorKey);
 
-                $this->auditData['al_event_name'] = $subProcess['events']['invalid_currency']['name'];
+                $this->auditData['al_event_name'] = $this->subProcess['events']['invalid_currency']['name'];
                 $this->auditData['al_is_success'] = $isCurrencyAllowedResponse['success'];
                 $this->auditData['al_code'] = $code['code'];
                 $this->auditData['al_request'] = $order->id;
@@ -122,10 +122,10 @@ class PaymentCreateController extends PaymentController
             // validate amount for this payment method
             $validatePaymentMethodAmountResponse = $paymentInterfaceObj->validateTransactionAmount($order->order_grand_total);
             if (!$validateOrderForPaymentResponse['success']) {
-                $subProcessErrorKey = $subProcess['events']['invalid_amount']['key'];
+                $subProcessErrorKey = $this->subProcess['events']['invalid_amount']['key'];
                 $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, $subProcessErrorKey);
 
-                $this->auditData['al_event_name'] = $subProcess['events']['invalid_amount']['name'];
+                $this->auditData['al_event_name'] = $this->subProcess['events']['invalid_amount']['name'];
                 $this->auditData['al_is_success'] = $validatePaymentMethodAmountResponse['success'];
                 $this->auditData['al_code'] = $code['code'];
                 $this->auditData['al_request'] = $order->id;
@@ -179,10 +179,10 @@ class PaymentCreateController extends PaymentController
             $registerGatewayOrderResponse = $paymentInterfaceObj->registerGatewayOrder($payment, $registerGatewayOrderData);
 
             if (!$registerGatewayOrderResponse['success']) {
-                $subProcessErrorKey = $subProcess['events']['register_gateway_order_failure']['key'];
+                $subProcessErrorKey = $this->subProcess['events']['register_gateway_order_failure']['key'];
                 $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, $subProcessErrorKey);
 
-                $this->auditData['al_event_name'] = $subProcess['events']['register_gateway_order_failure']['name'];
+                $this->auditData['al_event_name'] = $this->subProcess['events']['register_gateway_order_failure']['name'];
                 $this->auditData['al_is_success'] = $registerGatewayOrderResponse['success'];
                 $this->auditData['al_code'] = $code['code'];
                 $this->auditData['al_message'] = $registerGatewayOrderResponse['message'];

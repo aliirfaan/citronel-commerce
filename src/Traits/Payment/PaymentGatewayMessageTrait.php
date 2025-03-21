@@ -20,7 +20,7 @@ trait PaymentGatewayMessageTrait
             'payment_reference' => $paymentReference
         ];
 
-        return __('payment/messages.payment_process_success', $replace);
+        return __('citronel-commerce::payment/messages.payment_process_success', $replace);
     }
     
     /**
@@ -37,7 +37,7 @@ trait PaymentGatewayMessageTrait
             'amount' => $amount
         ];
 
-        return  __('payment/messages.payment_process_cancelled', $replace);
+        return  __('citronel-commerce::payment/messages.payment_process_cancelled', $replace);
     }
     
     /**
@@ -53,7 +53,7 @@ trait PaymentGatewayMessageTrait
         if (\array_key_exists('gateway_response_message', $extra) && !is_null($extra['gateway_response_message'])) {
             $cause = 'Cause: '.$extra['gateway_response_message'];
         }
-        return __('payment/messages.payment_process_failed', ['cause' => $cause]);
+        return __('citronel-commerce::payment/messages.payment_process_failed', ['cause' => $cause]);
     }
 
     /**
@@ -65,6 +65,6 @@ trait PaymentGatewayMessageTrait
      */
     public function expiredPaymentMessage($replacementVars = null)
     {
-        return __('payment/messages.payment_process_expired');
+        return __('citronel-commerce::payment/messages.payment_process_expired');
     }
 }

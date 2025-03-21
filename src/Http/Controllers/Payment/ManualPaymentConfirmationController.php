@@ -20,17 +20,17 @@ class ManualPaymentConfirmationController extends PaymentController
         $correlationToken = $this->helperService->getCorrelationTokenFromHeader($request);
         $reponseHeaders = $this->helperService->setCorrelationResponseHeader($correlationToken);
 
-        $subProcess = $this->errorCatalogueService->getSubProcess('payment', 'manual_payment_update');
+        $this->subProcess = $this->errorCatalogueService->getSubProcess('payment', 'manual_payment_update');
 
         $this->actor = $request->get('actor', null);
 
         $this->auditData = $auditService->generatePreliminaryAuditData($request, $correlationToken, $this->actor);
-        $this->auditData['al_event_name'] = $subProcess['name'];
+        $this->auditData['al_event_name'] = $this->subProcess['name'];
         
         $requestArray = $request->json()->all();
 
         try {
-            $subProcessKey = $subProcess['key'];
+            $subProcessKey = $this->subProcess['key'];
 
             // validate
             $validationRules = $manualPaymentConfirmationApiCommand->createValidationRules();
@@ -84,7 +84,7 @@ class ManualPaymentConfirmationController extends PaymentController
                 $this->resultResponse = $this->apiHelperService->apiNotFoundErrorResponse($this->namespace, [], null, $this->recordNotFoundErrorCatalogue()['lang'], ['code' => $code['code']]);
 
                 $this->auditData['al_is_success'] = $this->data['success'];
-                $this->auditData['al_event_name'] = $subProcess['events']['invalid_payment_method']['name'];
+                $this->auditData['al_event_name'] = $this->subProcess['events']['invalid_payment_method']['name'];
                 $this->auditData['al_code'] = $code['code'];
                 $this->auditData['al_request'] = $payment->payment_method_configuration_id;
                 $this->auditData['al_message'] = $code['status'];

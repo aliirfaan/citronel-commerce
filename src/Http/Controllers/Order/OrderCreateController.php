@@ -25,12 +25,12 @@ class OrderCreateController extends OrderController
         $correlationToken = $this->helperService->getCorrelationTokenFromHeader($request);
         $reponseHeaders = $this->helperService->setCorrelationResponseHeader($correlationToken);
 
-        $subProcess = $this->errorCatalogueService->getSubProcess($this->mainProcess['key'], 'create');
+        $this->subProcess = $this->errorCatalogueService->getSubProcess($this->mainProcess['key'], 'create');
 
         $this->actor = $request->get('actor', null);
 
         $this->auditData = $auditService->generatePreliminaryAuditData($request, $correlationToken, $this->actor);
-        $this->auditData['al_event_name'] = $subProcess['name'];
+        $this->auditData['al_event_name'] = $this->subProcess['name'];
         
         $requestArray = $request->json()->all();
 
@@ -38,7 +38,7 @@ class OrderCreateController extends OrderController
         $productTempArray = [];
 
         try {
-            $subProcessKey = $subProcess['key'];
+            $subProcessKey = $this->subProcess['key'];
 
             // validate order
             $validationRules = $this->modelApiCommand->createValidationRules();
@@ -68,7 +68,7 @@ class OrderCreateController extends OrderController
 
                         $waitTimeInSeconds = intval(config('order.order_create_resume_time_seconds'));
                         $waitTimeHumanized = Carbon::now()->addSeconds($waitTimeInSeconds)->diffForHumans(Carbon::now(), true);
-                        $orderCreationHoldMessage = __('order/messages.order_create_on_hold', ['wait_time' => $waitTimeHumanized]);
+                        $orderCreationHoldMessage = __('citronel-commerce::order/messages.order_create_on_hold', ['wait_time' => $waitTimeHumanized]);
 
                         $this->resultResponse = $this->apiHelperService->apiValidationErrorResponse($this->namespace, [], $orderCreationHoldMessage);
 
@@ -273,7 +273,7 @@ class OrderCreateController extends OrderController
             $this->resultResponse = new ApiResponseCollection($this->data);
 
             $this->auditData['al_action_type'] = config('audit.action_types.create.name');
-            $this->auditData['al_event_name'] = $subProcess['events']['created']['name'];
+            $this->auditData['al_event_name'] = $this->subProcess['events']['created']['name'];
             $this->auditData['al_is_success'] = $this->data['success'];
             $this->auditData['al_response'] = $newOrder->id;
 

@@ -312,7 +312,7 @@ class CitronelPaymentService
         $wasPaymentProcessed = $this->wasPaymentProcessed($payment->payment_status);
         if ($wasPaymentProcessed) {
             $data['errors'] = true;
-            $data['message'] = __('payment/messages.payment_already_processed');
+            $data['message'] = __('citronel-commerce::payment/messages.payment_already_processed');
         }
 
         if (is_null($data['errors'])) {
@@ -448,7 +448,7 @@ class CitronelPaymentService
                         'payment_reference' => $payment->gateway_merchant_transaction_no,
                         'payment_method' => $payment->payment_method_configuration->payment_method->title,
                     ];
-                    $data['message'] =  __('payment/messages.previous_payment_process_success', $replace);
+                    $data['message'] =  __('citronel-commerce::payment/messages.previous_payment_process_success', $replace);
                 }
 
                 $data['result']['payment'] = $payment;

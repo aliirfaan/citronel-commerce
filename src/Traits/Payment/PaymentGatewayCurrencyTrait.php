@@ -47,7 +47,7 @@ trait PaymentGatewayCurrencyTrait
         $data['success'] = $allowed;
 
         if (!$allowed) {
-            $data['message'] = __('payment/messages.invalid_currency');
+            $data['message'] = __('citronel-commerce::payment/messages.invalid_currency');
         }
 
         return $data;

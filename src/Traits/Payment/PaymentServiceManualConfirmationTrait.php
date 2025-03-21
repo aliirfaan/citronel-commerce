@@ -61,14 +61,14 @@ trait PaymentServiceManualConfirmationTrait
         $orderStatus = $payment->order->order_status;
         if ($orderStatus == $this->orderMediatorService->orderStatus::PAID->value) {
             $data['errors'] = true;
-            $data['message'] = __('order/messages.order_already_paid');
+            $data['message'] = __('citronel-commerce::order/messages.order_already_paid');
         }
 
         if (is_null($data['errors'])) {
             $paymentStatus = $payment->payment_status;
             if ($paymentStatus == PaymentStatus::PAID->value) {
                 $data['errors'] = true;
-                $data['message'] = __('payment/messages.manual_payment_update_not_allowed');
+                $data['message'] = __('citronel-commerce::payment/messages.manual_payment_update_not_allowed');
             }
         }
 
@@ -173,7 +173,7 @@ trait PaymentServiceManualConfirmationTrait
             $auditData['al_event_name'] = $subProcess['name'];
             $auditData['al_is_success'] = 0;
 
-            $data['message'] = __('payment/messages.payment_confirmed', ['status' => $payment->payment_status]);
+            $data['message'] = __('citronel-commerce::payment/messages.payment_confirmed', ['status' => $payment->payment_status]);
 
             if (is_null($data['errors'])) {
                 $data['success'] = true;
@@ -210,7 +210,7 @@ trait PaymentServiceManualConfirmationTrait
 
         if (!in_array($payment->payment_status, $paymentStatusArr)) {
             $data['errors'] = true;
-            $data['message'] = __('payment/messages.payment_already_processed');
+            $data['message'] = __('citronel-commerce::payment/messages.payment_already_processed');
         }
 
         if (is_null($data['errors'])) {

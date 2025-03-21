@@ -63,7 +63,7 @@ class OrderItem extends Model
     public function createValidationRulesMessages()
     {
         return [
-            'quantity.max' => __('order/messages.order_item_quantity_max')
+            'quantity.max' => __('citronel-commerce::order/messages.order_item_quantity_max')
         ];
     }
 }

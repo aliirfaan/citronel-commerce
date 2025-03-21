@@ -176,11 +176,11 @@ abstract class AbstractPaymentGateway
         if ($amount < $minimumAmount) {
             $data['errors'] = true;
             $formattedAmount =  $this->helperService->formatCurrencyAmountWithCode($minimumAmount);
-            $data['message'] = __('payment/messages.payment_method_min_amount', ['amount' => $formattedAmount]);
+            $data['message'] = __('citronel-commerce::payment/messages.payment_method_min_amount', ['amount' => $formattedAmount]);
         } elseif ($amount > $maximumAmount) {
             $data['errors'] = true;
             $formattedAmount =  $this->helperService->formatCurrencyAmountWithCode($maximumAmount);
-            $data['message'] = __('payment/messages.payment_method_max_amount', ['amount' => $formattedAmount]);
+            $data['message'] = __('citronel-commerce::payment/messages.payment_method_max_amount', ['amount' => $formattedAmount]);
         } else {
             $data['success'] = true;
         }
@@ -304,7 +304,7 @@ abstract class AbstractPaymentGateway
         $allowedTimeLapse = intval(config('citronel-payment.payment_update_time_gap_seconds'));
         if ($createdAt < Carbon::now()->subSeconds($allowedTimeLapse)) {
             $data['errors'] = true;
-            $data['message'] = __('payment/messages.payment_method_update_time_exceeded');
+            $data['message'] = __('citronel-commerce::payment/messages.payment_method_update_time_exceeded');
         } else {
             $data['success'] = true;
         }

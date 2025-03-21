@@ -34,17 +34,17 @@ class OrderItemReviewController extends CitronelController
         $correlationToken = $this->helperService->getCorrelationTokenFromHeader($request);
         $reponseHeaders = $this->helperService->setCorrelationResponseHeader($correlationToken);
 
-        $subProcess = $this->errorCatalogueService->getSubProcess($this->mainProcess['key'], 'item_review');
+        $this->subProcess = $this->errorCatalogueService->getSubProcess($this->mainProcess['key'], 'item_review');
 
         $this->actor = $request->get('actor', null);
 
         $this->auditData = $auditService->generatePreliminaryAuditData($request, $correlationToken, $this->actor);
-        $this->auditData['al_event_name'] = $subProcess['name'];
+        $this->auditData['al_event_name'] = $this->subProcess['name'];
         
         $requestArray = $request->json()->all();
 
         try{
-            $subProcessKey = $subProcess['key'];
+            $subProcessKey = $this->subProcess['key'];
 
             // validate order
             $validationRules = $this->modelApiCommand->reviewValidationRules();

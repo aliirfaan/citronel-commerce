@@ -21,17 +21,17 @@ class PaymentUpdateController extends PaymentController
         $correlationToken = $this->helperService->getCorrelationTokenFromHeader($request);
         $reponseHeaders = $this->helperService->setCorrelationResponseHeader($correlationToken);
 
-        $subProcess = $this->errorCatalogueService->getSubProcess($this->mainProcess['key'], 'update');
+        $this->subProcess = $this->errorCatalogueService->getSubProcess($this->mainProcess['key'], 'update');
 
         $this->actor = $request->get('actor', null);
 
         $this->auditData = $auditService->generatePreliminaryAuditData($request, $correlationToken);
-        $this->auditData['al_event_name'] = $subProcess['name'];
+        $this->auditData['al_event_name'] = $this->subProcess['name'];
 
         $requestArray = $request->json()->all();
 
         try {
-            $subProcessKey = $subProcess['key'];
+            $subProcessKey = $this->subProcess['key'];
             
             // validate
             $requestArray = $request->json()->all();

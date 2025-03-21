@@ -192,7 +192,7 @@ class CitronelRefundService
 
         if (empty($orderFulfillmentItemsToRefund)) {
             $data['errors'] = true;
-            $data['message'] = __('refund/messages.refund_no_items');
+            $data['message'] = __('citronel-commerce::refund/messages.refund_no_items');
         }
 
         if (is_null($data['errors'])) {
@@ -211,7 +211,7 @@ class CitronelRefundService
 
         if ($getOrderFulfillmentsToRefundResponse->isEmpty()) {
             $data['errors'] = true;
-            $data['message'] = __('refund/messages.refund_no_items');
+            $data['message'] = __('citronel-commerce::refund/messages.refund_no_items');
         }
         
         $orderFulfillmentItemsToRefund = [];
@@ -295,7 +295,7 @@ class CitronelRefundService
 
         DB::commit();
 
-        $data['message'] = __('refund/messages.refund_initiated');
+        $data['message'] = __('citronel-commerce::refund/messages.refund_initiated');
 
         if (is_null($data['errors'])) {
             $data['success'] = true;
@@ -351,7 +351,7 @@ class CitronelRefundService
         // update payment refund
         $this->paymentRefundApiCommand::where('id', $paymentRefund->id)->update($paymentRefundSaveData);
 
-        $data['message'] = __('refund/messages.refund_updated');
+        $data['message'] = __('citronel-commerce::refund/messages.refund_updated');
 
         if (is_null($data['errors'])) {
             $data['success'] = true;

@@ -350,7 +350,7 @@ class CitronelOrderService
         $now = now();
         if ($now > $orderExpiry) {
             $data['errors'] = true;
-            $data['message'] = __('order/messages.order_expired');
+            $data['message'] = __('citronel-commerce::citronel-commerce::order/messages.order_expired');
         }
 
         if (is_null($data['errors'])) {
@@ -478,7 +478,7 @@ class CitronelOrderService
         $orderStatus = $order->order_status;
         if (!$this->shouldCreatePaymentOrder($orderStatus)) {
             $data['errors'] = true;
-            $data['message'] = __('order/messages.order_already_paid');
+            $data['message'] = __('citronel-commerce::order/messages.order_already_paid');
         }
 
         if (is_null($data['errors'])) {
@@ -498,7 +498,7 @@ class CitronelOrderService
      */
     public function generateOrderPaymentDescription($order, $extra = [])
     {
-        return __('order/messages.order_remarks') . '-' . $order->order_number;
+        return __('citronel-commerce::order/messages.order_remarks') . '-' . $order->order_number;
     }
         
     /**

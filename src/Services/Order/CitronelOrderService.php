@@ -350,7 +350,7 @@ class CitronelOrderService
         $now = now();
         if ($now > $orderExpiry) {
             $data['errors'] = true;
-            $data['message'] = __('citronel-commerce::citronel-commerce::order/messages.order_expired');
+            $data['message'] = __('citronel-commerce::order/messages.order_expired');
         }
 
         if (is_null($data['errors'])) {

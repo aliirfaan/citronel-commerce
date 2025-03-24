@@ -104,7 +104,7 @@ class OrderReviewController extends OrderController
 
             if (is_null($orderCurrencyCode)) {
                 // load payment method class
-                $paymentInterfaceObj = $this->helperService->makeObject($paymentMethodConfiguration->payment_class, ['paymentMethodConfigurationId' => $paymentMethodConfiguration->id]);
+                $paymentInterfaceObj = $this->helperService->makeObject($paymentMethodConfiguration->payment_class, ['paymentMethod' => $paymentMethodConfiguration]);
 
                 $orderCurrencyCode = $paymentInterfaceObj->defaultCurrency;
             }

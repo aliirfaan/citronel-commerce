@@ -91,7 +91,7 @@ class PaymentUpdateController extends PaymentController
             $paymentMethodConfiguration = $getPaymentMethodConfigurationResponse['result'];
 
             // load payment method class
-            $paymentInterfaceObj = $this->helperService->makeObject($paymentMethodConfiguration->payment_class, ['paymentMethodConfigurationId' => $paymentMethodConfiguration->id]);
+            $paymentInterfaceObj = $this->helperService->makeObject($paymentMethodConfiguration->payment_class, ['paymentMethod' => $paymentMethodConfiguration]);
 
             // validate payment channel
             $paymentChannel = $requestArray['payment_channel'];

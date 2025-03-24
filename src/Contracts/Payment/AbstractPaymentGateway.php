@@ -197,7 +197,7 @@ abstract class AbstractPaymentGateway
      */
     public function getConfigurations($public = true)
     {
-        $configurations = (array) $this->paymentMethod;
+        $configurations = $this->paymentMethod->toArray();
         if ($public) {
             $configurations = Arr::only(
                 $configurations,

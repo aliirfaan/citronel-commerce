@@ -100,7 +100,7 @@ class PaymentCreateController extends PaymentController
             $paymentMethodConfiguration = $getPaymentMethodConfigurationResponse['result'];
 
             // load payment method class
-            $paymentInterfaceObj = $this->helperService->makeObject($paymentMethodConfiguration->payment_class, ['paymentMethodConfigurationId' => $paymentMethodConfiguration->id]);
+            $paymentInterfaceObj = $this->helperService->makeObject($paymentMethodConfiguration->payment_class, ['paymentMethod' => $paymentMethodConfiguration]);
 
             // validate currency for this payment method
             $isCurrencyAllowedResponse = $paymentInterfaceObj->isCurrencyAllowed($order->order_currency_code);

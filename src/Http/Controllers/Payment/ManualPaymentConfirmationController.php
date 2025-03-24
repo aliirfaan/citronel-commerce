@@ -95,7 +95,7 @@ class ManualPaymentConfirmationController extends PaymentController
             $paymentMethodConfiguration = $getPaymentMethodConfigurationResponse['result'];
 
             // load payment method class
-            $paymentInterfaceObj = $this->helperService->makeObject($paymentMethodConfiguration->payment_class, ['paymentMethodConfigurationId' => $paymentMethodConfiguration->id]);
+            $paymentInterfaceObj = $this->helperService->makeObject($paymentMethodConfiguration->payment_class, ['paymentMethod' => $paymentMethodConfiguration]);
 
             // validate update fields for payment method
             $validationRules = $paymentInterfaceObj->manualPaymentConfirmationValidationRules();

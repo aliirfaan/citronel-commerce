@@ -473,4 +473,23 @@ class CitronelPaymentService
     {
         return intval(config('citronel-payment.verify_last_payment_before_create'));
     }
+    
+    /**
+     * Method paymentCreatePreprocess
+     *
+     * @param $order $order [explicite description]
+     * @param $extra $extra [explicite description]
+     *
+     * @return array
+     */
+    public function paymentCreatePreprocess($order, $extra = [])
+    {
+        $data = $this->helperService->returnFormat();
+
+        if (is_null($data['errors'])) {
+            $data['success'] = true;
+        }
+          
+        return $data;
+    }
 }

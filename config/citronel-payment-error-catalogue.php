@@ -66,6 +66,12 @@ return [
                             'code' => '7',
                             'code_status' => 'register_gateway_order_failure',
                         ],
+                        'invalid_pre_process' => [
+                            'key' => 'invalid_pre_process',
+                            'name' => 'invalid_pre_process',
+                            'code' => '8',
+                            'code_status' => 'invalid_pre_process',
+                        ],
                     ]
                 ],
                 'update' => [

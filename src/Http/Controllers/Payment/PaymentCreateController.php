@@ -168,6 +168,18 @@ class PaymentCreateController extends PaymentController
                 'payment_interface_obj' => $paymentInterfaceObj,
                 'payment_remarks' => $paymentRemarks,
             ];
+
+            // create payment preprocess
+            $paymentPreProcessResponse = $paymentService->paymentCreatePreprocess($order, $createPaymentExtra);
+            if (!$paymentPreProcessResponse['success']) {
+                $subProcessErrorKey = $this->subProcess['events']['invalid_pre_process']['key'];
+                $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, $subProcessErrorKey);
+
+                $this->resultResponse = $this->apiHelperService->apiValidationErrorResponse($this->namespace, [], $paymentPreProcessResponse['message']);
+            
+                return $this->sendApiResponse($this->resultResponse, $this->resultResponse->collection['status_code'], $reponseHeaders);
+            }
+
             $createPaymentResponse = $paymentService->createPayment($order, $createPaymentExtra);
             $payment = $createPaymentResponse['result'];
 

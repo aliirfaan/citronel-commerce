@@ -562,4 +562,24 @@ class CitronelOrderService
     {
         $this->orderModel = app(config('citronel-order.order_model'));
     }
+    
+    /**
+     * Method orderCreatePreprocess
+     *
+     * @param $saveData $saveData [explicite description]
+     * @param $orderItems $orderItems [explicite description]
+     * @param $extra $extra [explicite description]
+     *
+     * @return array
+     */
+    public function orderCreatePreprocess($saveData, $orderItems, $extra = [])
+    {
+        $data = $this->helperService->returnFormat();
+
+        if (is_null($data['errors'])) {
+            $data['success'] = true;
+        }
+          
+        return $data;
+    }
 }

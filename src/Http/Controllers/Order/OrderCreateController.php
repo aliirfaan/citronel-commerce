@@ -244,6 +244,18 @@ class OrderCreateController extends OrderController
                 'product_temp_array' => $productTempArray,
                 'correlation_token' => $correlationToken
             ];
+
+            // create order preprocess
+            $orderPreProcessResponse = $orderService->orderCreatePreprocess($createOrderSaveData, $orderItems, $createOrderExtra);
+            if (!$orderPreProcessResponse['success']) {
+                $subProcessErrorKey = config('error-catalogue.process.order.sub_process.create.events.invalid_pre_process.key');
+                $code = $this->helperService->generateProcessCode($this->mainProcess['key'], $subProcessKey, $subProcessErrorKey);
+
+                $this->resultResponse = $this->apiHelperService->apiValidationErrorResponse($this->namespace, [], $orderPreProcessResponse['message']);
+            
+                return $this->sendApiResponse($this->resultResponse, $this->resultResponse->collection['status_code'], $reponseHeaders);
+            }
+
             $createOrderResponse = $orderService->createOrder($createOrderSaveData, $orderItems, $createOrderExtra);
             if (!$createOrderResponse['success']) {
                 $subProcessEvent = $this->errorCatalogueService->getSubProcessEvent('order', 'create', 'create_failure');

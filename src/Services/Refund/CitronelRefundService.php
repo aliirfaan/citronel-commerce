@@ -159,7 +159,7 @@ class CitronelRefundService
 
         foreach ($orderFulfillments as $orderFulfillment) {
             // check fulfillment status, if not fulfilled, add to refund list
-            if ($orderFulfillment->order_item_fulfillment_status !== config('order.order_status.fulfilled.status')) {
+            if ($orderFulfillment->order_item_fulfillment_status !== OrderStatus::FULFILLED->value) {
                 $orderFulfillmentItemsToRefund[] = $orderFulfillment;
                 continue;
             }
@@ -278,7 +278,7 @@ class CitronelRefundService
                 'updated_at' => now(),
             ];
 
-            if ($orderFulfillment->order_item_fulfillment_status === config('order.order_status.fulfilled.status')) {
+            if ($orderFulfillment->order_item_fulfillment_status === OrderStatus::FULFILLED->value) {
                 $orderFulfillmentRefundSaveData['return_status'] = ReturnStatus::COMPLETED->value;
                 $orderFulfillmentRefundSaveData['returned_at'] =  now();
             }

@@ -34,6 +34,10 @@ class CitronelCommerceProvider extends \Illuminate\Support\ServiceProvider
         $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'citronel-commerce');
 
         $this->registerRoutes();
+
+        $this->publishes([
+            __DIR__.'/../database/seeders/' => database_path('seeders'),
+        ], 'citronel-commerce-seeders');
     }
 
     public function register()

@@ -159,7 +159,7 @@ class PaymentUpdateController extends PaymentController
             // for some gateways like my.t money, we may get callbacks from multiple channels
             $shouldUpdateOrder = array_key_exists('should_update_order', $processPaymentResponse['result']) ? $processPaymentResponse['result']['should_update_order'] : false;
             if ($shouldUpdateOrder) {
-                $orderStatus = $paymentService->mapOrderStatus($payment->payment_status);
+                $orderStatus = $paymentService->mapOrderStatusFromPaymentStatus($payment->payment_status);
                 $saveOrderData = [
                     'order_status' => $orderStatus
                 ];

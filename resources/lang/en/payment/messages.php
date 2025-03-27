@@ -19,6 +19,6 @@
     'invalid_currency' => 'Currency not supported.',
     'manual_payment_update_not_allowed' => 'Update not allowed. Payment status must be unpaid to update.',
     'payment_confirmed' => 'Payment has been updated with status :status',
-    'previous_payment_process_success' => 'Your last payment of :amount is still being processed. Payment method: :payment_method. Payment reference: :payment_reference. You will receive a mail notification once your order has been completed.',
+    'previous_payment_process_success' => 'Your last payment of :amount is still being processed. Payment method: :payment_method. Payment reference: :payment_reference.',
     'payment_already_processed' => 'Payment has already been processed.'
 ];

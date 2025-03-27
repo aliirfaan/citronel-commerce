@@ -3,7 +3,7 @@
 namespace aliirfaan\CitronelCommerce\Jobs\Order;
 
 use aliirfaan\CitronelJob\Jobs\CitronelJob;
-use aliirfaan\CitronelCommerce\Services\Order\FulfillmentService;
+use aliirfaan\CitronelCommerce\Services\Order\CitronelFulfillmentService;
 use aliirfaan\CitronelCommerce\Exceptions\Order\ItemFulfillmentException;
 
 class FulfillItem extends CitronelJob
@@ -20,7 +20,13 @@ class FulfillItem extends CitronelJob
         parent::__construct($jobPolicyId);
 
         $this->item = $item;
-        $this->fulfillmentService = new FulfillmentService();
+        $this->fulfillmentService = new CitronelFulfillmentService();
+
+        // job should be tried based on product max retry count
+        $fulfillmentItemMaxRetryCount = intval($item->order_item->product->max_retry_count);
+        if ($fulfillmentItemMaxRetryCount !== 0) {
+            $this->tries = $fulfillmentItemMaxRetryCount;
+        }
     }
 
     /**

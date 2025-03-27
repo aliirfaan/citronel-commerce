@@ -150,3 +150,7 @@ Add policy to check if linked actor is the one doing the action: // authorize - 
             \aliirfaan\CitronelAuth\Http\Middleware\Actor\EnsureActorIsActive::class,
             ActorTokenIsValid,
             MatchActorToken
+
+citronel job seeder fulfill_item
+php artisan db:seed --class=Vendor\\Package\\Database\\Seeders\\MyPackageSeeder
+php artisan vendor:publish --tag=package-seeders

@@ -144,7 +144,7 @@ class PaymentCreateController extends PaymentController
 
                     $shouldUpdateOrder = array_key_exists('should_update_order', $verifyLastPaymentResponse['result']) ? $verifyLastPaymentResponse['result']['should_update_order'] : false;
                     if ($shouldUpdateOrder) {
-                        $orderStatus = $paymentService->mapOrderStatus($payment->payment_status);
+                        $orderStatus = $paymentService->mapOrderStatusFromPaymentStatus($payment->payment_status);
                         $saveOrderData = [
                             'order_status' => $orderStatus
                         ];

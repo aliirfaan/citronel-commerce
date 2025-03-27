@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('product_id');
             $table->text('order_item_meta')->nullable(true);
             $table->string('order_item_fulfillment_status')->nullable(true);
-            $table->string('reseller_order_reference');
+            $table->string('reseller_order_reference')->nullable(true);
             $table->string('previous_reseller_order_reference')->nullable(true);
             $table->string('supplier_order_id')->nullable(true); //updated by supplier
             $table->string('correlation_token')->nullable(true);

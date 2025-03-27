@@ -9,7 +9,6 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use aliirfaan\CitronelCommerce\Services\Order\CitronelFulfillmentService;
 use aliirfaan\CitronelCommerce\Jobs\Order\FulfillItem;
-use aliirfaan\CitronelCommerce\Services\Helper\CitronelCommerceHelperService;
 
 /**
  * Create order fulfillment items and then dispatches jobs to fulfill each item.
@@ -44,7 +43,9 @@ class CreateOrderFulfillment implements ShouldQueue
         $this->order = $order;
         $this->shouldFullfillItems = $shouldFullfillItems;
         $this->fulfillmentService = new CitronelFulfillmentService();
-        $this->helperService = new CitronelCommerceHelperService();
+
+        $helperServiceClass = config('citronel-commerce.helper_service');
+        $this->helperService = app($helperServiceClass);
     }
 
     /**

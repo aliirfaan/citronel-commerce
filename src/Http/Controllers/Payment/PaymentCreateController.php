@@ -151,7 +151,7 @@ class PaymentCreateController extends PaymentController
                         $orderService->updateOrder($payment->order_id, $saveOrderData);
         
                         // dispatch job to create order fulfilment
-                        CreateOrderFulfillment::dispatch($payment->order);
+                        CreateOrderFulfillment::dispatchSync($payment->order);
                     }
 
                     $this->data['result']['payment'] = $verifyLastPaymentResponse['result']['payment'];

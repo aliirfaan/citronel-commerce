@@ -2,12 +2,18 @@
 
 namespace aliirfaan\CitronelCommerce\Jobs\Order;
 
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\SerializesModels;
 use aliirfaan\CitronelJob\Jobs\CitronelJob;
 use aliirfaan\CitronelCommerce\Services\Order\CitronelFulfillmentService;
 use aliirfaan\CitronelCommerce\Exceptions\Order\ItemFulfillmentException;
 
-class FulfillItem extends CitronelJob
+class FulfillItem extends CitronelJob implements ShouldQueue
 {
+    use Dispatchable, Queueable, SerializesModels;
+
     public $fulfillmentService;
 
     public $item;

@@ -6,7 +6,7 @@
     'payment_method_min_amount' => 'The minimum allowed amount for this payment method is :amount.',
     'payment_method_max_amount' => 'The maximum allowed amount for this payment method is :amount.',
     'payment_method_update_time_exceeded' => 'Allowed time exceeded to allow update.',
-    'payment_process_success' => 'We have successfully accepted your payment of :amount. Payment reference: :payment_reference. You will receive a mail notification once your order has been processed.',
+    'payment_process_success' => 'We have successfully accepted your payment of :amount. Payment reference: :payment_reference.',
     'invalid_payment_channel' => 'Invalid payment channel.',
     'valid_payment_channel' => 'Valid payment channel.',
     'payment_process_failed' => 'It seems that there was an issue processing your payment. Please double-check your payment details and try again. :cause',

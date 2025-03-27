@@ -72,7 +72,8 @@ class CitronelOrderService
 
         $this->currencyService = $currencyService;
         $this->errorCatalogueService = new CitronelErrorCatalogueService();
-        $this->mainProcess = 'order';
+
+        $this->mainProcess = $this->errorCatalogueService->getMainProcess('order');
     }
     
     /**

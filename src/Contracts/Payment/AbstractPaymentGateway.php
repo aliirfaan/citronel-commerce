@@ -420,4 +420,27 @@ abstract class AbstractPaymentGateway
     {
         return $this->helperService->returnFormat();
     }
+
+    /**
+     * Method validatePaymentChannel
+     *
+     * @param $paymentChannel $paymentChannel [explicite description]
+     *
+     * @return array
+     */
+    public function validatePaymentChannel($paymentChannel)
+    {
+        $data = $this->helperService->returnFormat();
+
+        $configurations = $this->getConfigurations();
+        $allowedPaymentChannels = array_map('trim', explode(',', $configurations['allowed_channels']));
+        if (\in_array($paymentChannel, $allowedPaymentChannels)) {
+            $data['success'] = true;
+            $data['message'] = __('citronel-commerce::payment/messages.valid_payment_channel');
+        } else {
+            $data['message'] = __('citronel-commerce::payment/messages.invalid_payment_channel');
+        }
+
+        return $data;
+    }
 }

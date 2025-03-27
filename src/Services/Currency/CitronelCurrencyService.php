@@ -4,6 +4,7 @@ namespace aliirfaan\CitronelCommerce\Services\Currency;
 
 use aliirfaan\CitronelCommerce\Models\CurrencyRate\CurrencyRate;
 use aliirfaan\CitronelCommerce\Contracts\CurrencyPlatform\CurrencyPlatformInterface;
+use aliirfaan\CitronelErrorCatalogue\Services\CitronelErrorCatalogueService;
 
 class CitronelCurrencyService
 {
@@ -35,9 +36,13 @@ class CitronelCurrencyService
      */
     public $mainProcess;
 
+    public $errorCatalogueService;
+
     public function __construct(?CurrencyPlatformInterface $currencyPlatformService = null)
     {
-        $this->mainProcess = 'currency_service';
+        $this->errorCatalogueService = new CitronelErrorCatalogueService();
+
+        $this->mainProcess = $this->errorCatalogueService->getMainProcess('order');
         
         $this->currencyRateModel = new CurrencyRate();
 

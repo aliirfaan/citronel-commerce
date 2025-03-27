@@ -68,7 +68,8 @@ class CitronelFulfillmentService
 
         $this->productService = new CitronelProductService();
         $this->errorCatalogueService = new CitronelErrorCatalogueService();
-        $this->mainProcess = 'order';
+
+        $this->mainProcess = $this->errorCatalogueService->getMainProcess('order');
     }
     
     /**

@@ -73,8 +73,10 @@ class CitronelPaymentService
         $this->helperService = app($helperServiceClass);
 
         $this->errorCatalogueService = new CitronelErrorCatalogueService();
+        
         $this->orderMediatorService = new OrderMediatorService();
-        $this->mainProcess = 'payment_service';
+
+        $this->mainProcess = $this->errorCatalogueService->getMainProcess('payment');
     }
 
     /**

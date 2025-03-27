@@ -4,6 +4,7 @@ namespace aliirfaan\CitronelCommerce\Services\Product;
 
 use aliirfaan\CitronelErrorCatalogue\Traits\ErrorCatalogue;
 use aliirfaan\CitronelCommerce\Models\Product\Product;
+use aliirfaan\CitronelErrorCatalogue\Services\CitronelErrorCatalogueService;
 
 class CitronelProductService
 {
@@ -30,6 +31,8 @@ class CitronelProductService
      */
     public $mainProcess;
 
+    public $errorCatalogueService;
+
     /**
      * Method __construct
      *
@@ -42,7 +45,9 @@ class CitronelProductService
         $helperServiceClass = config('citronel-commerce.helper_service');
         $this->helperService = app($helperServiceClass);
 
-        $this->mainProcess = 'product';
+        $this->errorCatalogueService = new CitronelErrorCatalogueService();
+
+        $this->mainProcess = $this->errorCatalogueService->getMainProcess('product');
     }
 
     /**

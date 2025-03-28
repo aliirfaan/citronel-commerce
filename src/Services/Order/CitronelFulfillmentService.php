@@ -175,6 +175,8 @@ class CitronelFulfillmentService
             }
         }
 
+        $productInterfaceObj = $this->helperService->makeObject($item->order_item->product->product_class, ['product' => $item->order_item->product]);
+
         $shouldFullfillItem = $this->shouldFulfillItem($item->order_item_fulfillment_status, $isRetry);
         if ($shouldFullfillItem) {
 
@@ -184,7 +186,6 @@ class CitronelFulfillmentService
             );
 
             $fulfilledAt = null;
-            $productInterfaceObj = $this->helperService->makeObject($item->order_item->product->product_class, ['product' => $item->order_item->product]);
 
             $fulfillProductOrderItemResponse = $productInterfaceObj->fulfillProductOrderItem($item, $extra);
             if ($fulfillProductOrderItemResponse['success']) {

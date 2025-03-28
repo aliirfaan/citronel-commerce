@@ -11,10 +11,11 @@ use aliirfaan\CitronelCommerce\Services\Order\CitronelOrderService;
 use aliirfaan\CitronelCommerce\Services\Payment\CitronelPaymentMethodService;
 use aliirfaan\CitronelCommerce\Services\Payment\CitronelPaymentService;
 use aliirfaan\CitronelCommerce\Jobs\Order\CreateOrderFulfillment;
+use aliirfaan\CitronelCommerce\Services\Order\CitronelFulfillmentService;
 
 class PaymentCreateController extends PaymentController
 {
-    public function create(Request $request, $order_guid, AuditLogService $auditService, CitronelOrderService $orderService, CitronelPaymentMethodService $paymentMethodService, CitronelPaymentService $paymentService)
+    public function create(Request $request, $order_guid, AuditLogService $auditService, CitronelOrderService $orderService, CitronelPaymentMethodService $paymentMethodService, CitronelPaymentService $paymentService, CitronelFulfillmentService $fulfillmentService)
     {
         $correlationToken = $this->helperService->getCorrelationTokenFromHeader($request);
         $reponseHeaders = $this->helperService->setCorrelationResponseHeader($correlationToken);
@@ -152,6 +153,27 @@ class PaymentCreateController extends PaymentController
         
                         // dispatch job to create order fulfilment
                         CreateOrderFulfillment::dispatchSync($payment->order);
+
+                        /**
+                         * Fulfill items
+                         * If items are sync, fulfill them now
+                         * If items are async, dispatch job to fulfill them
+                         */
+                        $itemFulfillmentResponseMessages = []; // store fulfillment messages
+                        $jobPolicyId = 'fulfill_item';
+
+                        $getFulfillmentsByOrderIdResponse = $fulfillmentService->getFulfillmentsByOrderId($payment->order->id);
+                        foreach ($getFulfillmentsByOrderIdResponse as $item) {
+                            $productInterfaceObj = $this->helperService->makeObject($item->order_item->product->product_class, ['product' => $item->order_item->product]);
+
+                            $fulfillmentTypeResponse = $productInterfaceObj->getProductOrderFulfillmentItemType();
+                            if ($fulfillmentTypeResponse === 'sync') {
+                                $itemFulfillmentResponse = $fulfillmentService->fulfillItem($item);
+                                $itemFulfillmentResponseMessages[] = $itemFulfillmentResponse['message'];
+                            } else {
+                                FulfillItem::dispatch($jobPolicyId, $item);
+                            }
+                        }
                     }
 
                     $this->data['result']['payment'] = $verifyLastPaymentResponse['result']['payment'];

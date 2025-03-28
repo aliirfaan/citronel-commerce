@@ -12,10 +12,11 @@ use aliirfaan\CitronelCommerce\Jobs\Order\CreateOrderFulfillment;
 use aliirfaan\CitronelCommerce\Models\Order\ManualFulfillmentRetry;
 use aliirfaan\CitronelCommerce\Services\Payment\CitronelPaymentService;
 use aliirfaan\CitronelCommerce\Services\Order\CitronelOrderService;
+use aliirfaan\CitronelCommerce\Services\Order\CitronelFulfillmentService;
 
 class ManualPaymentConfirmationController extends PaymentController
 {
-    public function confirmPayment(Request $request, $gateway_merchant_transaction_no, AuditLogService $auditService, CitronelPaymentService $paymentService, ManualFulfillmentRetry $manualPaymentConfirmationApiCommand, CitronelPaymentMethodService $paymentMethodService, CitronelOrderService $orderService)
+    public function confirmPayment(Request $request, $gateway_merchant_transaction_no, AuditLogService $auditService, CitronelPaymentService $paymentService, ManualFulfillmentRetry $manualPaymentConfirmationApiCommand, CitronelPaymentMethodService $paymentMethodService, CitronelOrderService $orderService, CitronelFulfillmentService $fulfillmentService)
     {
         $correlationToken = $this->helperService->getCorrelationTokenFromHeader($request);
         $reponseHeaders = $this->helperService->setCorrelationResponseHeader($correlationToken);
@@ -132,12 +133,37 @@ class ManualPaymentConfirmationController extends PaymentController
 
                 // dispatch job to create order fulfilment
                 CreateOrderFulfillment::dispatchSync($payment->order);
+
+                /**
+                 * Fulfill items
+                 * If items are sync, fulfill them now
+                 * If items are async, dispatch job to fulfill them
+                 */
+                $itemFulfillmentResponseMessages = []; // store fulfillment messages
+                $jobPolicyId = 'fulfill_item';
+
+                $getFulfillmentsByOrderIdResponse = $fulfillmentService->getFulfillmentsByOrderId($payment->order->id);
+                foreach ($getFulfillmentsByOrderIdResponse as $item) {
+                    $productInterfaceObj = $this->helperService->makeObject($item->order_item->product->product_class, ['product' => $item->order_item->product]);
+
+                    $fulfillmentTypeResponse = $productInterfaceObj->getProductOrderFulfillmentItemType();
+                    if ($fulfillmentTypeResponse === 'sync') {
+                        $itemFulfillmentResponse = $fulfillmentService->fulfillItem($item);
+                        $itemFulfillmentResponseMessages[] = $itemFulfillmentResponse['message'];
+                    } else {
+                        FulfillItem::dispatch($jobPolicyId, $item);
+                    }
+                }
             }
 
             $this->data['result']['payment'] = $manuallyConfirmPaymentResponse['result']['payment'];
             $this->data['success'] = $manuallyConfirmPaymentResponse['success'];
             $this->data['status_code'] = Response::HTTP_OK;
             $this->data['message'] = $manuallyConfirmPaymentResponse['message'];
+
+            // add item fulfillment messages
+            $itemFulfillmentResponseMessagesString = implode(' ', $itemFulfillmentResponseMessages);
+            $this->data['message'] = $this->data['message'] . ' ' . $itemFulfillmentResponseMessagesString;
 
             $this->resultResponse = new ApiResponseCollection($this->data);
 

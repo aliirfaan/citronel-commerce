@@ -8,7 +8,6 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use aliirfaan\CitronelCommerce\Services\Order\CitronelFulfillmentService;
-use aliirfaan\CitronelCommerce\Jobs\Order\FulfillItem;
 
 /**
  * Create order fulfillment items and then dispatches jobs to fulfill each item.
@@ -57,23 +56,6 @@ class CreateOrderFulfillment implements ShouldQueue
         if (!$createOrderFulfillmentResponse['success']) {
             // fail job
             throw new \Exception($createOrderFulfillmentResponse['message']);
-        }
-
-        // dispatch job to full each items
-        if ($this->shouldFullfillItems) {
-            $getFulfillmentsByOrderIdResponse = $this->fulfillmentService->getFulfillmentsByOrderId($this->order->id);
-
-            $jobPolicyId = 'fulfill_item';
-            foreach ($getFulfillmentsByOrderIdResponse as $item) {
-                $productInterfaceObj = $this->helperService->makeObject($item->order_item->product->product_class, ['product'=> $item->order_item->product]);
-    
-                $fulfillmentTypeResponse = $productInterfaceObj->getProductOrderFulfillmentItemType();
-                if ($fulfillmentTypeResponse === 'sync') {
-                    FulfillItem::dispatchSync($jobPolicyId, $item);
-                } else {
-                    FulfillItem::dispatch($jobPolicyId, $item);
-                }
-            }
         }
     }
 }

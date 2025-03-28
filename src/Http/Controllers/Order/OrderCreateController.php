@@ -102,6 +102,27 @@ class OrderCreateController extends OrderController
 
                             // dispatch job to create order fulfilment
                             CreateOrderFulfillment::dispatchSync($payment->order);
+
+                            /**
+                             * Fulfill items
+                             * If items are sync, fulfill them now
+                             * If items are async, dispatch job to fulfill them
+                             */
+                            $itemFulfillmentResponseMessages = []; // store fulfillment messages
+                            $jobPolicyId = 'fulfill_item';
+
+                            $getFulfillmentsByOrderIdResponse = $fulfillmentService->getFulfillmentsByOrderId($payment->order->id);
+                            foreach ($getFulfillmentsByOrderIdResponse as $item) {
+                                $productInterfaceObj = $this->helperService->makeObject($item->order_item->product->product_class, ['product' => $item->order_item->product]);
+
+                                $fulfillmentTypeResponse = $productInterfaceObj->getProductOrderFulfillmentItemType();
+                                if ($fulfillmentTypeResponse === 'sync') {
+                                    $itemFulfillmentResponse = $fulfillmentService->fulfillItem($item);
+                                    $itemFulfillmentResponseMessages[] = $itemFulfillmentResponse['message'];
+                                } else {
+                                    FulfillItem::dispatch($jobPolicyId, $item);
+                                }
+                            }
                         }
 
                         $this->data['result']['payment'] = $verifyLastPaymentResponse['result']['payment'];

@@ -162,10 +162,10 @@ interface ProductOrderItemInterface
      *
      * Generate the update array for the order fulfillment item
      *
-     * @param $item $item [explicite description]
-     * @param $extra $extra [explicite description]
+     * @param mixed $item [explicite description]
+     * @param mixed $extra [explicite description]
      *
-     * @return mixed
+     * @return array
      */
     public function generateProductOrderFulfillmentItemUpdate($item = null, $extra = []);
 }

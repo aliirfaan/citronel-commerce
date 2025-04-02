@@ -179,7 +179,7 @@ class OrderCreateController extends OrderController
                 $productInterfaceObj = $this->helperService->makeObject($product->product_class, ['product'=> $product]);
 
                 // validate order for this specific product
-                $validationRules = $productInterfaceObj->orderItemCreateValidationRules();
+                $validationRules = $productInterfaceObj->orderItemCreateValidationRules($anOrderItem);
                 if (!empty($validationRules)) {
                     $validationResponse = $this->apiHelperService->validateRequestFields($anOrderItem, $validationRules['rules'], $validationRules['messages'], $validationRules['attributes']);
 
@@ -204,11 +204,14 @@ class OrderCreateController extends OrderController
             }
 
             // order create pre process for order items
+            $orderItemCreatePreProcessExtra = [
+                'correlation_token' => $correlationToken
+            ];
             foreach ($orderItems as $anOrderItem) {
                 $productId = $anOrderItem['product_id'];
                 $productInterfaceObj = $productTempArray[$productId]['product_class'];
 
-                $orderItemCreatePreProcessResponse = $productInterfaceObj->orderItemCreatePreProcess($anOrderItem);
+                $orderItemCreatePreProcessResponse = $productInterfaceObj->orderItemCreatePreProcess($anOrderItem, $orderItemCreatePreProcessExtra);
                 if (!$orderItemCreatePreProcessResponse['success']) {
                     $subProcessEvent = $this->errorCatalogueService->getSubProcessEvent('order', 'create', 'invalid_pre_process');
                     $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key']);

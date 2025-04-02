@@ -137,6 +137,7 @@ class CitronelOrderService
      * Create order items
      * Calculate order subtotal, total
      * Convert to currency if order_currency_code is not base currency
+     * Some services do not have a product price. If an 'amount' field is present in the order item, use that to calculate order total
      *
      * @param array $saveData [explicite description]
      * @param array $orderItems [explicite description]
@@ -198,7 +199,14 @@ class CitronelOrderService
             $saveOrderItemData['order_id'] = $newOrder->id;
             $newOrderItem = $this->orderItemModel::create($saveOrderItemData);
 
-            $orderBaseCurrencySubtotal = floatval($orderBaseCurrencySubtotal) + floatval(($newOrderItem->product_price * $newOrderItem->quantity));
+            $orderItemMeta = json_decode($saveOrderItemData['order_item_meta']);
+            $orderItemMetaAmount = $orderItemMeta->amount ?? null;
+
+            if(!is_null($orderItemMetaAmount)) {
+                $orderBaseCurrencySubtotal = floatval($orderBaseCurrencySubtotal) + floatval($orderItemMetaAmount);
+            } else {
+                $orderBaseCurrencySubtotal = floatval($orderBaseCurrencySubtotal) + floatval(($newOrderItem->product_price * $newOrderItem->quantity));
+            }
 
             // order summary
             $orderItemSummary['quantity'] = $newOrderItem->quantity;

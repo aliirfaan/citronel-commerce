@@ -168,6 +168,7 @@ class CitronelOrderService
         // add order number
         $orderBaseCurrencySubtotal = 0;
         $orderBaseCurrencyGrandTotal = 0;
+        $orderSummary = [];
 
         $productTempArray =  array_key_exists('product_temp_array', $extra) ? $extra['product_temp_array'] : null;
         $correlationToken = array_key_exists('correlation_token', $saveData) ? $saveData['correlation_token'] : null;
@@ -198,6 +199,27 @@ class CitronelOrderService
             $newOrderItem = $this->orderItemModel::create($saveOrderItemData);
 
             $orderBaseCurrencySubtotal = floatval($orderBaseCurrencySubtotal) + floatval(($newOrderItem->product_price * $newOrderItem->quantity));
+
+            // order summary
+            $orderItemSummary['quantity'] = $newOrderItem->quantity;
+
+            $orderItemSummary['product_price'] = $newOrderItem->product_price;
+
+            $orderItemSummary['product_total_price'] = floatval(($newOrderItem->product_price * $newOrderItem->quantity));
+
+            if ($orderCurrencyCode !== $this->currencyService->getBaseCurrencyCode()) {
+                $orderItemSummary['product_price'] = $this->currencyService->convertAmount($newOrderItem->product_price, $orderCurrencyCode, $currencyRate);
+
+                $orderItemSummary['product_total_price'] = $this->currencyService->convertAmount($orderItemSummary['product_total_price'], $orderCurrencyCode, $currencyRate);
+            }
+
+            $orderItemSummary['product_price'] = $this->currencyService->formatCurrencyAmount($orderItemSummary['product_price'], $orderCurrencyCode);
+
+            $orderItemSummary['product_total_price'] = $this->currencyService->formatCurrencyAmount($orderItemSummary['product_total_price'], $orderCurrencyCode);
+
+            $generateOrderItemSummaryResponse = $productInterfaceObj->generateOrderItemSummary($newOrderItem, $orderCreatePreProcessExtra);
+            $orderItemSummary = array_merge($orderItemSummary, $generateOrderItemSummaryResponse);
+            $orderSummary[] = $orderItemSummary;
         }
 
         if (is_null($data['errors'])) {
@@ -218,7 +240,7 @@ class CitronelOrderService
                 'order_base_currency_subtotal' => $orderBaseCurrencySubtotal,
                 'order_base_currency_grand_total' => $orderBaseCurrencyGrandTotal,
                 'order_subtotal' => $orderSubtotal,
-                'order_grand_total' => $orderGrandTotal,
+                'order_grand_total' => $orderGrandTotal
             ];
             $this->orderModel::where('id', $newOrder->id)->update($updateOrderSaveData);
 
@@ -229,6 +251,8 @@ class CitronelOrderService
             $order->subtotal = $this->currencyService->formatCurrencyAmount($order->order_subtotal, $orderCurrencyCode);
 
             $order->total = $this->currencyService->formatCurrencyAmount($order->order_grand_total, $orderCurrencyCode);
+
+            $order->summary = $orderSummary;
 
             $data['result'] = $order;
             $data['success'] = true;

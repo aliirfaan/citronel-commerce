@@ -11,7 +11,7 @@
     'order_already_paid' => 'Order has already been paid.',
     'item_fulfillment_success' => 'Your item fulfillment was successfully processed.',
     'item_fulfillment_failure' => 'Your item fulfillment was not processed.',
-    'order_remarks' => 'esim',
+    'order_remarks' => 'order',
     'order_item_quantity_max' => 'The maximum quantity you can buy is :max.',
     'order_create_on_hold' => 'We are still processing your previous order. Please wait for :wait_time.',
     'order_item_fulfillment_max_retry_reached' => 'Maximum retries reached for this item.',

@@ -521,7 +521,7 @@ class CitronelFulfillmentService
                 $data['message'] = $processSupplierOrderForManualFulfillmentResponse['message'];
 
             } else {
-                $fulfillProductOrderItemResponse = $productInterfaceObj->fulfillProductOrderItem($item, $extra);
+                $fulfillProductOrderItemResponse = $productInterfaceObj->manuallyfulfillProductOrderItem($item, $extra);
                 if ($fulfillProductOrderItemResponse['success']) {
                     $orderItemFulfillmentStatus = OrderStatus::FULFILLED->value;
                     $fulfilledAt = date(config('citronel.db_date_time_db_format'));

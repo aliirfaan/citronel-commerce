@@ -24,4 +24,13 @@ interface ProductOrderManualFulfillmentInterface
      * @return array
      */
     public function processSupplierOrderForManualFulfillment($order = null, $extra = []);
+
+    /**
+     *
+     * @param mixed manually fulfillment item
+     * @param array $extra
+     *
+     * @return array
+     */
+    public function manuallyfulfillProductOrderItem($item, $extra = []);
 }

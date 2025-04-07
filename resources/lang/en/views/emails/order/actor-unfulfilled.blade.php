@@ -82,10 +82,9 @@
             </table>
             @break
             @endforeach
-            <p>For further assistance, feel free to contact us.</p>
         </div>
         <div class="footer">
-            <p>If you didn't request this order, you don't have to do anything. So that's easy.</p>
+            <p>For further assistance, feel free to contact us.</p>
         </div>
     </div>
 </body>

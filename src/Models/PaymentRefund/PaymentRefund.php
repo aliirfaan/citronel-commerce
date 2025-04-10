@@ -16,10 +16,6 @@ class PaymentRefund extends Model
 
     protected $table = 'payment_refunds';
 
-    protected $casts = [
-        'refund_grand_total' => 'float',
-    ];
-
     protected $hidden = ['created_at', 'updated_at'];
 
     protected $fillable = [

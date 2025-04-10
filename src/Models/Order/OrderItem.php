@@ -17,11 +17,6 @@ class OrderItem extends Model
 
     protected $hidden = ['created_at', 'updated_at'];
 
-    protected $casts = [
-        'product_price' => 'float',
-        'quantity' => 'integer',
-    ];
-
     protected $fillable = [
         'id', 'order_id', 'product_id', 'product_price', 'quantity', 'order_item_meta'
     ];

@@ -97,8 +97,8 @@ class CitronelPaymentService
             'payment_method_configuration_id' => $order->order_payment_method_configuration_id,
             'payment_status' => PaymentStatus::UNPAID,
             'currency_code' => $order->order_currency_code,
-            'subtotal' => floatval($order->order_subtotal),
-            'grand_total' => floatval($order->order_grand_total),
+            'subtotal' => (string) $order->order_subtotal,
+            'grand_total' => (string) $order->order_grand_total,
             'payment_remarks' => array_key_exists('payment_remarks', $extra)? $extra['payment_remarks'] : $order->order_number,
         ];
 

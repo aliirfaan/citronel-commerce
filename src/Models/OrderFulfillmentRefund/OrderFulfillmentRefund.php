@@ -14,10 +14,6 @@ class OrderFulfillmentRefund extends Model
 
     protected $table = 'order_fulfillment_refunds';
 
-    protected $casts = [
-        'refund_amount' => 'float',
-    ];
-
     protected $hidden = ['created_at', 'updated_at'];
 
     protected $fillable = [

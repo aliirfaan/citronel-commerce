@@ -246,9 +246,9 @@ class CitronelRefundService
     public function createOrderRefundInitiation($order, $orderFulfillmentItemsToRefund, $extra = [])
     {
         $data = $this->helperService->returnFormat();
-
+    
         DB::beginTransaction();
-
+    
         $paymentRefundSaveData = [
             'id' => (string) Str::uuid(),
             'order_id' => $order->id,
@@ -258,16 +258,19 @@ class CitronelRefundService
             'create_actor_id' => array_key_exists('return_actor_id', $extra) ? $extra['return_actor_id'] : null,
             'refund_created_at' => now(),
         ];
-
+    
         $newPaymentRefund = $this->paymentRefundApiCommand->create($paymentRefundSaveData);
-
+    
         $bulkInsertData = [];
-        $paymentRefundGrandTotal = 0;
+        $paymentRefundGrandTotal = '0'; // Initialize as a string for bcmath
+    
         foreach ($orderFulfillmentItemsToRefund as $orderFulfillment) {
-            
-            $orderFulfillmentRefundAmount = $this->calculateOrderFulfillmentRefundAmount($orderFulfillment);
-            $paymentRefundGrandTotal = $paymentRefundGrandTotal + $orderFulfillmentRefundAmount;
-
+            // Calculate refund amount using bcmath
+            $orderFulfillmentRefundAmount = (string) $this->calculateOrderFulfillmentRefundAmount($orderFulfillment);
+    
+            // Add refund amount to the grand total using bcmath to avoid precision issues
+            $paymentRefundGrandTotal = bcadd($paymentRefundGrandTotal, $orderFulfillmentRefundAmount, config('citronel.decimals'));
+    
             $orderFulfillmentRefundSaveData = [
                 'id' => (string) Str::uuid(),
                 'order_fulfillment_id' => $orderFulfillment->id,
@@ -277,30 +280,30 @@ class CitronelRefundService
                 'created_at' => now(),
                 'updated_at' => now(),
             ];
-
+    
             if ($orderFulfillment->order_item_fulfillment_status === OrderStatus::FULFILLED->value) {
                 $orderFulfillmentRefundSaveData['return_status'] = ReturnStatus::COMPLETED->value;
-                $orderFulfillmentRefundSaveData['returned_at'] =  now();
+                $orderFulfillmentRefundSaveData['returned_at'] = now();
             }
-
+    
             $bulkInsertData[] = $orderFulfillmentRefundSaveData;
         }
-
+    
         // bulk insert
         $this->orderFulfillmentRefundApiCommand->insert($bulkInsertData);
-
-        // update payment refund grand total
+    
+        // update payment refund grand total using bcmath
         $newPaymentRefund->refund_grand_total = $paymentRefundGrandTotal;
         $newPaymentRefund->save();
-
+    
         DB::commit();
-
+    
         $data['message'] = __('citronel-commerce::refund/messages.refund_initiated');
-
+    
         if (is_null($data['errors'])) {
             $data['success'] = true;
         }
-
+    
         return $data;
     }
 

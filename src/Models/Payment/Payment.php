@@ -13,13 +13,6 @@ class Payment extends Model
 
     protected $table = 'payments';
 
-    protected $casts = [
-        'subtotal' => 'float',
-        'tax_amount' => 'float',
-        'discount_amount' => 'float',
-        'grand_total' => 'float',
-    ];
-
     /**
      * The accessors to append to the model's array form.
      *

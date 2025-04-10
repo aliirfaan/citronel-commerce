@@ -169,24 +169,32 @@ abstract class AbstractPaymentGateway
     public function validateTransactionAmount($amount)
     {
         $data = $this->helperService->returnFormat();
-
-        $minimumAmount = floatval($this->paymentMethod->min_amount);
-        $maximumAmount = floatval($this->paymentMethod->max_amount);
-
-        if ($amount < $minimumAmount) {
+    
+        // Get min and max amounts as strings from the DB (no float conversion)
+        $minimumAmount = (string) $this->paymentMethod->min_amount;
+        $maximumAmount = (string) $this->paymentMethod->max_amount;
+    
+        // Convert the $amount to a string as well
+        $amount = (string) $amount;
+    
+        // Check if amount is less than the minimum
+        if (bccomp($amount, $minimumAmount, 2) < 0) { // 2 decimal precision for comparison
             $data['errors'] = true;
-            $formattedAmount =  $this->helperService->formatCurrencyAmountWithCode($minimumAmount);
+            $formattedAmount = $this->helperService->formatCurrencyAmountWithCode($minimumAmount);
             $data['message'] = __('citronel-commerce::payment/messages.payment_method_min_amount', ['amount' => $formattedAmount]);
-        } elseif ($amount > $maximumAmount) {
+        }
+        // Check if amount is greater than the maximum
+        elseif (bccomp($amount, $maximumAmount, 2) > 0) { // 2 decimal precision for comparison
             $data['errors'] = true;
-            $formattedAmount =  $this->helperService->formatCurrencyAmountWithCode($maximumAmount);
+            $formattedAmount = $this->helperService->formatCurrencyAmountWithCode($maximumAmount);
             $data['message'] = __('citronel-commerce::payment/messages.payment_method_max_amount', ['amount' => $formattedAmount]);
         } else {
             $data['success'] = true;
         }
-
+    
         return $data;
     }
+    
 
     /**
      * Get configurations

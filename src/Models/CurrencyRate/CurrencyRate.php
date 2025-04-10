@@ -12,11 +12,6 @@ class CurrencyRate extends Model
 
     protected $table = 'currency_rates';
 
-    protected $casts = [
-        'buying_rate' => 'float',
-        'selling_rate' => 'float',
-    ];
-
     protected $hidden = ['id', 'created_at', 'updated_at', 'buying_rate'];
 
     protected $fillable = [

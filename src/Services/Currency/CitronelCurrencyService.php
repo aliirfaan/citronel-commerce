@@ -61,8 +61,6 @@ class CitronelCurrencyService
      */
     public function refreshExchangeRate($correlationToken = null)
     {
-        $data = $this->helperService->returnFormat();
-        
         $data = $this->currencyPlatformService->refreshExchangeRate($correlationToken);
         if ($data['success']) {
             $exchangeRateResult = $data['result'];
@@ -143,20 +141,28 @@ class CitronelCurrencyService
     /**
      * Method convertAmount
      *
-     * @param float $amount [explicite description]
+     * @param mixed $amount [explicite description]
      * @param string $toCode [explicite description]
      * @param mixed $currencyRate [explicite description]
+     * @param int $decimals [explicite description]
      *
-     * @return void
+     * @return mixed
      */
-    public function convertAmount($amount, $toCode, $currencyRate)
+    public function convertAmount($amount, $toCode, $currencyRate, $decimals = null)
     {
+        $decimals = $decimals ?? config('citronel.decimals');
+        
         $baseCurrencyCode = $this->getBaseCurrencyCode();
+        $amount = (string) $amount;
+    
         if ($toCode !== $baseCurrencyCode) {
-            $amount = $amount * $currencyRate->selling_rate;
+            $rate = (string) $currencyRate->selling_rate;
+    
+            // Multiply with desired precision
+            $amount = bcmul($amount, $rate, $decimals);
         }
-
-        return $amount;
+    
+        return $amount; // precise string
     }
 
     public function formatCurrencyAmount($amount, $currencyCode)

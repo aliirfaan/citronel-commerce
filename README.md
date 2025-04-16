@@ -2,10 +2,14 @@
 
 Simple order and payment processing for Laravel API project.
 
+## Dependencies
+- [aliirfaan/citronel-core](https://github.com/aliirfaan/citronel-core)
+- [aliirfaan/citronel-job](https://github.com/aliirfaan/citronel-job)
+
 ## Features
 * Product
-- Keep products/services in a product table. 
-- Each product may have use contracts and have a product class that allows you customize order process per product. 
+- Keep products/services in a product table with product configurations. 
+- Each product may use contracts and have a product class that allows you customize order process per product. 
 * Order
 - Create order by adding products. 
 - An order contains order items.
@@ -26,48 +30,48 @@ Simple order and payment processing for Laravel API project.
 - Payment refunds
 
 ## Product
-* migrate products table
-* expects service class in App/Services/Api/v1
-* extends AbstractCitronelProduct implements ProductOrderItemInterface, ProductPaymentInterface, ProductOrderFulfillmentRefundInterface 
+
+### Features
+* product_class
+Each product has a product class that extends traits.
+* fulfillment_type
+Each product may be fulfillemt type as sync or async(queue).
+* allow_transaction
+Transactions/payments can be disabled per product.
+* allow_manual_retry
+Alow manual fulfillment in case of failure.
+
+### Contracts
+* AbstractCitronelProduct  
+Each product class must extend AbstractCitronelProduct.  
+A product class may also implement contracts found in ```src/Contracts/Product```
 
 ## Order
+
+### Config
+* citronel-order.php
+
+### Features
+* fulfillment failure notification
 
 ## Payment method
 
 ## Payment method configuration
 
-## Currency
-
 ## Payment
 
+## Currency
+
 ## Fulfillment
-Add columns to your order fulfillments
+
 ## Manual fulfillment
 
 ## Refund
-
-# Use with aliirfaan/citronel-auth
 
 ## Create a migration to link order to an actor
 ```bash
 $ php artisan make:migration alter_actor_id_in_orders_table --table=orders
 ```
-
-## Routes
-* Publish routes if you want to override them
-``` bash
-$ php artisan vendor:publish --tag=citronel-commerce-routes
-```
-* Make sure to review routes and remove endpoints you do not want to expose
-
-* Review route prefix
-
-## Config
-* add error catalogue
-
-
-## Middleware
-* Review route middleware
 
 ```php
 // use actor
@@ -108,7 +112,26 @@ return new class extends Migration
 
 ```
 
-## extend citornel order
+## Routes
+* Publish routes if you want to override them
+``` bash
+$ php artisan vendor:publish --tag=citronel-commerce-routes
+```
+* Make sure to review routes and remove endpoints you do not want to expose
+
+* Review route prefix
+
+## Middleware
+* Review route middleware  
+Add policy to check if linked actor is the one doing the action: // authorize - MatchActorToken middleware  
+```php
+\aliirfaan\CitronelAuth\Http\Middleware\Actor\EnsureActorIsVerified::class,
+\aliirfaan\CitronelAuth\Http\Middleware\Actor\EnsureActorIsActive::class,
+ActorTokenIsValid,
+MatchActorToken
+```
+
+## Extend citronel order
 ### actor validation rules
 ```php
 <?php
@@ -138,19 +161,3 @@ class MyOrder extends Order
 ```php
 'order_model' => Models\MyOrder::class,
 ```
-
-## citronel-commerce
-* Add middleware to check if actor token is valid
-
-
-Add policy to check if linked actor is the one doing the action: // authorize - MatchActorToken middleware
-
-// add middleware
-            \aliirfaan\CitronelAuth\Http\Middleware\Actor\EnsureActorIsVerified::class,
-            \aliirfaan\CitronelAuth\Http\Middleware\Actor\EnsureActorIsActive::class,
-            ActorTokenIsValid,
-            MatchActorToken
-
-citronel job seeder fulfill_item
-php artisan db:seed --class=Vendor\\Package\\Database\\Seeders\\MyPackageSeeder
-php artisan vendor:publish --tag=package-seeders

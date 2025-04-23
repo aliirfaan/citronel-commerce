@@ -52,13 +52,13 @@ class InitiateOrderRefundController extends RefundController
 
             $getOrderResponse = $orderService->getOrderByGuid($order_guid);
             if (!$getOrderResponse['success']) {
-                $subProcessErrorKey = $this->subProcess['events']['invalid_order']['key'];
-                $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, $subProcessErrorKey);
+                $subProcessEvent = $this->errorCatalogueService->getSubProcessEvent('refund', 'refund_order', 'invalid_order');
+                $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key']);
 
                 $this->resultResponse = $this->apiHelperService->apiNotFoundErrorResponse($this->namespace, [], null, $this->recordNotFoundErrorCatalogue()['lang'], ['code' => $code['code']]);
 
                 $this->auditData['al_is_success'] = $this->data['success'];
-                $this->auditData['al_event_name'] = $this->subProcess['events']['invalid_order']['name'];
+                $this->auditData['al_event_name'] = $subProcessEvent['name'];
                 $this->auditData['al_code'] = $code['code'];
                 $this->auditData['al_request'] = $order_guid;
                 $this->auditData['al_message'] = $code['status'];
@@ -77,13 +77,13 @@ class InitiateOrderRefundController extends RefundController
 
             $initiateOrderRefundResponse = $refundService->initiateOrderRefund($order, $orderFulfillmentIds, $initiateOrderRefundExtra);
             if (!$initiateOrderRefundResponse['success']) {
-                $subProcessErrorKey = $this->subProcess['events']['refund_initiation_failed']['key'];
-                $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, $subProcessErrorKey);
+                $subProcessEvent = $this->errorCatalogueService->getSubProcessEvent('refund', 'refund_order', 'refund_initiation_failed');
+                $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key']);
 
                 $this->resultResponse = $this->apiHelperService->apiProcessingErrorResponse($this->namespace, [], $initiateOrderRefundResponse['message']);
 
                 $this->auditData['al_is_success'] = $this->data['success'];
-                $this->auditData['al_event_name'] = $this->subProcess['events']['refund_initiation_failed']['name'];
+                $this->auditData['al_event_name'] = $subProcessEvent['name'];
                 $this->auditData['al_code'] = $code['code'];
                 $this->auditData['al_request'] = json_encode($requestArray);
                 $this->auditData['al_message'] = $code['status'];

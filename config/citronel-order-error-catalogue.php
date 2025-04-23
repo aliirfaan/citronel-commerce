@@ -64,7 +64,7 @@ return [
                 ],
                 'review' => [
                     'key' => 'review',
-                    'name' => 'order.review',
+                    'name' => 'review',
                     'code' => '2',
                     'events' => [
                         'invalid_order' => [
@@ -84,6 +84,12 @@ return [
                             'name' => 'invalid_payment_method',
                             'code' => '3',
                             'code_status' => 'invalid_payment_method',
+                        ],
+                        'invalid_currency' => [
+                            'key' => 'invalid_currency',
+                            'name' => 'invalid_currency',
+                            'code' => '4',
+                            'code_status' => 'invalid_currency',
                         ],
                     ]
                 ],
@@ -110,6 +116,18 @@ return [
                             'code' => '3',
                             'code_status' => 'invalid_order_item',
                         ],
+                        'invalid_product' => [
+                            'key' => 'invalid_product',
+                            'name' => 'invalid_product',
+                            'code' => '4',
+                            'code_status' => 'invalid_product',
+                        ],
+                        'invalid_pre_process' => [
+                            'key' => 'invalid_pre_process',
+                            'name' => 'invalid_pre_process',
+                            'code' => '4',
+                            'code_status' => 'invalid_pre_process',
+                        ],
                     ]
                 ],
                 'fulfillment' => [
@@ -135,6 +153,31 @@ return [
                             'name' => 'invalid_item',
                             'code' => '1',
                             'code_status' => 'invalid_item',
+                        ],
+                    ]
+                ],
+                'item_create' => [
+                    'key' => 'item_create',
+                    'name' => 'item_create',
+                    'code' => '3',
+                    'events' => [
+                        'invalid_order' => [
+                            'key' => 'invalid_order',
+                            'name' => 'invalid_order',
+                            'code' => '1',
+                            'code_status' => 'invalid_order',
+                        ],
+                        'expired_order' => [
+                            'key' => 'expired_order',
+                            'name' => 'expired_order',
+                            'code' => '2',
+                            'code_status' => 'expired_order',
+                        ],
+                        'invalid_order_item' => [
+                            'key' => 'invalid_order_item',
+                            'name' => 'invalid_order_item',
+                            'code' => '3',
+                            'code_status' => 'invalid_order_item',
                         ],
                     ]
                 ],

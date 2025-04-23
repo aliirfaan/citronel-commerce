@@ -102,11 +102,32 @@ class OrderReviewController extends OrderController
 
             $orderCurrencyCode = array_key_exists('order_currency_code', $requestArray) ? strtoupper($requestArray['order_currency_code']) : null;
 
-            if (is_null($orderCurrencyCode)) {
-                // load payment method class
-                $paymentInterfaceObj = $this->helperService->makeObject($paymentMethodConfiguration->payment_class, ['paymentMethod' => $paymentMethodConfiguration]);
+            // load payment method class
+            $paymentInterfaceObj = $this->helperService->makeObject($paymentMethodConfiguration->payment_class, ['paymentMethod' => $paymentMethodConfiguration]);
 
-                $orderCurrencyCode = $paymentInterfaceObj->defaultCurrency;
+            if ($order->lock_currency) {
+                $orderCurrencyCode = $order->order_currency_code;
+            } else {
+                if (is_null($orderCurrencyCode)) {
+                    $orderCurrencyCode = $paymentInterfaceObj->defaultCurrency;
+                }
+            }
+
+            // validate currency for this payment method
+            $isCurrencyAllowedResponse = $paymentInterfaceObj->isCurrencyAllowed($orderCurrencyCode);
+            if (!$isCurrencyAllowedResponse['success']) {
+                $subProcessEvent = $this->errorCatalogueService->getSubProcessEvent('order', 'review', 'expired_order');
+                $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key']);
+
+                $this->auditData['al_event_name'] = $subProcessEvent['name'];
+                $this->auditData['al_is_success'] = $isCurrencyAllowedResponse['success'];
+                $this->auditData['al_code'] = $code['code'];
+                $this->auditData['al_request'] = $order->id;
+                AuditLogged::dispatch($this->auditData);
+
+                $this->resultResponse = $this->apiHelperService->apiValidationErrorResponse($this->namespace, [], null, $isCurrencyAllowedResponse['message'], ['code' => $code['code']]);
+            
+                return $this->sendApiResponse($this->resultResponse, $this->resultResponse->collection['status_code'], $reponseHeaders);
             }
 
             $updateOrderSaveData = [

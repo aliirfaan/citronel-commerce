@@ -21,7 +21,7 @@ class Order extends Model
     protected $fillable = [
         'order_guid', 'actor_id', 'order_number', 'order_status', 'currency_rate_id', 'order_currency_code', 'order_subtotal', 'order_tax_amount', 'order_discount_amount', 'order_grand_total',
         'order_base_currency_subtotal', 'order_base_currency_tax_amount',
-        'order_base_currency_discount_amount', 'order_base_currency_grand_total', 'correlation_token', 'expires_at', 'order_payment_method_configuration_id', 'fulfillment_fail_notif_sent'
+        'order_base_currency_discount_amount', 'order_base_currency_grand_total', 'correlation_token', 'expires_at', 'order_payment_method_configuration_id', 'fulfillment_fail_notif_sent', 'lock_currency'
     ];
 
     public function order_items(): HasMany

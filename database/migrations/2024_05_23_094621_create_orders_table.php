@@ -31,6 +31,7 @@ return new class extends Migration
             $table->string('correlation_token')->nullable(true);
             $table->dateTime('expires_at')->nullable(true); // Session expiration time
             $table->tinyInteger('fulfillment_fail_notif_sent')->nullable(true);
+            $table->tinyInteger('lock_currency')->nullable(true);
             $table->timestamps();
 
             $table->foreign('currency_rate_id')->references('id')->on('currency_rates');
@@ -42,6 +43,7 @@ return new class extends Migration
             $table->index('order_currency_code');
             $table->index('expires_at');
             $table->index('fulfillment_fail_notif_sent');
+            $table->index('lock_currency');
             $table->index('correlation_token');
             $table->index('created_at');
             $table->index('updated_at');

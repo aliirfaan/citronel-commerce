@@ -11,14 +11,14 @@ class OrderController extends CitronelController
     use CitronelApiControllerTrait;
     
     /**
-     * shouldConvertCurrency
+     * lockCurrency
      *
      * Whether to convert the order currency if currency is not the same as default currency
      * This can be useful if we want to force a currency for some orders
      *
      * @var bool
      */
-    public $shouldConvertCurrency = true;
+    public $lockCurrency = false;
 
     public function __construct(CitronelOrderService $orderService)
     {

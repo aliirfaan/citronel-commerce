@@ -18,10 +18,12 @@ return new class extends Migration
             $table->decimal('product_price', 13, 2)->nullable(true);
             $table->integer('quantity')->nullable(true);
             $table->text('order_item_meta')->nullable(true);
+            $table->uuid('linked_item_id')->nullable(); // Self-referencing FK
             $table->timestamps();
 
             $table->foreign('order_id')->references('id')->on('orders');
             $table->foreign('product_id')->references('id')->on('products');
+            $table->foreign('linked_item_id')->references('id')->on('order_items');
         });
     }
 

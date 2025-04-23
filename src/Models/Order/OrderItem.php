@@ -18,7 +18,7 @@ class OrderItem extends Model
     protected $hidden = ['created_at', 'updated_at'];
 
     protected $fillable = [
-        'id', 'order_id', 'product_id', 'product_price', 'quantity', 'order_item_meta'
+        'id', 'order_id', 'product_id', 'product_price', 'quantity', 'order_item_meta', 'linked_item_id'
     ];
 
     public function order(): BelongsTo
@@ -44,7 +44,8 @@ class OrderItem extends Model
             'product_id' => ['bail', 'required', 'max:20'],
             'product_price' => ['bail', 'nullable', 'numeric'],
             'quantity' => ['bail', 'nullable', 'numeric', 'min:1', 'max:10'],
-            'order_item_meta' => ['bail', 'nullable', 'array']
+            'order_item_meta' => ['bail', 'nullable', 'array'],
+            'sub_items' => ['bail', 'nullable', 'array', 'size:1']
         ];
     }
 
@@ -60,5 +61,17 @@ class OrderItem extends Model
         return [
             'quantity.max' => __('citronel-commerce::order/messages.order_item_quantity_max')
         ];
+    }
+
+    // Linked parent item (the one this item is linked to)
+    public function linkedItem()
+    {
+        return $this->belongsTo(OrderItem::class, 'linked_item_id');
+    }
+
+    // Items that are linked to this item (children)
+    public function linkedItems()
+    {
+        return $this->hasMany(OrderItem::class, 'linked_item_id');
     }
 }

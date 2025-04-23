@@ -234,7 +234,7 @@ class OrderCreateController extends OrderController
 
             // get current currency rate
             $currencyRate = null;
-            if ($orderCurrencyCode !== $currencyService->getBaseCurrencyCode()) {
+            if ($this->shouldConvertCurrency && ($orderCurrencyCode !== $currencyService->getBaseCurrencyCode())) {
                 $getCurrencyRateResponse = $currencyService->getLatestCurrencyRate();
                 if (is_null($getCurrencyRateResponse)) {
                     $subProcessEvent = $this->errorCatalogueService->getSubProcessEvent('order', 'create', 'invalid_currency');
@@ -266,7 +266,8 @@ class OrderCreateController extends OrderController
 
             $createOrderExtra = [
                 'product_temp_array' => $productTempArray,
-                'correlation_token' => $correlationToken
+                'correlation_token' => $correlationToken,
+                'should_convert_currency' => $this->shouldConvertCurrency,
             ];
 
             // create order preprocess

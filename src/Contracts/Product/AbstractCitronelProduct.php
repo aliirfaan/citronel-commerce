@@ -36,7 +36,7 @@ abstract class AbstractCitronelProduct
      */
     public $helperService;
 
-    public function __construct($product)
+    public function __construct($product = null)
     {
         $this->productModel = new Product();
         $this->product = $product;

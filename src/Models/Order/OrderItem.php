@@ -43,8 +43,8 @@ class OrderItem extends Model
         return [
             'product_id' => ['bail', 'required', 'max:20'],
             'product_price' => ['bail', 'nullable', 'numeric'],
-            'quantity' => ['bail', 'required', 'numeric', 'min:1', 'max:10'],
-            'order_item_meta' => ['bail', 'required', 'array']
+            'quantity' => ['bail', 'nullable', 'numeric', 'min:1', 'max:10'],
+            'order_item_meta' => ['bail', 'nullable', 'array']
         ];
     }
 

@@ -208,9 +208,9 @@ class CitronelOrderService
     
             // Use bcmath for precision when calculating subtotals
             if(!is_null($orderItemMetaAmount)) {
-                $orderBaseCurrencySubtotal = bcmadd($orderBaseCurrencySubtotal, (string) $orderItemMetaAmount, config('citronel.decimals'));
+                $orderBaseCurrencySubtotal = bcadd($orderBaseCurrencySubtotal, (string) $orderItemMetaAmount, config('citronel.decimals'));
             } else {
-                $orderBaseCurrencySubtotal = bcmadd($orderBaseCurrencySubtotal, bcmul((string) $newOrderItem->product_price, (string) $newOrderItem->quantity, config('citronel.decimals')), config('citronel.decimals'));
+                $orderBaseCurrencySubtotal = bcadd($orderBaseCurrencySubtotal, bcmul((string) $newOrderItem->product_price, (string) $newOrderItem->quantity, config('citronel.decimals')), config('citronel.decimals'));
             }
     
             // Order summary
@@ -233,7 +233,7 @@ class CitronelOrderService
     
         // Ensure precision when adding subtotals and grand totals
         if (is_null($data['errors'])) {
-            $orderBaseCurrencyGrandTotal = bcmadd($orderBaseCurrencyGrandTotal, $orderBaseCurrencySubtotal, config('citronel.decimals'));
+            $orderBaseCurrencyGrandTotal = bcadd($orderBaseCurrencyGrandTotal, $orderBaseCurrencySubtotal, config('citronel.decimals'));
     
             $orderSubtotal = $orderBaseCurrencySubtotal;
             $orderGrandTotal = $orderBaseCurrencyGrandTotal;
@@ -455,11 +455,11 @@ class CitronelOrderService
             $orderItems = $order->order_items;
             foreach ($orderItems as $anOrderItem) {
                 // Calculate the subtotal using bcmath to handle precision
-                $orderBaseCurrencySubtotal = bcmadd($orderBaseCurrencySubtotal, bcmul((string) $anOrderItem->product_price, (string) $anOrderItem->quantity, config('citronel.decimals')), config('citronel.decimals'));
+                $orderBaseCurrencySubtotal = bcadd($orderBaseCurrencySubtotal, bcmul((string) $anOrderItem->product_price, (string) $anOrderItem->quantity, config('citronel.decimals')), config('citronel.decimals'));
             }
     
             // Calculate the grand total using bcmath to handle precision
-            $orderBaseCurrencyGrandTotal = bcmadd($orderBaseCurrencyGrandTotal, $orderBaseCurrencySubtotal, config('citronel.decimals'));
+            $orderBaseCurrencyGrandTotal = bcadd($orderBaseCurrencyGrandTotal, $orderBaseCurrencySubtotal, config('citronel.decimals'));
     
             // Convert the subtotal and grand total to the required currency with precision
             $orderSubtotal = $this->currencyService->convertAmount($orderBaseCurrencySubtotal, $orderCurrencyCode, $currencyRate, config('citronel.decimals'));

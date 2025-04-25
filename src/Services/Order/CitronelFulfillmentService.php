@@ -170,6 +170,23 @@ class CitronelFulfillmentService
         $subProcess = $this->errorCatalogueService->getSubProcess('order', 'fulfillment');
         $subProcessKey = $subProcess['key'];
 
+
+        // check if item is in a fulfillment group
+        // if in group but not group parent, do not process
+        $isInGroup = false;
+        $isGroupParent = false;
+        if (!is_null($item->order_item_fulfillment_grp_id)) {
+            $isInGroup = true;
+            if (intval($item->is_grp_parent) == 1) {
+                $isGroupParent = true;
+            }
+        }
+
+        if ($isInGroup && !$isGroupParent) {
+            return;
+        }
+
+
         $orderItemFulfillmentStatus = $item->order_item_fulfillment_status;
 
         // check retry
@@ -453,6 +470,7 @@ class CitronelFulfillmentService
 
     /**
      * Method fulfillItem
+     * // @todo review fulfillment for groups
      *
      * Fulfill an item manually
      * It is possible that order has been fulfilled at supplier side but we did not get the response:
@@ -617,5 +635,12 @@ class CitronelFulfillmentService
         }
 
         return false;
+    }
+
+    public function getFulfillmentsByFulfillmentGroupId($groupId)
+    {
+        $result = $this->orderFulfillmentModel->where('order_item_fulfillment_grp_id', $groupId);
+        
+        return $result->get();
     }
 }

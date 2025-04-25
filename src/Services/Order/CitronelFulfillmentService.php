@@ -139,6 +139,13 @@ class CitronelFulfillmentService
             $countOrderItems++;
         }
 
+        // process strategy
+        if(!is_null($order->fulfillment_strategy_class)) {
+            $fulfillmentStrategyClass = $this->helperService->makeObject($order->fulfillment_strategy_class);
+
+            $fulfillmentStrategyClass->groupProductOrderItems($order);
+        }
+
         DB::commit();
 
         $data['success'] = true;
@@ -304,7 +311,7 @@ class CitronelFulfillmentService
     /**
      * Method getFulfillmentsByOrderId
      *
-     * @param $orderId $orderId [explicite description]
+     * @param mixed $orderId [explicite description]
      *
      * @return mixed
      */

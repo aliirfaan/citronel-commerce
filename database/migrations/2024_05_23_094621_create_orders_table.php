@@ -32,6 +32,7 @@ return new class extends Migration
             $table->dateTime('expires_at')->nullable(true); // Session expiration time
             $table->tinyInteger('fulfillment_fail_notif_sent')->nullable(true);
             $table->tinyInteger('lock_currency')->nullable(true);
+            $table->string('fulfillment_strategy_class', 255)->nullable(true);
             $table->timestamps();
 
             $table->foreign('currency_rate_id')->references('id')->on('currency_rates');

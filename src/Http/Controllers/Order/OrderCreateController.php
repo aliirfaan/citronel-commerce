@@ -17,6 +17,7 @@ use aliirfaan\CitronelCommerce\Events\Order\OrderCreated;
 use aliirfaan\CitronelCommerce\Services\Order\CitronelFulfillmentService;
 use aliirfaan\CitronelCommerce\Services\Payment\CitronelPaymentService;
 use aliirfaan\CitronelCommerce\Jobs\Order\CreateOrderFulfillment;
+use aliirfaan\CitronelCommerce\Jobs\Order\FulfillItem;
 
 class OrderCreateController extends OrderController
 {

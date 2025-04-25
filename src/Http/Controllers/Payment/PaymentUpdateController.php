@@ -14,6 +14,7 @@ use aliirfaan\CitronelCommerce\Jobs\Order\CreateOrderFulfillment;
 use aliirfaan\CitronelCommerce\Services\Currency\CitronelCurrencyService;
 use aliirfaan\CitronelCommerce\Exceptions\Order\ItemFulfillmentException;
 use aliirfaan\CitronelCommerce\Services\Order\CitronelFulfillmentService;
+use aliirfaan\CitronelCommerce\Jobs\Order\FulfillItem;
 
 class PaymentUpdateController extends PaymentController
 {

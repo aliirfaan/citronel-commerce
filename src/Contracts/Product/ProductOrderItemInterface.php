@@ -168,4 +168,12 @@ interface ProductOrderItemInterface
      * @return array
      */
     public function generateProductOrderFulfillmentItemUpdate($item = null, $extra = []);
+
+    // @todo 
+    //public function createProductOrderFulfillmentItemPreProcess($item, $extra = []);
+
+    // @todo
+    //public function fulfillProductOrderItemPreProcess($item, $extra = []);
+
+    
 }

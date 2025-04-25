@@ -13,6 +13,7 @@ use aliirfaan\CitronelCommerce\Models\Order\ManualFulfillmentRetry;
 use aliirfaan\CitronelCommerce\Services\Payment\CitronelPaymentService;
 use aliirfaan\CitronelCommerce\Services\Order\CitronelOrderService;
 use aliirfaan\CitronelCommerce\Services\Order\CitronelFulfillmentService;
+use aliirfaan\CitronelCommerce\Jobs\Order\FulfillItem;
 
 class ManualPaymentConfirmationController extends PaymentController
 {

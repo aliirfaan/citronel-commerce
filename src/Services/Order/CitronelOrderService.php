@@ -171,6 +171,7 @@ class CitronelOrderService
             'expires_at' => $this->calculateOrderExpiry(),
             'correlation_token' => array_key_exists('correlation_token', $saveData) ? $saveData['correlation_token'] : null,
             'lock_currency' => $lockCurrency,
+            'fulfillment_strategy_class' => array_key_exists('fulfillment_strategy_class', $saveData) ? $saveData['fulfillment_strategy_class'] : null,
         ];
     
         $newOrder = $this->orderModel::create($orderSaveData);

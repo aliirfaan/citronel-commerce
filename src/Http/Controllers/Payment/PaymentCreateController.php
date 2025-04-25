@@ -12,6 +12,7 @@ use aliirfaan\CitronelCommerce\Services\Payment\CitronelPaymentMethodService;
 use aliirfaan\CitronelCommerce\Services\Payment\CitronelPaymentService;
 use aliirfaan\CitronelCommerce\Jobs\Order\CreateOrderFulfillment;
 use aliirfaan\CitronelCommerce\Services\Order\CitronelFulfillmentService;
+use aliirfaan\CitronelCommerce\Jobs\Order\FulfillItem;
 
 class PaymentCreateController extends PaymentController
 {

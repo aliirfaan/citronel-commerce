@@ -169,11 +169,12 @@ interface ProductOrderItemInterface
      */
     public function generateProductOrderFulfillmentItemUpdate($item = null, $extra = []);
 
-    // @todo 
-    //public function createProductOrderFulfillmentItemPreProcess($item, $extra = []);
-
-    // @todo
-    //public function fulfillProductOrderItemPreProcess($item, $extra = []);
-
-    
+    /**
+     *
+     * @param mixed fulfillment item
+     * @param array $extra
+     *
+     * @return array
+     */
+    public function fulfillProductOrderItemPreProcess($item, $extra = []);
 }

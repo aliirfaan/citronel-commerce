@@ -116,6 +116,14 @@ class OrderCreateController extends OrderController
                             foreach ($getFulfillmentsByOrderIdResponse as $item) {
                                 $productInterfaceObj = $this->helperService->makeObject($item->order_item->product->product_class, ['product' => $item->order_item->product]);
 
+                                $itemFulfillmentPreProcessResponse = $fulfillmentService->fulfillProductOrderItemPreProcess($item);
+                                if (!$itemFulfillmentPreProcessResponse['success']) {
+                                    $this->resultResponse = $this->apiHelperService->apiProcessingErrorResponse($this->namespace, [], $itemFulfillmentPreProcessResponse['message']);
+
+                                    return $this->sendApiResponse($this->resultResponse, $this->resultResponse->collection['status_code'], $reponseHeaders);
+                                }
+                                $this->data['result']['fulfillment_preprocess'] = $itemFulfillmentPreProcessResponse['result'];
+
                                 $fulfillmentTypeResponse = $productInterfaceObj->getProductOrderFulfillmentItemType();
                                 if ($fulfillmentTypeResponse === 'sync') {
                                     $itemFulfillmentResponse = $fulfillmentService->fulfillItem($item);

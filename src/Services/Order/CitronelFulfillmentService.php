@@ -186,7 +186,6 @@ class CitronelFulfillmentService
             return;
         }
 
-
         $orderItemFulfillmentStatus = $item->order_item_fulfillment_status;
 
         // check retry

@@ -29,6 +29,7 @@ return new class extends Migration
             $table->text('result_message')->nullable(true);
             $table->string('product_code')->nullable(true); // external code to identify product like a SKU
             $table->uuid('order_item_fulfillment_grp_id')->nullable(true);
+            $table->tinyInteger('is_grp_parent')->default(0);
             $table->string('custom_value_1')->nullable(true);
             $table->string('custom_value_2')->nullable(true);
             $table->string('custom_value_3')->nullable(true);
@@ -52,6 +53,7 @@ return new class extends Migration
             $table->index('result_code');
             $table->index('product_code');
             $table->index('order_item_fulfillment_grp_id');
+            $table->index('is_grp_parent');
             $table->index('custom_value_1');
             $table->index('custom_value_2');
             $table->index('custom_value_3');

@@ -157,6 +157,7 @@ class CitronelFulfillmentService
      * Method fulfillItem
      *
      * Fulfill an item
+     * // @todo review fulfillment for groups
      *
      * @param mixed $item [explicite description]
      * @param array $extra [explicite description]

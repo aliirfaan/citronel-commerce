@@ -93,7 +93,6 @@ trait PaymentServiceManualConfirmationTrait
     {
         $data = $this->helperService->returnFormat();
         $subProcess = $this->errorCatalogueService->getSubProcess('payment', 'manual_payment_update');
-        $shouldUpdateOrder = false;
 
         $manuallyConfirmPaymentResponse = $paymentGatewayService->manuallyConfirmPayment($payment, $extra);
         if (!$manuallyConfirmPaymentResponse['success']) {
@@ -102,8 +101,6 @@ trait PaymentServiceManualConfirmationTrait
         }
 
         if (is_null($data['errors'])) {
-
-            $shouldUpdateOrder = true;
 
             $confirmPaymentResult = $manuallyConfirmPaymentResponse['result']['payment'];
 
@@ -180,7 +177,7 @@ trait PaymentServiceManualConfirmationTrait
                 $auditData['al_is_success'] = 1;
             }
             $data['result']['payment'] = $payment;
-            $data['result']['should_update_order'] = $shouldUpdateOrder;
+            $data['result']['should_update_order'] = $this->shouldUpdateOrderAfterPaymentProcessed($payment);
     
             $auditData['al_message'] = $data['message'];
             $auditData['al_response'] = json_encode($manualPaymentConfirmationObj);

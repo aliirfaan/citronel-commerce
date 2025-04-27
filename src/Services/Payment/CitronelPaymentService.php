@@ -209,7 +209,6 @@ class CitronelPaymentService
     {
         $data = $this->helperService->returnFormat();
         $subProcess = $this->mainProcess['sub_process']['process'];
-        $shouldUpdateOrder = false;
 
         $paymentStatus = $payment->payment_status;
         $wasPaymentProcessed = $this->wasPaymentProcessed($paymentStatus);
@@ -217,7 +216,6 @@ class CitronelPaymentService
         $previouslyUpdatedByDifferentChannel = array_key_exists('previously_updated_by_different_channel', $gatewayProcessingResponse) ? $gatewayProcessingResponse['previously_updated_by_different_channel'] : false;
         
         if (!$previouslyUpdatedByDifferentChannel && !$wasPaymentProcessed) {
-            $shouldUpdateOrder = true;
 
             $savePaymentData = [
                 'payment_status' => $gatewayProcessingResponse['status'],
@@ -264,7 +262,7 @@ class CitronelPaymentService
             $auditData['al_is_success'] = 1;
         }
         $data['result']['payment'] = $payment;
-        $data['result']['should_update_order'] = $shouldUpdateOrder;
+        $data['result']['should_update_order'] = $this->shouldUpdateOrderAfterPaymentProcessed($payment);
 
         $auditData['al_message'] = $data['message'];
         $auditData['al_response'] = json_encode($gatewayResponseFields);
@@ -405,7 +403,6 @@ class CitronelPaymentService
             }
 
              if (is_null($data['errors'])) {
-                $shouldUpdateOrder = true;
 
                 $paymentResult = $verifyGatewayOrderResponse['result']['payment'];
 
@@ -454,7 +451,7 @@ class CitronelPaymentService
                 }
 
                 $data['result']['payment'] = $payment;
-                $data['result']['should_update_order'] = $shouldUpdateOrder;
+                $data['result']['should_update_order'] = $this->shouldUpdateOrderAfterPaymentProcessed($payment);
             }
         }
 
@@ -493,5 +490,16 @@ class CitronelPaymentService
         }
           
         return $data;
+    }
+
+    public function shouldUpdateOrderAfterPaymentProcessed($payment)
+    {
+        $shouldUpdateOrder = true;
+
+        if ($payment->order->order_status == $this->orderMediatorService->orderStatus::PAID->value) {
+            $shouldUpdateOrder = false;
+        }
+
+        return $shouldUpdateOrder;
     }
 }

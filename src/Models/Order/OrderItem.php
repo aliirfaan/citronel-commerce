@@ -41,7 +41,7 @@ class OrderItem extends Model
     public function createValidationRules()
     {
         return [
-            'product_id' => ['bail', 'required', 'max:20'],
+            'product_id' => ['bail', 'required', 'max:50'],
             'product_price' => ['bail', 'nullable', 'numeric'],
             'quantity' => ['bail', 'nullable', 'numeric', 'min:1', 'max:10'],
             'order_item_meta' => ['bail', 'nullable', 'array'],

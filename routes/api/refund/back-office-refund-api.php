@@ -5,7 +5,7 @@ use aliirfaan\CitronelCommerce\Http\Controllers\Refund\InitiateOrderRefundContro
 use aliirfaan\CitronelCommerce\Http\Controllers\Refund\UpdateOrderRefundController;
 
 Route::group([
-    'prefix' => config('citronel-commerce.back_office_api_route_prefix', ''),
+    'prefix' => config('citronel-commerce.back_office_api_route_prefix') ?? '',
     'middleware' => config('citronel-commerce.middleware.back_office_api')
 ], function () {
     Route::post('/{order_guid}', [InitiateOrderRefundController::class, 'initiateOrderRefund']);

@@ -13,6 +13,7 @@ use aliirfaan\CitronelCommerce\Services\Payment\CitronelPaymentService;
 use aliirfaan\CitronelCommerce\Jobs\Order\CreateOrderFulfillment;
 use aliirfaan\CitronelCommerce\Services\Order\CitronelFulfillmentService;
 use aliirfaan\CitronelCommerce\Jobs\Order\FulfillItem;
+use aliirfaan\CitronelCommerce\Enums\Order\OrderStatus;
 
 class PaymentCreateController extends PaymentController
 {
@@ -139,7 +140,7 @@ class PaymentCreateController extends PaymentController
             }
 
             // verify if last payment was accepted at gateway but not processed on platform
-            if ($paymentService->shouldVerifyLastPaymentBeforeCreate()) {
+            if (!is_null($this->actor) &&$paymentService->shouldVerifyLastPaymentBeforeCreate()) {
                 $verifyLastPaymentResponse = $paymentService->verifyLastPaymentForOrder($order);
                 if ($verifyLastPaymentResponse['success']) {
                     $payment = $verifyLastPaymentResponse['result']['payment'];
@@ -163,7 +164,8 @@ class PaymentCreateController extends PaymentController
                         $itemFulfillmentResponseMessages = []; // store fulfillment messages
                         $jobPolicyId = 'fulfill_item';
 
-                        $getFulfillmentsByOrderIdResponse = $fulfillmentService->getFulfillmentsByOrderId($payment->order->id);
+                        $createdFulfillmentStatus = OrderStatus::CREATED->value;
+                        $getFulfillmentsByOrderIdResponse = $fulfillmentService->getFulfillmentsByOrderId($payment->order->id, $createdFulfillmentStatus);
                         foreach ($getFulfillmentsByOrderIdResponse as $item) {
                             $productInterfaceObj = $this->helperService->makeObject($item->order_item->product->product_class, ['product' => $item->order_item->product]);
 
@@ -175,12 +177,20 @@ class PaymentCreateController extends PaymentController
                             }
                             $this->data['result']['fulfillment_preprocess'] = $itemFulfillmentPreProcessResponse['result'];
 
+                            if (!is_null($productInterfaceObj->product->fulfillment_conditions)) {
+                                $checkFulfillmentConditionsResponse = $productInterfaceObj->checkFulfillmentConditions($item);
+                                if (!$checkFulfillmentConditionsResponse) {
+                                    continue;
+                                }
+                            }
+
                             $fulfillmentTypeResponse = $productInterfaceObj->getProductOrderFulfillmentItemType();
                             if ($fulfillmentTypeResponse === 'sync') {
                                 $itemFulfillmentResponse = $fulfillmentService->fulfillItem($item);
                                 $itemFulfillmentResponseMessages[] = $itemFulfillmentResponse['message'];
                             } else {
                                 FulfillItem::dispatch($jobPolicyId, $item);
+                                $itemFulfillmentResponseMessages[] = $productInterfaceObj->asyncItemFulfillmentMessage($item);
                             }
                         }
                     }

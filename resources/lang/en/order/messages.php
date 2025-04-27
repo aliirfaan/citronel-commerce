@@ -16,4 +16,5 @@
     'order_create_on_hold' => 'We are still processing your previous order. Please wait for :wait_time.',
     'order_item_fulfillment_max_retry_reached' => 'Maximum retries reached for this item.',
     'order_item_fulfillment_retry_not_allowed' => 'Retry not allowed. Status must be unfulfilled to attempt retry.',
+    'order_not_paid' => 'Order is not paid. Please pay the order first.',
 ];

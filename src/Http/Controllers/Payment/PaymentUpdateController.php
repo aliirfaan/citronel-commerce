@@ -143,7 +143,7 @@ class PaymentUpdateController extends PaymentController
             $gatewayResponseFields = $paymentInterfaceObj->mapCallbackFields($requestArray, $paymentChannel);
 
             // internal payment processing
-            $formattedAmount  = $currencyService->formatCurrencyAmount($payment->grand_total, $payment->currency_code)['formatted_with_symbol'];
+            $formattedAmount  = $currencyService->formatCurrencyAmount($payment->grand_total, $payment->currency_code)['formatted_with_code'];
             $processPaymentExtra = [
                 'amount' => $formattedAmount,
                 'payment_reference' => $payment->gateway_merchant_transaction_no
@@ -167,18 +167,14 @@ class PaymentUpdateController extends PaymentController
                 ];
                 $orderService->updateOrder($payment->order_id, $saveOrderData);
 
-                // dispatch job to create order fulfilment
+                // dispatch job to create order fulfilments
                 CreateOrderFulfillment::dispatchSync($payment->order);
 
                 /**
-                 * Fulfill items
-                 * If items are sync, fulfill them now
-                 * If items are async, dispatch job to fulfill them
+                 * Fetch additional data needed for fulfillments or give additional information in response
                  */
-                $itemFulfillmentResponseMessages = []; // store fulfillment messages
-                $jobPolicyId = 'fulfill_item';
-
-                $getFulfillmentsByOrderIdResponse = $fulfillmentService->getFulfillmentsByOrderId($payment->order->id);
+                $createdFulfillmentStatus = OrderStatus::CREATED->value;
+                $getFulfillmentsByOrderIdResponse = $fulfillmentService->getFulfillmentsByOrderId($payment->order->id, $createdFulfillmentStatus);
                 foreach ($getFulfillmentsByOrderIdResponse as $item) {
                     $productInterfaceObj = $this->helperService->makeObject($item->order_item->product->product_class, ['product' => $item->order_item->product]);
 
@@ -189,14 +185,6 @@ class PaymentUpdateController extends PaymentController
                         return $this->sendApiResponse($this->resultResponse, $this->resultResponse->collection['status_code'], $reponseHeaders);
                     }
                     $this->data['result']['fulfillment_preprocess'] = $itemFulfillmentPreProcessResponse['result'];
-
-                    $fulfillmentTypeResponse = $productInterfaceObj->getProductOrderFulfillmentItemType();
-                    if ($fulfillmentTypeResponse === 'sync') {
-                        $itemFulfillmentResponse = $fulfillmentService->fulfillItem($item);
-                        $itemFulfillmentResponseMessages[] = $itemFulfillmentResponse['message'];
-                    } else {
-                        FulfillItem::dispatch($jobPolicyId, $item);
-                    }
                 }
             }
 
@@ -205,16 +193,7 @@ class PaymentUpdateController extends PaymentController
             $this->data['status_code'] = Response::HTTP_OK;
             $this->data['message'] = $processPaymentResponse['message'];
 
-            // add item fulfillment messages
-            $itemFulfillmentResponseMessagesString = implode(' ', $itemFulfillmentResponseMessages);
-            $this->data['message'] = $this->data['message'] . ' ' . $itemFulfillmentResponseMessagesString;
-
             $this->resultResponse = new ApiResponseCollection($this->data);
-    
-        } catch (ItemFulfillmentException $e) {
-            // when product fulfillmet is in sync mode, we will get this exception
-            $this->resultResponse = $this->apiHelperService->apiProcessingErrorResponse($this->namespace, [], $e->getMessage());
-  
         } catch (\Exception $e) {
             $this->resultResponse = $this->handleException($e);
         }

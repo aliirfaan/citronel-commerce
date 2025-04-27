@@ -159,7 +159,7 @@ return [
                 'item_create' => [
                     'key' => 'item_create',
                     'name' => 'item_create',
-                    'code' => '3',
+                    'code' => '6',
                     'events' => [
                         'invalid_order' => [
                             'key' => 'invalid_order',
@@ -178,6 +178,25 @@ return [
                             'name' => 'invalid_order_item',
                             'code' => '3',
                             'code_status' => 'invalid_order_item',
+                        ],
+                    ]
+                ],
+                'fulfill' => [
+                    'key' => 'fulfill',
+                    'name' => 'fulfill',
+                    'code' => '7',
+                    'events' => [
+                        'invalid_order' => [
+                            'key' => 'invalid_order',
+                            'name' => 'invalid_order',
+                            'code' => '1',
+                            'code_status' => 'invalid_order',
+                        ],
+                        'expired_order' => [
+                            'key' => 'expired_order',
+                            'name' => 'expired_order',
+                            'code' => '2',
+                            'code_status' => 'expired_order',
                         ],
                     ]
                 ],

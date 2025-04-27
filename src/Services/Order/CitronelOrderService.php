@@ -966,4 +966,21 @@ class CitronelOrderService
     
         return $data;
     }
+
+    public function validateOrderForFulfillment($order)
+    {
+        $data = $this->helperService->returnFormat();
+
+        $orderStatus = $order->order_status;
+        if ($orderStatus !== OrderStatus::PAID->value) {
+            $data['errors'] = true;
+            $data['message'] = __('citronel-commerce::order/messages.order_not_paid');
+        }
+
+        if (is_null($data['errors'])) {
+            $data['success'] = true;
+        }
+
+        return $data;
+    }
 }

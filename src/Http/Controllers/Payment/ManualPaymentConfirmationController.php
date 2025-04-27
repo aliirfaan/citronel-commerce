@@ -14,6 +14,7 @@ use aliirfaan\CitronelCommerce\Services\Payment\CitronelPaymentService;
 use aliirfaan\CitronelCommerce\Services\Order\CitronelOrderService;
 use aliirfaan\CitronelCommerce\Services\Order\CitronelFulfillmentService;
 use aliirfaan\CitronelCommerce\Jobs\Order\FulfillItem;
+use aliirfaan\CitronelCommerce\Enums\Order\OrderStatus;
 
 class ManualPaymentConfirmationController extends PaymentController
 {
@@ -143,7 +144,8 @@ class ManualPaymentConfirmationController extends PaymentController
                 $itemFulfillmentResponseMessages = []; // store fulfillment messages
                 $jobPolicyId = 'fulfill_item';
 
-                $getFulfillmentsByOrderIdResponse = $fulfillmentService->getFulfillmentsByOrderId($payment->order->id);
+                $createdFulfillmentStatus = OrderStatus::CREATED->value;
+                $getFulfillmentsByOrderIdResponse = $fulfillmentService->getFulfillmentsByOrderId($payment->order->id, $createdFulfillmentStatus);
                 foreach ($getFulfillmentsByOrderIdResponse as $item) {
                     $productInterfaceObj = $this->helperService->makeObject($item->order_item->product->product_class, ['product' => $item->order_item->product]);
 
@@ -155,12 +157,20 @@ class ManualPaymentConfirmationController extends PaymentController
                     }
                     $this->data['result']['fulfillment_preprocess'] = $itemFulfillmentPreProcessResponse['result'];
 
+                    if (!is_null($productInterfaceObj->product->fulfillment_conditions)) {
+                        $checkFulfillmentConditionsResponse = $productInterfaceObj->checkFulfillmentConditions($item);
+                        if (!$checkFulfillmentConditionsResponse) {
+                            continue;
+                        }
+                    }
+
                     $fulfillmentTypeResponse = $productInterfaceObj->getProductOrderFulfillmentItemType();
                     if ($fulfillmentTypeResponse === 'sync') {
                         $itemFulfillmentResponse = $fulfillmentService->fulfillItem($item);
                         $itemFulfillmentResponseMessages[] = $itemFulfillmentResponse['message'];
                     } else {
                         FulfillItem::dispatch($jobPolicyId, $item);
+                        $itemFulfillmentResponseMessages[] = $productInterfaceObj->asyncItemFulfillmentMessage($item);
                     }
                 }
             }

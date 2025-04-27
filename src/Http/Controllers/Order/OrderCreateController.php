@@ -18,6 +18,7 @@ use aliirfaan\CitronelCommerce\Services\Order\CitronelFulfillmentService;
 use aliirfaan\CitronelCommerce\Services\Payment\CitronelPaymentService;
 use aliirfaan\CitronelCommerce\Jobs\Order\CreateOrderFulfillment;
 use aliirfaan\CitronelCommerce\Jobs\Order\FulfillItem;
+use aliirfaan\CitronelCommerce\Enums\Order\OrderStatus;
 
 class OrderCreateController extends OrderController
 {
@@ -57,7 +58,7 @@ class OrderCreateController extends OrderController
                 return $this->sendApiResponse($this->resultResponse, $this->resultResponse->collection['status_code'], $reponseHeaders);
             }
 
-            if ($orderService->shouldVerifyPendingFulfillmentsBeforeCreate())
+            if (!is_null($this->actor) && $orderService->shouldVerifyPendingFulfillmentsBeforeCreate())
             {
                 // prevent actor from creating order if he/she has pending fulfilments in the last x seconds
                 $pendingFulfillmentTimeframeSeconds = intval(config('order.order_pending_fulfillment_check_timeframe_seconds'));
@@ -83,7 +84,7 @@ class OrderCreateController extends OrderController
             }
 
             // verify if last payment for last order was accepted at gateway but not processed on platform
-            if ($orderService->shouldVerifyLastOrderBeforeCreate()) {
+            if (!is_null($this->actor) && $orderService->shouldVerifyLastOrderBeforeCreate()) {
                 $lastOrderVerificationTimeframeSeconds = intval(config('order.last_order_verification_timeframe_seconds'));
                 $getLastOrderToVerifyForActorResponse = $orderService->getLastOrderToVerifyForActor($this->actor, $lastOrderVerificationTimeframeSeconds);
                 if ($getLastOrderToVerifyForActorResponse['success']) {
@@ -112,7 +113,8 @@ class OrderCreateController extends OrderController
                             $itemFulfillmentResponseMessages = []; // store fulfillment messages
                             $jobPolicyId = 'fulfill_item';
 
-                            $getFulfillmentsByOrderIdResponse = $fulfillmentService->getFulfillmentsByOrderId($payment->order->id);
+                            $createdFulfillmentStatus = OrderStatus::CREATED->value;
+                            $getFulfillmentsByOrderIdResponse = $fulfillmentService->getFulfillmentsByOrderId($payment->order->id, $createdFulfillmentStatus);
                             foreach ($getFulfillmentsByOrderIdResponse as $item) {
                                 $productInterfaceObj = $this->helperService->makeObject($item->order_item->product->product_class, ['product' => $item->order_item->product]);
 
@@ -124,12 +126,20 @@ class OrderCreateController extends OrderController
                                 }
                                 $this->data['result']['fulfillment_preprocess'] = $itemFulfillmentPreProcessResponse['result'];
 
+                                if (!is_null($productInterfaceObj->product->fulfillment_conditions)) {
+                                    $checkFulfillmentConditionsResponse = $productInterfaceObj->checkFulfillmentConditions($item);
+                                    if (!$checkFulfillmentConditionsResponse) {
+                                        continue;
+                                    }
+                                }
+
                                 $fulfillmentTypeResponse = $productInterfaceObj->getProductOrderFulfillmentItemType();
                                 if ($fulfillmentTypeResponse === 'sync') {
                                     $itemFulfillmentResponse = $fulfillmentService->fulfillItem($item);
                                     $itemFulfillmentResponseMessages[] = $itemFulfillmentResponse['message'];
                                 } else {
                                     FulfillItem::dispatch($jobPolicyId, $item);
+                                    $itemFulfillmentResponseMessages[] = $productInterfaceObj->asyncItemFulfillmentMessage($item);
                                 }
                             }
                         }

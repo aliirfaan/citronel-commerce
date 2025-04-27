@@ -26,6 +26,7 @@ return new class extends Migration
             $table->tinyInteger('send_order_notif')->default(0);
             $table->tinyInteger('allow_manual_retry')->default(0);
             $table->tinyInteger('max_retry_count')->default(0);
+            $table->text('fulfillment_conditions')->nullable(true);
             $table->string('custom_value_1')->nullable(true);
             $table->string('custom_value_2')->nullable(true);
             $table->string('custom_value_3')->nullable(true);

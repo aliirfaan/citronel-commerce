@@ -163,13 +163,16 @@ interface ProductOrderItemInterface
      * Generate the update array for the order fulfillment item
      *
      * @param mixed $item [explicite description]
-     * @param mixed $extra [explicite description]
+     * @param array $extra [explicite description]
      *
      * @return array
      */
     public function generateProductOrderFulfillmentItemUpdate($item = null, $extra = []);
 
     /**
+     * Call before fulfilling the order item
+     * You can call other services to get additional data needed for the fulfillment
+     * You can also generate pre process fulfillment info and send in response
      *
      * @param mixed fulfillment item
      * @param array $extra
@@ -177,4 +180,11 @@ interface ProductOrderItemInterface
      * @return array
      */
     public function fulfillProductOrderItemPreProcess($item, $extra = []);
+
+    /**
+     * A message to display when fulfillment type is async and that processing will be done in the background
+     *
+     * @return string
+     */
+    public function asyncItemFulfillmentMessage($item, $extra = []);
 }

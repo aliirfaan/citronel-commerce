@@ -15,7 +15,7 @@ class Product extends Model
 
     protected $keyType = 'string';
 
-    protected $hidden = ['active', 'product_class', 'allow_transaction', 'send_order_notif', 'fulfillment_type', 'allow_manual_retry', 'max_retry_count', 'custom_value_1', 'custom_value_2', 'custom_value_3', 'custom_value_4', 'custom_value_5', 'created_at', 'updated_at'];
+    protected $hidden = ['active', 'product_class', 'allow_transaction', 'send_order_notif', 'fulfillment_type', 'allow_manual_retry', 'max_retry_count', 'fulfillment_conditions', 'custom_value_1', 'custom_value_2', 'custom_value_3', 'custom_value_4', 'custom_value_5', 'created_at', 'updated_at'];
 
     public function createValidationRules()
     {

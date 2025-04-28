@@ -219,12 +219,17 @@ class CitronelPaymentService
 
             $savePaymentData = [
                 'payment_status' => $gatewayProcessingResponse['status'],
-                'payment_channel' => $channel
+                'payment_channel' => $channel,
+                'paid_at' => array_key_exists('paid_at', $gatewayProcessingResponse) ? $gatewayProcessingResponse['paid_at'] : null,
+                'cancelled_at' => array_key_exists('cancelled_at', $gatewayProcessingResponse) ? $gatewayProcessingResponse['cancelled_at'] : null,
             ];
-            if ($gatewayProcessingResponse['status'] ==  PaymentStatus::PAID->value) {
-                $savePaymentData['paid_at'] = $gatewayProcessingResponse['paid_at'];
-            }
+
             $savePaymentData = \array_merge($savePaymentData, $gatewayResponseFields);
+
+            // for some gateways, we do not receive callback, hence request array to gateway response mapping is blank
+            if (array_key_exists('payment_data', $gatewayProcessingResponse)) {
+                $savePaymentData = \array_merge($savePaymentData, $gatewayProcessingResponse['payment_data']);
+            }
 
             $this->paymentModel::where('id', $payment->id)->update(
                 $savePaymentData

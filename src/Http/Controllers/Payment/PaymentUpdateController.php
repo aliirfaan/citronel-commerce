@@ -12,9 +12,8 @@ use aliirfaan\CitronelCommerce\Services\Payment\CitronelPaymentMethodService;
 use aliirfaan\CitronelCommerce\Services\Payment\CitronelPaymentService;
 use aliirfaan\CitronelCommerce\Jobs\Order\CreateOrderFulfillment;
 use aliirfaan\CitronelCommerce\Services\Currency\CitronelCurrencyService;
-use aliirfaan\CitronelCommerce\Exceptions\Order\ItemFulfillmentException;
 use aliirfaan\CitronelCommerce\Services\Order\CitronelFulfillmentService;
-use aliirfaan\CitronelCommerce\Jobs\Order\FulfillItem;
+use aliirfaan\CitronelCommerce\Enums\Order\OrderStatus;
 
 class PaymentUpdateController extends PaymentController
 {
@@ -73,6 +72,14 @@ class PaymentUpdateController extends PaymentController
             }
             $payment = $getPaymentResponse['result'];
 
+            // validate payment for processing
+            $validatePaymentForProcessingResponse = $paymentService->validatePaymentForProcessing($payment);
+            if (!$validatePaymentForProcessingResponse['success']) {
+                $this->resultResponse = $this->apiHelperService->apiProcessingErrorResponse($this->namespace, [], $validatePaymentForProcessingResponse['message']);
+            
+                return $this->sendApiResponse($this->resultResponse, $this->resultResponse->collection['status_code'], $reponseHeaders);
+            }
+
             // validate payment method
             $getPaymentMethodConfigurationResponse = $paymentMethodService->getPaymentMethodConfigurationById($payment->payment_method_configuration_id);
             if (!$getPaymentMethodConfigurationResponse['success']) {
@@ -103,7 +110,7 @@ class PaymentUpdateController extends PaymentController
                 $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessEvent['key']);
 
                 $this->auditData['al_event_name'] = $subProcessEvent['name'];
-                $this->auditData['al_is_success'] = $validatePaymentChannelResponse['success']['success'];
+                $this->auditData['al_is_success'] = $validatePaymentChannelResponse['success'];
                 $this->auditData['al_code'] = $code['code'];
                 $this->auditData['al_request'] = $paymentChannel;
                 AuditLogged::dispatch($this->auditData);
@@ -133,6 +140,18 @@ class PaymentUpdateController extends PaymentController
             $processPaymentGatewayExtra = ['payment' => $payment];
             $processPaymentGatewayServiceResponse = $paymentInterfaceObj->processPayment($requestArray, $processPaymentGatewayExtra, $paymentChannel);
             if (!$processPaymentGatewayServiceResponse['success']) {
+
+                $processPaymentGatewayServiceResponseResult = $processPaymentGatewayServiceResponse['result'];
+
+                $waitToPay = array_key_exists('wait_to_pay', $processPaymentGatewayServiceResponseResult) ? $processPaymentGatewayServiceResponseResult['wait_to_pay'] : false;
+    
+                if ($waitToPay) {
+                    $this->data['result']['wait_to_pay'] = $processPaymentGatewayServiceResponseResult['wait_to_pay'];
+                    $this->resultResponse = new ApiResponseCollection($this->data);
+
+                    return $this->sendApiResponse($this->resultResponse, Response::HTTP_ACCEPTED, $reponseHeaders);
+                }
+
                 $this->resultResponse = $this->apiHelperService->apiProcessingErrorResponse($this->namespace, [], $processPaymentGatewayServiceResponse['message']);
             
                 return $this->sendApiResponse($this->resultResponse, $this->resultResponse->collection['status_code'], $reponseHeaders);

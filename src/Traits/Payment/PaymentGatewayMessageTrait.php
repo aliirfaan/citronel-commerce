@@ -67,4 +67,9 @@ trait PaymentGatewayMessageTrait
     {
         return __('citronel-commerce::payment/messages.payment_process_expired');
     }
+
+    public function waitingPaymentMessage($replacementVars = null)
+    {
+        return __('citronel-commerce::payment/messages.waiting_payment');
+    }
 }

@@ -983,4 +983,23 @@ class CitronelOrderService
 
         return $data;
     }
+    
+    /**
+     * Method updateOrderMeta
+     *
+     * @param mixed $order [explicite description]
+     * @param array $data [explicite description]
+     *
+     * @return void
+     */
+    public function updateOrderMeta($order, array $data)
+    {
+        $meta = json_decode($order->order_meta, true) ?? [];
+    
+        // Merge the new data into the existing meta
+        $updatedMeta = array_merge($meta, $data);
+
+        $this->orderModel::where('id', $order->id)
+        ->update(['order_meta' => json_encode($updatedMeta)]);
+    }
 }

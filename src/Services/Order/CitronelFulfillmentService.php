@@ -636,9 +636,14 @@ class CitronelFulfillmentService
         return false;
     }
 
-    public function getFulfillmentsByFulfillmentGroupId($groupId)
+    public function getFulfillmentsByFulfillmentGroupId($groupId, $orderItemFulfillmentStatus = null)
     {
-        $result = $this->orderFulfillmentModel->where('order_item_fulfillment_grp_id', $groupId);
+        if (is_null($orderItemFulfillmentStatus)) {
+            $orderItemFulfillmentStatus = OrderStatus::UNFULFILLED->value;
+        }
+
+        $result = $this->orderFulfillmentModel->where('order_item_fulfillment_grp_id', $groupId)
+        ->where('order_item_fulfillment_status', $orderItemFulfillmentStatus);
         
         return $result->get();
     }

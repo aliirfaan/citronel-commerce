@@ -233,7 +233,7 @@ class CitronelOrderService
                     $orderSubtotal = bcadd($orderSubtotal, bcmul((string) $newOrderItem->product_price, (string) $newOrderItem->quantity, config('citronel.decimals')), config('citronel.decimals'));
                 }
 
-                $orderGrandTotal = bcadd($orderGrandTotal, $orderSubtotal, config('citronel.decimals'));
+                $orderGrandTotal = $orderSubtotal;
             }
     
             // Order summary
@@ -308,7 +308,7 @@ class CitronelOrderService
                         $orderSubtotal = bcadd($orderSubtotal, bcmul((string) $newSubItem->product_price, (string) $newSubItem->quantity, config('citronel.decimals')), config('citronel.decimals'));
                     }
 
-                    $orderGrandTotal = bcadd($orderGrandTotal, $orderSubtotal, config('citronel.decimals'));
+                    $orderGrandTotal = $orderSubtotal;
                 }
         
                 // Order summary
@@ -362,8 +362,11 @@ class CitronelOrderService
     
             // Fetch and format the final order
             $order = $this->orderModel::with('order_items')->where('id', $newOrder->id)->first();
-            $order->subtotal = $this->currencyService->formatCurrencyAmount($order->order_subtotal, $orderCurrencyCode)['formatted'];
-            $order->total = $this->currencyService->formatCurrencyAmount($order->order_grand_total, $orderCurrencyCode)['formatted'];
+
+            $order->subtotal = $this->currencyService->formatCurrencyAmount($order->order_subtotal, $orderCurrencyCode);
+            
+            $order->grand_total = $this->currencyService->formatCurrencyAmount($order->order_grand_total, $orderCurrencyCode);
+
             $order->summary = $orderSummary;
 
             $orderSummary = null;
@@ -418,8 +421,8 @@ class CitronelOrderService
         $order = $this->orderModel::with('order_items')->where('id', $order->id)->first();
 
         $order->subtotal = $this->currencyService->formatCurrencyAmount($order->order_subtotal, $orderCurrencyCode);
-
-        $order->total = $this->currencyService->formatCurrencyAmount($order->order_grand_total, $orderCurrencyCode);
+            
+        $order->grand_total = $this->currencyService->formatCurrencyAmount($order->order_grand_total, $orderCurrencyCode);
 
         $data['result']['order'] = $order;
         $data['success'] = true;
@@ -569,7 +572,7 @@ class CitronelOrderService
                 } else {
                     $orderSubtotal = bcadd($orderSubtotal, bcmul((string) $anOrderItem->product_price, (string) $anOrderItem->quantity, config('citronel.decimals')), config('citronel.decimals'));
 
-                    $orderGrandTotal = bcadd($orderGrandTotal, $orderSubtotal, config('citronel.decimals'));
+                    $orderGrandTotal = $orderSubtotal;
                 }
             }
     
@@ -826,7 +829,7 @@ class CitronelOrderService
                     $orderSubtotal = bcadd($orderSubtotal, bcmul((string) $orderItemObj->product_price, (string) $orderItemObj->quantity, config('citronel.decimals')), config('citronel.decimals'));
                 }
 
-                $orderGrandTotal = bcadd($orderGrandTotal, $orderSubtotal, config('citronel.decimals'));
+                $orderGrandTotal = $orderSubtotal;
             }
     
             // Order summary
@@ -901,7 +904,7 @@ class CitronelOrderService
                         $orderSubtotal = bcadd($orderSubtotal, bcmul((string) $newSubItem->product_price, (string) $newSubItem->quantity, config('citronel.decimals')), config('citronel.decimals'));
                     }
 
-                    $orderGrandTotal = bcadd($orderGrandTotal, $orderSubtotal, config('citronel.decimals'));
+                    $orderGrandTotal = $orderSubtotal;
                 }
         
                 // Order summary
@@ -953,8 +956,11 @@ class CitronelOrderService
     
             // Fetch and format the final order
             $order = $this->orderModel::with('order_items')->where('id', $order->id)->first();
-            $order->subtotal = $this->currencyService->formatCurrencyAmount($order->order_subtotal, $orderCurrencyCode)['formatted'];
-            $order->total = $this->currencyService->formatCurrencyAmount($order->order_grand_total, $orderCurrencyCode)['formatted'];
+
+            $order->subtotal = $this->currencyService->formatCurrencyAmount($order->order_subtotal, $orderCurrencyCode);
+            
+            $order->grand_total = $this->currencyService->formatCurrencyAmount($order->order_grand_total, $orderCurrencyCode);
+
             $order->summary = $orderSummary;
 
             $orderSummary = null;

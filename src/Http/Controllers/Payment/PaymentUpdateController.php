@@ -203,7 +203,10 @@ class PaymentUpdateController extends PaymentController
 
                         return $this->sendApiResponse($this->resultResponse, $this->resultResponse->collection['status_code'], $reponseHeaders);
                     }
-                    $this->data['result']['fulfillment_preprocess'] = $itemFulfillmentPreProcessResponse['result'];
+
+                    if (!is_null($itemFulfillmentPreProcessResponse['result'])) {
+                        $this->data['result']['fulfillment_preprocess'] = $itemFulfillmentPreProcessResponse['result'];
+                    }
                 }
             }
 

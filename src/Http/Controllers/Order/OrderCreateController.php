@@ -42,6 +42,16 @@ class OrderCreateController extends OrderController
         try {
             $subProcessKey = $this->subProcess['key'];
 
+            $validationRules = $this->modelApiCommand->createValidationRules();
+
+            // check if this order strategy has a prevalidation 
+            if (array_key_exists('custom_order_data', $requestArray) && array_key_exists('fulfillment_strategy_class', $requestArray['custom_order_data'])) {
+
+                $fulfillmentStrategyClass = $this->helperService->makeObject($requestArray['custom_order_data']['fulfillment_strategy_class']);
+
+                $validationRules = array_merge($this->modelApiCommand->createValidationRules(), $fulfillmentStrategyClass->orderStrategyCreatePreCreateValidationRules());
+            }
+
             // validate order
             $validationRules = $this->modelApiCommand->createValidationRules();
             $validationResponse = $this->apiHelperService->validateRequestFields($requestArray, $validationRules);

@@ -15,4 +15,13 @@ interface OrderProcessingStrategyInterface
      * @return array
      */
     public function groupProductOrderItems($order);
+    
+    /**
+     * Method orderCreatePreProcessValidationRules
+     *
+     * Set validation rules specific for this order strategy
+     *
+     * @return null | array
+     */
+    public function orderStrategyCreatePreCreateValidationRules();
 }

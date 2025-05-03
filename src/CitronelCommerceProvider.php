@@ -33,6 +33,10 @@ class CitronelCommerceProvider extends \Illuminate\Support\ServiceProvider
 
         $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'citronel-commerce');
 
+        $this->publishes([
+            __DIR__.'/../resources/lang' => resource_path('lang/vendor/citronel-commerce'),
+        ], 'citronel-commerce-translations');
+
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
 
         $this->registerRoutes();

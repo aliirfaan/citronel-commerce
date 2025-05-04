@@ -2,13 +2,13 @@
 
 namespace aliirfaan\CitronelCommerce\Models\Order;
 
+use aliirfaan\CitronelCore\Models\CitronelBaseModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use aliirfaan\CitronelCommerce\Models\Payment\Payment;
 use aliirfaan\CitronelCommerce\Rules\CurrencyCode;
 
-class Order extends Model
+class Order extends CitronelBaseModel
 {
     use HasFactory;
 

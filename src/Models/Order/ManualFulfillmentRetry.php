@@ -3,12 +3,12 @@
 namespace aliirfaan\CitronelCommerce\Models\Order;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use aliirfaan\CitronelCore\Models\CitronelBaseModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Models\OrderFulfillment\OrderFulfillment;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
-class ManualFulfillmentRetry extends Model
+class ManualFulfillmentRetry extends CitronelBaseModel
 {
     use HasFactory, HasUuids;
 
@@ -18,6 +18,10 @@ class ManualFulfillmentRetry extends Model
 
     protected $fillable = [
         'id', 'order_fulfillment_id', 'retry_user_id', 'retry_fulfillment_status', 'retried_at'
+    ];
+
+    protected $timezoneAwareAttributes = [
+        'retried_at',
     ];
 
     public function order_fulfillment(): BelongsTo

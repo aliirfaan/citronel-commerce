@@ -2,12 +2,12 @@
 
 namespace aliirfaan\CitronelCommerce\Models\Payment;
 
-use Illuminate\Database\Eloquent\Model;
+use aliirfaan\CitronelCore\Models\CitronelBaseModel;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use DB;
 
-class PaymentMethodConfiguration extends Model
+class PaymentMethodConfiguration extends CitronelBaseModel
 {
     use HasUuids;
 

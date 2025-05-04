@@ -3,11 +3,11 @@
 namespace aliirfaan\CitronelCommerce\Models\Payment;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use aliirfaan\CitronelCore\Models\CitronelBaseModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 
-class Payment extends Model
+class Payment extends CitronelBaseModel
 {
     use HasFactory;
 
@@ -28,6 +28,12 @@ class Payment extends Model
         'payment_guid', 'order_id', 'payment_method_configuration_id', 'payment_status', 'gateway_merchant_transaction_no', 'currency_code', 'subtotal', 'tax_amount', 'discount_amount', 'grand_total',
         'gateway_transaction_no', 'gateway_response_code',
         'gateway_response_status', 'gateway_response_message', 'payment_channel', 'payment_remarks', 'gateway_first_leg_response_code', 'gateway_first_leg_response_message', 'gateway_first_leg_transaction_no_1', 'gateway_first_leg_transaction_no_2', 'paid_at', 'cancelled_at', 'expired_at'
+    ];
+
+    protected $timezoneAwareAttributes = [
+        'paid_at',
+        'cancelled_at',
+        'expired_at',
     ];
 
     public function order(): BelongsTo

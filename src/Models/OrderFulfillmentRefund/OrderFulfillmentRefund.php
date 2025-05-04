@@ -4,11 +4,11 @@ namespace aliirfaan\CitronelCommerce\Models\OrderFulfillmentRefund;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
-use Illuminate\Database\Eloquent\Model;
+use aliirfaan\CitronelCore\Models\CitronelBaseModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use aliirfaan\CitronelCommerce\Models\PaymentRefund\PaymentRefund;
 
-class OrderFulfillmentRefund extends Model
+class OrderFulfillmentRefund extends CitronelBaseModel
 {
     use HasFactory, HasUuids;
 
@@ -24,6 +24,10 @@ class OrderFulfillmentRefund extends Model
         'return_status',
         'returned_at',
         'refund_amount'
+    ];
+
+    protected $timezoneAwareAttributes = [
+        'returned_at',
     ];
 
     public function paymentRefund(): BelongsTo

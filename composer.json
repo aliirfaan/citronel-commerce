@@ -3,6 +3,7 @@
     "description": "This package provides classes to create simple e-commerce flow using products, order, payments and fulfillments.",
     "type": "library",
     "license": "MIT",
+    "version": "1.0.0",
     "authors": [
         {
             "name": "aliirfaan",

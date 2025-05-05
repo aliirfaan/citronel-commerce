@@ -65,8 +65,8 @@ class OrderReviewController extends OrderController
             $order = $getOrderResponse['result'];
 
             $fulfillmentStrategyClass = null;
-            if (array_key_exists('custom_order_data', $requestArray) && array_key_exists('fulfillment_strategy_class', $requestArray['custom_order_data'])) {
-                $fulfillmentStrategyClass = $this->helperService->makeObject($requestArray['custom_order_data']['fulfillment_strategy_class']);
+            if (!is_null($order->fulfillment_strategy_class)) {
+                $fulfillmentStrategyClass = $this->helperService->makeObject($order->fulfillment_strategy_class);
             }
 
             // check order expiry

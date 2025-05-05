@@ -162,11 +162,15 @@ class CitronelOrderService
         $currencyRate = $saveData['currency_rate'];
         $lockCurrency = array_key_exists('lock_currency', $extra) ? $extra['lock_currency'] : false;
 
-        $receiptChannels = array_key_exists('receipt_channels', $saveData) ? $saveData['receipt_channels'] : null;
-        if (is_array($receiptChannels)) {
-            $receiptChannels = implode(',', $receiptChannels);
+        $shouldSendReceipt = array_key_exists('should_send_receipt', $saveData) ? $saveData['should_send_receipt'] : null;
+        $receiptChannels = null;
+        if (!is_null($shouldSendReceipt) && intval($shouldSendReceipt) !== 0) {
+            $receiptChannels = array_key_exists('receipt_channels', $saveData) ? $saveData['receipt_channels'] : null;
+            if (is_array($receiptChannels)) {
+                $receiptChannels = implode(',', $receiptChannels);
+            }
         }
-    
+
         $orderSaveData = [
             'order_guid' => array_key_exists('order_guid', $saveData) ? $saveData['order_guid'] : $this->generateOrderGuid(),
             'actor_id' => array_key_exists('actor_id', $saveData) ? $saveData['actor_id'] : null,

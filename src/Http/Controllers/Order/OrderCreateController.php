@@ -44,7 +44,8 @@ class OrderCreateController extends OrderController
 
             $validationRules = $this->modelApiCommand->createValidationRules();
 
-            // check if this order strategy has a prevalidation 
+            // check if this order strategy has a pre validation
+            $fulfillmentStrategyClass = null;
             if (array_key_exists('custom_order_data', $requestArray) && array_key_exists('fulfillment_strategy_class', $requestArray['custom_order_data'])) {
 
                 $fulfillmentStrategyClass = $this->helperService->makeObject($requestArray['custom_order_data']['fulfillment_strategy_class']);
@@ -332,8 +333,17 @@ class OrderCreateController extends OrderController
 
             $productTempArray = null;
 
-            $this->data['extra'] = $paymentMethodService->generatePaymentMethodExtra();
-            $currencyExtra = $currencyService->generateCurrencyExtra();
+            $generatePaymentMethodExtra = [
+                'order' => $newOrder,
+                'fulfillment_strategy_class' => $fulfillmentStrategyClass,
+            ];
+            $this->data['extra'] = $paymentMethodService->generatePaymentMethodExtra($generatePaymentMethodExtra);
+
+            $generateCurrencyExtra = [
+                'order' => $newOrder,
+                'fulfillment_strategy_class' => $fulfillmentStrategyClass,
+            ];
+            $currencyExtra = $currencyService->generateCurrencyExtra($generateCurrencyExtra);
             $this->data['extra'] = array_merge($this->data['extra'], $currencyExtra);
 
             $this->data['success'] = true;

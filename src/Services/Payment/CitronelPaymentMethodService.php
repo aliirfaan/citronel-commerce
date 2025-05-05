@@ -3,6 +3,7 @@
 namespace aliirfaan\CitronelCommerce\Services\Payment;
 
 use aliirfaan\CitronelCommerce\Models\Payment\PaymentMethodConfiguration;
+use aliirfaan\CitronelCommerce\Models\Payment\OrderPaymentMethodConfiguration;
 
 class CitronelPaymentMethodService
 {
@@ -20,6 +21,8 @@ class CitronelPaymentMethodService
      */
     private $paymentMethodConfigurationModel;
 
+    private $orderPaymentMethodConfigurationModel;
+
     /**
      * Method __construct
      *
@@ -31,6 +34,8 @@ class CitronelPaymentMethodService
         $this->helperService = app($helperServiceClass);
 
         $this->paymentMethodConfigurationModel = new PaymentMethodConfiguration();
+
+        $this->orderPaymentMethodConfigurationModel = new OrderPaymentMethodConfiguration();
     }
 
     /**
@@ -86,8 +91,17 @@ class CitronelPaymentMethodService
      *
      * @return array
      */
-    public function generatePaymentMethodExtra()
+    public function generatePaymentMethodExtra($extra = [])
     {
+        if (array_key_exists('fulfillment_strategy_class', $extra)) {
+            $orderStrategyName = $extra['fulfillment_strategy_class']->orderProcessingStrategyName;
+
+            $paymentMethodResponse = $this->orderPaymentMethodConfigurationModel->getPaymentMethodConfigurationsByOrderStrategyName($orderStrategyName);
+            if (!is_null($paymentMethodResponse)) {
+                return $paymentMethodResponse;
+            }
+        }
+
         $getPaymentMethodsResponse = $this->getPaymentMethods();
 
         return [

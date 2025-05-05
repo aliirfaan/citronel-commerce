@@ -122,9 +122,17 @@ class CitronelCurrencyService
         return config('citronel.currency.supported');
     }
 
-    public function generateCurrencyExtra()
+    public function generateCurrencyExtra($extra = [])
     {
         $supportedCurrencies = $this->getSupportedCurrencies();
+
+        if (array_key_exists('order', $extra)) {
+            $order = $extra['order'];
+            if (intval($order->lock_currency)) {
+                $orderSupportedCurrencies[] = $order->order_currency_code;
+                $supportedCurrencies = array_filter($supportedCurrencies, fn($key) => in_array($key, $orderSupportedCurrencies), ARRAY_FILTER_USE_KEY);
+            }
+        }
 
         foreach ($supportedCurrencies as $key => $currency) {
             $currencyRate = $this->getLatestCurrencyRate($currency['code']);

@@ -236,7 +236,12 @@ class OrderItemCreateController extends CitronelController
                 return $this->sendApiResponse($this->resultResponse, $this->resultResponse->collection['status_code'], $reponseHeaders);
             }
 
-            $this->data['extra'] = $paymentMethodService->generatePaymentMethodExtra();
+            $generateCurrencyExtra = [
+                'order' => $order,
+                'fulfillment_strategy_class' => $fulfillmentStrategyClass,
+            ];
+            $this->data['extra'] = $paymentMethodService->generatePaymentMethodExtra($generateCurrencyExtra);
+
             $currencyExtra = $currencyService->generateCurrencyExtra();
             $this->data['extra'] = array_merge($this->data['extra'], $currencyExtra);
 

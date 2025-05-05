@@ -64,6 +64,11 @@ class OrderReviewController extends OrderController
             }
             $order = $getOrderResponse['result'];
 
+            $fulfillmentStrategyClass = null;
+            if (array_key_exists('custom_order_data', $requestArray) && array_key_exists('fulfillment_strategy_class', $requestArray['custom_order_data'])) {
+                $fulfillmentStrategyClass = $this->helperService->makeObject($requestArray['custom_order_data']['fulfillment_strategy_class']);
+            }
+
             // check order expiry
             $checkOrderExpiryResponse = $orderService->checkOrderExpiry($order);
             if (!$checkOrderExpiryResponse['success']) {
@@ -137,8 +142,17 @@ class OrderReviewController extends OrderController
 
             $reviewOrderResponse = $orderService->reviewOrder($updateOrderSaveData, $order);
 
-            $this->data['extra'] = $paymentMethodService->generatePaymentMethodExtra();
-            $currencyExtra = $currencyService->generateCurrencyExtra();
+            $generatePaymentMethodExtra = [
+                'order' => $order,
+                'fulfillment_strategy_class' => $fulfillmentStrategyClass,
+            ];
+            $this->data['extra'] = $paymentMethodService->generatePaymentMethodExtra($generatePaymentMethodExtra);
+
+            $generateCurrencyExtra = [
+                'order' => $order,
+                'fulfillment_strategy_class' => $fulfillmentStrategyClass,
+            ];
+            $currencyExtra = $currencyService->generateCurrencyExtra($generateCurrencyExtra);
             $this->data['extra'] = array_merge($this->data['extra'], $currencyExtra);
 
             $this->data['success'] = true;

@@ -93,19 +93,23 @@ class CitronelPaymentMethodService
      */
     public function generatePaymentMethodExtra($extra = [])
     {
+        $paymentMethods = null;
         if (array_key_exists('fulfillment_strategy_class', $extra)) {
             $orderStrategyName = $extra['fulfillment_strategy_class']->orderProcessingStrategyName;
 
-            $paymentMethodResponse = $this->orderPaymentMethodConfigurationModel->getPaymentMethodConfigurationsByOrderStrategyName($orderStrategyName);
-            if (!is_null($paymentMethodResponse)) {
-                return $paymentMethodResponse;
+            $paymentMethodResponse = $this->getPaymentMethodsByOrderStrategy($orderStrategyName);
+            if ($paymentMethodResponse['success']) {
+                $paymentMethods = $paymentMethodResponse['result'];
             }
         }
 
-        $getPaymentMethodsResponse = $this->getPaymentMethods();
+        if (is_null($paymentMethods)) {
+            $paymentMethodResponse = $this->getPaymentMethods();
+            $paymentMethods = $paymentMethodResponse['result'];
+        }
 
         return [
-            'payment_methods' => $getPaymentMethodsResponse['result']
+            'payment_methods' => $paymentMethods
         ];
     }
 
@@ -120,6 +124,39 @@ class CitronelPaymentMethodService
 
         if (is_null($data['errors'])) {
           $data['result'] = $result;
+          $data['success'] = true;
+        }
+        
+        return $data;
+    }
+
+    public function getPaymentMethodsByOrderStrategy($orderStrategyName)
+    {
+        $data = $this->helperService->returnFormat();
+  
+        $result = $this->orderPaymentMethodConfigurationModel->getPaymentMethodConfigurationsByOrderStrategyName($orderStrategyName);
+        if (is_null($result)) {
+          $data['errors'] = true;
+        } else {
+            $paymentMethods = array_map(
+                function ($item) {
+                    if (!is_null($item->logo)) {
+                        $reverseProxyUrl = config('citronel.reverse_proxy_url');
+                        if (!is_null($reverseProxyUrl)) {
+                            $item->logo = $reverseProxyUrl . '/' . $item->logo;
+                        } else {
+                            $item->logo = asset(config('citronel-payment.payment_method_logo_path') . $item->logo);
+                        }
+                    }
+
+                    return $item;
+                },
+                $result->all()
+            );
+            $data['result'] = $paymentMethods;
+        }
+  
+        if (is_null($data['errors'])) {
           $data['success'] = true;
         }
         

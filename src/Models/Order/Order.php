@@ -81,4 +81,12 @@ class Order extends Model
             'update_actor_id' => ['bail', 'required'],
         ];
     }
+
+    public function updateOrderItemsValidationRules()
+    {
+        return [
+            'order_items' => ['bail', 'required', 'array'],
+            'order_items.*.quantity' => ['bail', 'required', 'numeric', 'min:0'],
+        ];
+    }
 }

@@ -1009,6 +1009,118 @@ class CitronelOrderService
         ->update(['order_meta' => json_encode($updatedMeta)]);
     }
 
+    public function updateOrderItems(string $orderGuid, array $orderData, array $orderItems, array $extra = [])
+    {
+        $data = $this->helperService->returnFormat();
+
+        DB::beginTransaction();
+
+        $order = $this->orderModel::where('order_guid', $orderGuid)->first();
+
+        if(is_null($order)){
+            $data['errors'] = true;
+            $data['message'] = __('citronel-commerce::order/messages.order_not_found');
+        }
+
+        $currentOrderItems = $order->order_items;
+        $currentOrderItemsMap = $currentOrderItems->keyBy('product_id')->toArray();
+        $newOrderItemsMap = collect($orderItems)->keyBy('product_id')->toArray();
+
+        $orderItemsToCreate = array_diff_key($newOrderItemsMap, $currentOrderItemsMap);
+        $orderItemsToDelete = array_diff_key($currentOrderItemsMap, $newOrderItemsMap);
+        $orderItemsToUpdate = [];
+
+        $productTempArray = array_key_exists('product_temp_array', $extra) ? $extra['product_temp_array'] : null;
+        $correlationToken = array_key_exists('correlation_token', $orderData) ? $orderData['correlation_token'] : null;
+
+        $orderUpdatePreProcessExtra = [
+            'correlation_token' => $correlationToken,
+        ];
+
+        foreach($currentOrderItemsMap as $productId => $currentOrderItem){
+            if (isset($newOrderItemsMap[$productId]) && $currentOrderItem['quantity'] != $newOrderItemsMap[$productId]['quantity']) {
+                $orderItemsToUpdate[$productId] = $currentOrderItem;
+                $orderItemsToUpdate[$productId]['quantity'] = $newOrderItemsMap[$productId]['quantity'];
+            }
+        }
+
+         // @TODO: consider sub items
+        if(!empty($orderItemsToUpdate)){
+            foreach($orderItemsToUpdate as $anOrderItemToUpdate){
+                $this->orderItemModel::where('id', $anOrderItemToUpdate['id'])->update([
+                    'quantity' => $anOrderItemToUpdate['quantity']
+                ]);
+            }
+        }
+
+        // @TODO: consider sub items
+        if(!empty($orderItemsToDelete)){
+            foreach($orderItemsToDelete as $anOrderItemToDelete){
+                $this->orderItemModel::where('id', $anOrderItemToDelete['id'])->delete();
+            }
+        }
+
+        if(!empty($orderItemsToCreate)){
+            foreach($orderItemsToCreate as $anOrderItem){
+                $productId = $anOrderItem['product_id'];
+                $getProductResponse = $this->productService->getProductById($productId);
+                $product = $getProductResponse['result'];
+
+                $productInterfaceObj = $this->helperService->makeObject($product->product_class, ['product'=> $product]);
+
+                $orderItemCreatePreProcessResponse = $productInterfaceObj->orderItemCreatePreProcess($anOrderItem, $orderUpdatePreProcessExtra);
+
+                if (!$orderItemCreatePreProcessResponse['success']) {
+                    $data['errors'] = true;
+                    $data['message'] = $orderItemCreatePreProcessResponse['message'];
+                    break;
+                }
+        
+                $preProcessedOrderItem = $orderItemCreatePreProcessResponse['result'];
+                $anOrderItem = is_array($preProcessedOrderItem) ? array_merge($anOrderItem, $preProcessedOrderItem) : $anOrderItem;
+        
+                $saveOrderItemData = $productInterfaceObj->createProductOrderItem($anOrderItem);
+                $saveOrderItemData['order_id'] = $order->id;
+                $newOrderItem = $this->orderItemModel::create($saveOrderItemData);
+
+                $subItems = array_key_exists('sub_items', $anOrderItem) ? $anOrderItem['sub_items'] : [];
+                foreach($subItems as $aSubItem){
+                    // Order item create pre-process
+                    $subItemProductId = $aSubItem['product_id'];
+
+                    $subItemProductReponse = $this->productService->getProductById($subItemProductId);
+                    $subItemProduct = $subItemProductReponse['result'];
+                    $subItemProductInterfaceObj = $this->helperService->makeObject($subItemProduct->product_class, ['product'=> $subItemProduct]);
+
+                    $productTempArray[$subItemProductId] = [
+                        'product' => $subItemProduct,
+                        'product_class' => $subItemProductInterfaceObj
+                    ];
+                    
+                    $subItemCreatePreProcessResponse = $subItemProductInterfaceObj->orderItemCreatePreProcess($aSubItem, $orderUpdatePreProcessExtra);
+            
+                    if (!$subItemCreatePreProcessResponse['success']) {
+                        $data['errors'] = true;
+                        $data['message'] = $subItemCreatePreProcessResponse['message'];
+                        break;
+                    }
+
+                    $preProcessedSubItem = $subItemCreatePreProcessResponse['result'];
+                    $aSubItem = is_array($preProcessedSubItem) ? array_merge($aSubItem, $preProcessedSubItem) : $aSubItem;
+            
+                    $saveSubItemData = $subItemProductInterfaceObj->createProductOrderItem($aSubItem);
+                    $saveSubItemData['order_id'] = $order->id;
+                    $saveSubItemData['linked_item_id'] = $newOrderItem->id;
+                    $this->orderItemModel::create($saveSubItemData);
+                }
+            }
+        }
+
+        // recalculate order summary
+        return $this->generateOrderSummary($orderGuid, $correlationToken);
+        
+    }
+
     public function generateOrderSummary(string $orderGuid, ?string $correlationToken = null)
     {
         $data = $this->helperService->returnFormat();

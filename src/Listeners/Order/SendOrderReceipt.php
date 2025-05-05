@@ -10,10 +10,13 @@ use aliirfaan\CitronelCommerce\Notifications\Order\OrderReceipt;
 
 use aliirfaan\CitronelCommerce\Events\Payment\PaymentProcessed;
 use aliirfaan\CitronelCommerce\Enums\Payment\PaymentStatus;
+use aliirfaan\CitronelCommerce\Services\Receipt\CitronelReceiptService;
 
 class SendOrderReceipt implements ShouldQueue
 {
     public $fulfillmentService;
+
+    public $receiptService;
 
     /**
      * Create the event listener.
@@ -21,6 +24,8 @@ class SendOrderReceipt implements ShouldQueue
     public function __construct(CitronelFulfillmentService $fulfillmentService)
     {
         $this->fulfillmentService = $fulfillmentService;
+
+        $this->receiptService = new CitronelReceiptService();
     }
 
     /**
@@ -43,15 +48,22 @@ class SendOrderReceipt implements ShouldQueue
 
         $payment = $event->payment;
 
+        $items = $this->fulfillmentService->getFulfillmentsByOrderId($order->order_id);
+
         $actor = $order->actor;
         $notificationVars = [
             'actor' => $actor,
             'payment' => $payment,
-            'items' => [], // @todo
+            'items' => $items,
         ];
 
-        // notification
-        Notification::send($actor, new OrderReceipt($notificationVars));
+        $receiptNotificationClass = $this->receiptService->getReceiptNotificationClass($order);
+        if (!is_null($receiptNotificationClass)) {
+            $notificationVars['receiptNotificationClass'] = $receiptNotificationClass;
+            Notification::send($actor, $receiptNotificationClass($notificationVars));
+        } else {
+            Notification::send($actor, new OrderReceipt($notificationVars));
+        }
 
         // Mark the notification as sent
         $order->receipt_sent = true;

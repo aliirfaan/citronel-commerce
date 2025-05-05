@@ -40,7 +40,19 @@ class CitronelReceiptService
         $this->mainProcess = $this->errorCatalogueService->getMainProcess('order');
     }
 
-    public function sendReceipt($order)
+    public function getReceiptNotificationClass($order)
     {
+        $receiptNoficationObj = null;
+        if (!is_null($order->fulfillment_strategy_class)){
+            $fulfillmentStrategyClass = $this->helperService->makeObject($order->fulfillment_strategy_class);
+
+            $receiptNotificationClass = $fulfillmentStrategyClass->receiptNotificationClass();
+            if (!is_null($receiptNotificationClass)) {
+
+                $receiptNoficationObj = $this->helperService->makeObject($receiptNotificationClass);
+            }
+        }
+
+        return $receiptNoficationObj;
     }
 }

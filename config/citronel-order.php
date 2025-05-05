@@ -46,4 +46,6 @@ return [
     ],
     'fulfillment_failure_support_to_address' => env('FULFILLMENT_FAILURE_SUPPORT_TO_ADDRESS', null),
     'order_model' => aliirfaan\CitronelCommerce\Models\Order\Order::class,
+    'order_should_send_receipt' => env('ORDER_SHOULD_SEND_RECEIPT', false),
+    'order_receipt_channels' => ['mail'],
 ];

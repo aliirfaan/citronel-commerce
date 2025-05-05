@@ -36,6 +36,9 @@ return new class extends Migration
             $table->dateTime('paid_at')->nullable(true);
             $table->dateTime('cancelled_at')->nullable(true);
             $table->dateTime('expired_at')->nullable(true);
+            $table->string('card_holder')->nullable(true);
+            $table->string('card_number')->nullable(true);
+            $table->string('card_expiry')->nullable(true);
             $table->timestamps();
 
             $table->index('payment_status');
@@ -53,6 +56,9 @@ return new class extends Migration
             $table->index('paid_at');
             $table->index('cancelled_at');
             $table->index('expired_at');
+            $table->index('card_holder');
+            $table->index('card_number');
+            $table->index('card_expiry');
 
             $table->foreign('order_id')->references('id')->on('orders');
             $table->foreign('payment_method_configuration_id')->references('id')->on('payment_method_configurations');

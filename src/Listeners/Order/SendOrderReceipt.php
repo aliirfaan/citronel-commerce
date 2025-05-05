@@ -59,7 +59,6 @@ class SendOrderReceipt implements ShouldQueue
 
         $receiptNotificationClass = $this->receiptService->getReceiptNotificationClass($order);
         if (!is_null($receiptNotificationClass)) {
-            $notificationVars['receiptNotificationClass'] = $receiptNotificationClass;
             Notification::send($actor, $receiptNotificationClass($notificationVars));
         } else {
             Notification::send($actor, new OrderReceipt($notificationVars));

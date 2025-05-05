@@ -286,12 +286,24 @@ class OrderCreateController extends OrderController
                 $currencyRate = $getCurrencyRateResponse;
             }
 
+            $shouldSendReceipt = config('order.order_should_send_receipt');
+            if (!is_null($fulfillmentStrategyClass)) {
+                $shouldSendReceipt = $fulfillmentStrategyClass->shouldSendReceipt();
+            }
+
+            $receiptChannels = config('order.order_receipt_channels');
+            if (!is_null($fulfillmentStrategyClass)) {
+                $receiptChannels = $fulfillmentStrategyClass->allowedReceiptChannels();
+            }
+
             // create order
             $createOrderSaveData = [
                 'actor_id' => $this->actor ? $this->actor->id : null,
                 'currency_rate' => $currencyRate,
                 'order_currency_code' => $orderCurrencyCode,
-                'correlation_token' => $correlationToken
+                'correlation_token' => $correlationToken,
+                'should_send_receipt' => $shouldSendReceipt,
+                'receipt_channels' => $receiptChannels,
             ];
             if (array_key_exists('custom_order_data', $requestArray)) {
                 $createOrderSaveData = array_merge($createOrderSaveData, $requestArray['custom_order_data']);

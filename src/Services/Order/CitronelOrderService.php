@@ -161,6 +161,11 @@ class CitronelOrderService
         $orderCurrencyCode = $saveData['order_currency_code'];
         $currencyRate = $saveData['currency_rate'];
         $lockCurrency = array_key_exists('lock_currency', $extra) ? $extra['lock_currency'] : false;
+
+        $receiptChannels = array_key_exists('receipt_channels', $saveData) ? $saveData['receipt_channels'] : null;
+        if (is_array($receiptChannels)) {
+            $receiptChannels = implode(',', $receiptChannels);
+        }
     
         $orderSaveData = [
             'order_guid' => array_key_exists('order_guid', $saveData) ? $saveData['order_guid'] : $this->generateOrderGuid(),
@@ -172,6 +177,8 @@ class CitronelOrderService
             'correlation_token' => array_key_exists('correlation_token', $saveData) ? $saveData['correlation_token'] : null,
             'lock_currency' => $lockCurrency,
             'fulfillment_strategy_class' => array_key_exists('fulfillment_strategy_class', $saveData) ? $saveData['fulfillment_strategy_class'] : null,
+            'should_send_receipt' => array_key_exists('should_send_receipt', $saveData) ? $saveData['should_send_receipt'] : null,
+            'receipt_channels' => $receiptChannels,
         ];
     
         $newOrder = $this->orderModel::create($orderSaveData);

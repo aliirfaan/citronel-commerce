@@ -162,6 +162,11 @@ class OrderItemsUpdateController extends OrderController
                 return $this->sendApiResponse($this->resultResponse, $this->resultResponse->collection['status_code'], $reponseHeaders);
             }
 
+            $this->data['result']['order'] = $updateOrderItemsResponse['result'];
+
+            $generateOrderSummaryBeforeConfirmationResponse = $orderService->generateOrderSummaryBeforeConfirmation($updateOrderItemsResponse['result']);
+            $this->data['result']['summary'] = $generateOrderSummaryBeforeConfirmationResponse['result'];
+
             $this->data['success'] = true;
             $this->data['result']['order'] = $updateOrderItemsResponse['result'];
             $this->data['status_code'] = Response::HTTP_OK;

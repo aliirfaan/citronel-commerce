@@ -155,8 +155,12 @@ class OrderReviewController extends OrderController
             $currencyExtra = $currencyService->generateCurrencyExtra($generateCurrencyExtra);
             $this->data['extra'] = array_merge($this->data['extra'], $currencyExtra);
 
+            $this->data['result']['order'] = $reviewOrderResponse['result'];
+
+            $generateOrderSummaryBeforeConfirmationResponse = $orderService->generateOrderSummaryBeforeConfirmation($reviewOrderResponse['result']);
+            $this->data['result']['summary'] = $generateOrderSummaryBeforeConfirmationResponse['result'];
+
             $this->data['success'] = true;
-            $this->data['result'] = $reviewOrderResponse['result'];
             $this->data['status_code'] = Response::HTTP_OK;
             $this->resultResponse = new ApiResponseCollection($this->data);
 

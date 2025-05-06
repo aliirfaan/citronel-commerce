@@ -358,8 +358,12 @@ class OrderCreateController extends OrderController
             $currencyExtra = $currencyService->generateCurrencyExtra($generateCurrencyExtra);
             $this->data['extra'] = array_merge($this->data['extra'], $currencyExtra);
 
-            $this->data['success'] = true;
             $this->data['result']['order'] = $newOrder;
+
+            $generateOrderSummaryBeforeConfirmationResponse = $orderService->generateOrderSummaryBeforeConfirmation($newOrder);
+            $this->data['result']['summary'] = $generateOrderSummaryBeforeConfirmationResponse['result'];
+
+            $this->data['success'] = true;
             $this->data['status_code'] = Response::HTTP_OK;
             $this->resultResponse = new ApiResponseCollection($this->data);
 

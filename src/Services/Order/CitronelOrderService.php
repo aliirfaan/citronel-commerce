@@ -192,6 +192,7 @@ class CitronelOrderService
         $orderBaseCurrencyGrandTotal = '0'; // Use string to preserve precision
         $orderSubtotal = $orderBaseCurrencySubtotal;
         $orderGrandTotal = $orderBaseCurrencyGrandTotal;
+
         $orderSummary = [];
     
         $productTempArray = array_key_exists('product_temp_array', $extra) ? $extra['product_temp_array'] : null;
@@ -246,25 +247,6 @@ class CitronelOrderService
 
                 $orderGrandTotal = $orderSubtotal;
             }
-    
-            // Order summary
-            $orderItemSummary[$newOrderItem->id]['quantity'] = $newOrderItem->quantity;
-            $orderItemSummary[$newOrderItem->id]['product_price'] = $newOrderItem->product_price;
-            $orderItemSummary[$newOrderItem->id]['product_total_price'] = bcmul((string) $newOrderItem->product_price, (string) $newOrderItem->quantity, config('citronel.decimals'));
-    
-            if (!$newOrder->lock_currency && ($orderCurrencyCode !== $this->currencyService->getBaseCurrencyCode())) {
-                $orderItemSummary[$newOrderItem->id]['product_price'] = $this->currencyService->convertAmount($newOrderItem->product_price, $orderCurrencyCode, $currencyRate, config('citronel.decimals'));
-
-                $orderItemSummary[$newOrderItem->id]['product_total_price'] = $this->currencyService->convertAmount($orderItemSummary[$newOrderItem->id]['product_total_price'], $orderCurrencyCode, $currencyRate, config('citronel.decimals'));
-            }
-    
-            $orderItemSummary[$newOrderItem->id]['product_price'] = $this->currencyService->formatCurrencyAmount($orderItemSummary[$newOrderItem->id]['product_price'], $orderCurrencyCode);
-
-            $orderItemSummary[$newOrderItem->id]['product_total_price'] = $this->currencyService->formatCurrencyAmount($orderItemSummary[$newOrderItem->id]['product_total_price'], $orderCurrencyCode);
-    
-            $generateOrderItemSummaryResponse = $productInterfaceObj->generateOrderItemSummary($newOrderItem, $orderCreatePreProcessExtra);
-            $orderItemSummary[$newOrderItem->id] = array_merge($orderItemSummary[$newOrderItem->id], $generateOrderItemSummaryResponse);
-            $orderSummary[$newOrderItem->id] = $orderItemSummary[$newOrderItem->id];
 
             // process sub items
             $subItems = array_key_exists('sub_items', $anOrderItem) ? $anOrderItem['sub_items'] : [];
@@ -321,26 +303,7 @@ class CitronelOrderService
 
                     $orderGrandTotal = $orderSubtotal;
                 }
-        
-                // Order summary
-                $orderItemSummary[$newSubItem->id]['quantity'] = $newSubItem->quantity;
-                $orderItemSummary[$newSubItem->id]['product_price'] = $newSubItem->product_price;
-                $orderItemSummary[$newSubItem->id]['product_total_price'] = bcmul((string) $newSubItem->product_price, (string) $newSubItem->quantity, config('citronel.decimals'));
-        
-                if (!$newOrder->lock_currency && ($orderCurrencyCode !== $this->currencyService->getBaseCurrencyCode())) {
-                    $orderItemSummary[$newSubItem->id]['product_price'] = $this->currencyService->convertAmount($newSubItem->product_price, $orderCurrencyCode, $currencyRate, config('citronel.decimals'));
-
-                    $orderItemSummary[$newSubItem->id]['product_total_price'] = $this->currencyService->convertAmount($orderItemSummary[$newSubItem->id]['product_total_price'], $orderCurrencyCode, $currencyRate, config('citronel.decimals'));
-                }
-        
-                $orderItemSummary[$newSubItem->id]['product_price'] = $this->currencyService->formatCurrencyAmount($orderItemSummary[$newSubItem->id]['product_price'], $orderCurrencyCode);
-
-                $orderItemSummary['product_total_price'] = $this->currencyService->formatCurrencyAmount($orderItemSummary[$newSubItem->id]['product_total_price'], $orderCurrencyCode);
-        
-                $generateOrderItemSummaryResponse = $productInterfaceObj->generateOrderItemSummary($newSubItem, $orderCreatePreProcessExtra);
-                $orderItemSummary[$newSubItem->id] = array_merge($orderItemSummary[$newSubItem->id], $generateOrderItemSummaryResponse);
-                $orderSummary[$newOrderItem->id]['sub_items'] = $orderItemSummary[$newSubItem->id];
-
+    
                 $subItemProductInterfaceObj = null;
             }
         }
@@ -373,15 +336,6 @@ class CitronelOrderService
     
             // Fetch and format the final order
             $order = $this->orderModel::with('order_items')->where('id', $newOrder->id)->first();
-
-            $order->subtotal = $this->currencyService->formatCurrencyAmount($order->order_subtotal, $orderCurrencyCode);
-            
-            $order->grand_total = $this->currencyService->formatCurrencyAmount($order->order_grand_total, $orderCurrencyCode);
-
-            $order->summary = $orderSummary;
-
-            $orderSummary = null;
-            $orderItemSummary = null;
     
             $data['result'] = $order;
             $data['success'] = true;
@@ -431,11 +385,7 @@ class CitronelOrderService
 
         $order = $this->orderModel::with('order_items')->where('id', $order->id)->first();
 
-        $order->subtotal = $this->currencyService->formatCurrencyAmount($order->order_subtotal, $orderCurrencyCode);
-            
-        $order->grand_total = $this->currencyService->formatCurrencyAmount($order->order_grand_total, $orderCurrencyCode);
-
-        $data['result']['order'] = $order;
+        $data['result'] = $order;
         $data['success'] = true;
 
         return $data;
@@ -1178,7 +1128,7 @@ class CitronelOrderService
             // for certain orders like bill payment, we do not have a price, we take amount from order item meta
             if ($product->price_currency_code === $this->currencyService->getBaseCurrencyCode()) {
                 if(!is_null($orderItemMetaAmount)) {
-                    $orderBaseCurrencySubtotal = bcadd($orderBaseCurrencySubtotal, bcmul((string) $orderItemMetaAmount, (string) $anOrderItem   ->quantity, config('citronel.decimals')), config('citronel.decimals'));
+                    $orderBaseCurrencySubtotal = bcadd($orderBaseCurrencySubtotal, bcmul((string) $orderItemMetaAmount, (string) $anOrderItem->quantity, config('citronel.decimals')), config('citronel.decimals'));
 
                 } else {
                     $orderBaseCurrencySubtotal = bcadd($orderBaseCurrencySubtotal, bcmul((string) $anOrderItem->product_price, (string) $anOrderItem->quantity, config('citronel.decimals')), config('citronel.decimals'));
@@ -1301,6 +1251,111 @@ class CitronelOrderService
             $data['success'] = true;
         }
 
+        return $data;
+    }
+    
+    /**
+     * Method generateOrderItemSummary
+     *
+     * @param mixed $item [explicite description]
+     * @param array $extra [explicite description]
+     * // @todo sub items
+     * @return array
+     */
+    public function generateOrderItemSummary($item, $extra = [])
+    {
+        $data = $this->helperService->returnFormat();
+
+        $orderItemSummary = [];
+
+        $productTempArray = array_key_exists('product_temp_array', $extra) ? $extra['product_temp_array'] : [];
+        $currencyRate = array_key_exists('currency_rate', $extra) ? $extra['currency_rate'] : null;
+
+        $product = $productTempArray['product'];
+        $productInterfaceObj = $productTempArray['product_class'];
+        
+        $orderItemMeta = json_decode($item->order_item_meta);
+        $orderItemMetaAmount = $orderItemMeta->amount ?? null;
+        if (!is_null($orderItemMetaAmount)) {
+            $item->product_price = (string) $orderItemMetaAmount;
+        }
+
+        $order = $item->order;
+        
+        if (!$order->lock_currency && ($order->order_currency_code  !== $product->price_currency_code)) {
+            $item->product_price = $this->currencyService->convertAmount($item->product_price, $order->order_currency_code, $currencyRate, config('citronel.decimals'));
+        }
+
+        $orderItemSubtotal = bcmul((string) $item->product_price, (string) $item->quantity, config('citronel.decimals'));
+
+        // Order summary
+        $orderItemSummary[$item->id]['quantity'] = $item->quantity;
+        $orderItemSummary[$item->id]['product_price'] = $this->currencyService->formatCurrencyAmount($item->product_price, $order->order_currency_code);
+        $orderItemSummary[$item->id]['product_total_price'] = $this->currencyService->formatCurrencyAmount($orderItemSubtotal, $order->order_currency_code);
+
+        $generateOrderItemSummaryResponse = $productInterfaceObj->generateOrderItemSummary($item);
+        $orderItemSummary[$item->id] = array_merge($orderItemSummary[$item->id], $generateOrderItemSummaryResponse);
+
+        $data['result'] = $orderItemSummary;
+        $data['success'] = true;
+
+        return $data;
+    }
+
+    public function generateOrderSummaryBeforeConfirmation($order, $extra = [])
+    {
+        $data = $this->helperService->returnFormat();
+
+        // Add order number
+        $orderSubtotal = '0';
+        $orderGrandTotal = '0';
+        $orderSummary = [];
+        $productTempArray = [];
+        $currencyRate = $extra['currency_rate'] ?? null;
+
+        $orderItems = $order->order_items;
+        foreach ($orderItems as $anOrderItem) {
+
+            $itemProductId = $anOrderItem['product_id'];
+            if (array_key_exists($itemProductId, $productTempArray)) {
+                $itemProduct = $productTempArray[$itemProductId]['product'];
+                $itemProductInterfaceObj = $productTempArray[$itemProductId]['product_class'];
+            } else {
+                $getProductReponse = $this->productService->getProductById($itemProductId);
+                $subItemProduct = $getProductReponse['result'];
+                $itemProductInterfaceObj = $this->helperService->makeObject($subItemProduct->product_class, ['product'=> $subItemProduct]);
+
+                $productTempArray[$itemProductId] = [
+                    'product' => $itemProductId,
+                    'product_class' => $itemProductInterfaceObj
+                ];
+            }
+
+            $generateOrderItemSummaryExtra = [
+                'currency_rate' => $extra['currency_rate'] ?? null,
+                'product_temp_array' => $productTempArray[$itemProductId],
+            ];
+            $generateOrderItemSummaryResponse = $this->generateOrderItemSummary($anOrderItem, $generateOrderItemSummaryExtra);
+            $orderSummary['items'][] = $generateOrderItemSummaryResponse['result'];
+
+            $productTotalPrice = $generateOrderItemSummaryResponse['result'][$anOrderItem->id]['product_total_price']['raw'];
+
+            $orderSubtotal = bcadd($orderSubtotal, (string) $productTotalPrice, config('citronel.decimals'));
+        }
+
+        $orderGrandTotal = $orderSubtotal;
+
+        if (!$order->lock_currency && ($order->order_currency_code !== $this->currencyService->getBaseCurrencyCode())) {
+            $orderSubtotal = $this->currencyService->convertAmount($orderSubtotal, $order->order_currency_code, $currencyRate, config('citronel.decimals'));
+
+            $orderGrandTotal = $this->currencyService->convertAmount($orderGrandTotal, $order->order_currency_code, $currencyRate, config('citronel.decimals'));
+        }
+
+        $orderSummary['order_sub_total'] = $this->currencyService->formatCurrencyAmount($orderSubtotal, $order->order_currency_code);
+        $orderSummary['order_grand_total'] = $this->currencyService->formatCurrencyAmount($orderGrandTotal, $order->order_currency_code);
+
+        $data['result'] = $orderSummary;
+       
         return $data;
     }
 }

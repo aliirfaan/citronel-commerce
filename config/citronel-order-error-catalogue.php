@@ -200,6 +200,19 @@ return [
                         ],
                     ]
                 ],
+                'order_summary' => [
+                    'key' => 'order_summary',
+                    'name' => 'order_summary',
+                    'code' => '8',
+                    'events' => [
+                        'order_summary_generation_failed' => [
+                            'key' => 'order_summary_generation_failed',
+                            'name' => 'order_summary_generation_failed',
+                            'code' => '1',
+                            'code_status' => 'order_summary_generation_failed',
+                        ]
+                    ]
+                ],
             ]
         ],
     ],

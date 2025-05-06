@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 use aliirfaan\CitronelCommerce\Http\Controllers\Order\OrderCreateController;
 use aliirfaan\CitronelCommerce\Http\Controllers\Order\OrderReviewController;
 use aliirfaan\CitronelCommerce\Http\Controllers\Order\OrderItemReviewController;
-use aliirfaan\CitronelCommerce\Http\Controllers\Order\OrderItemCreateController;
+use aliirfaan\CitronelCommerce\Http\Controllers\Order\OrderSummaryController;
 use aliirfaan\CitronelCommerce\Http\Controllers\Order\OrderFulfillController;
 use aliirfaan\CitronelCommerce\Http\Controllers\Order\OrderItemsUpdateController;
 
@@ -17,4 +17,5 @@ Route::group([
     Route::put('/{order_guid}/items', [OrderItemsUpdateController::class, 'update']);
     Route::put('/{order_guid}/items/{order_item_id}/review', [OrderItemReviewController::class, 'review']);
     Route::post('/{order_guid}/fulfill', [OrderFulfillController::class, 'fulfill']);
+    Route::get('/{order_guid}/summary', [OrderSummaryController::class, 'summary']);
 });

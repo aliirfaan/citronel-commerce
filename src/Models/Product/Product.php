@@ -3,11 +3,11 @@
 namespace aliirfaan\CitronelCommerce\Models\Product;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use aliirfaan\CitronelCore\Models\CitronelBaseModel;
 use aliirfaan\CitronelCommerce\Models\ProductCategory\ProductCategory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class Product extends Model
+class Product extends CitronelBaseModel
 {
     use HasFactory;
 

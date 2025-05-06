@@ -3,6 +3,7 @@
 namespace aliirfaan\CitronelCommerce;
 
 use aliirfaan\CitronelCommerce\Services\Currency\CitronelCurrencyService;
+use aliirfaan\CitronelCommerce\Providers\EventServiceProvider;
 
 class CitronelCommerceProvider extends \Illuminate\Support\ServiceProvider
 {
@@ -33,6 +34,10 @@ class CitronelCommerceProvider extends \Illuminate\Support\ServiceProvider
 
         $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'citronel-commerce');
 
+        $this->publishes([
+            __DIR__.'/../resources/lang' => resource_path('lang/vendor/citronel-commerce'),
+        ], 'citronel-commerce-translations');
+
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
 
         $this->registerRoutes();
@@ -40,6 +45,12 @@ class CitronelCommerceProvider extends \Illuminate\Support\ServiceProvider
         $this->publishes([
             __DIR__.'/../database/seeders/' => database_path('seeders'),
         ], 'citronel-commerce-seeders');
+
+        $this->loadViewsFrom(__DIR__.'/../resources/views', 'citronel-commerce');
+
+        $this->publishes([
+            __DIR__.'/../resources/views' => resource_path('views/vendor/citronel-commerce'),
+        ], 'citronel-commerce-views');
     }
 
     public function register()
@@ -64,6 +75,8 @@ class CitronelCommerceProvider extends \Illuminate\Support\ServiceProvider
             $parameter = config('citronel-currency-platform.currency_platform'); // or any other way to get the parameter
             return new CitronelCurrencyService($parameter);
         });
+
+        $this->app->register(EventServiceProvider::class);
     }
 
     protected function registerRoutes()

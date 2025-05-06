@@ -272,7 +272,7 @@ class CitronelPaymentService
         $auditData['al_message'] = $data['message'];
         $auditData['al_response'] = json_encode($gatewayResponseFields);
         
-        PaymentProcessed::dispatch($auditData);
+        PaymentProcessed::dispatch($payment, $auditData);
 
         return $data;
     }

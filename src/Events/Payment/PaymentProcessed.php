@@ -17,13 +17,17 @@ class PaymentProcessed
 
     public $eventData;
 
+    public $payment;
+
     /**
      * Create a new event instance.
      *
      * @return void
      */
-    public function __construct($eventData)
+    public function __construct($payment, $eventData)
     {
+        $this->payment = $payment;
+
         $this->eventData = $eventData;
 
         // dispatch event

@@ -3,10 +3,10 @@
 namespace aliirfaan\CitronelCommerce\Models\Payment;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use aliirfaan\CitronelCore\Models\CitronelBaseModel;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
-class PaymentMethod extends Model
+class PaymentMethod extends CitronelBaseModel
 {
     use HasFactory;
 

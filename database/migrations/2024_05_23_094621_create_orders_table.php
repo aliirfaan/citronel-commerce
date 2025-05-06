@@ -34,6 +34,9 @@ return new class extends Migration
             $table->tinyInteger('lock_currency')->nullable(true);
             $table->string('fulfillment_strategy_class', 255)->nullable(true);
             $table->text('order_meta')->nullable(true);
+            $table->tinyInteger('should_send_receipt')->nullable(true);
+            $table->string('receipt_channels', 255)->nullable(true);
+            $table->tinyInteger('receipt_sent')->nullable(true);
             $table->timestamps();
 
             $table->foreign('currency_rate_id')->references('id')->on('currency_rates');

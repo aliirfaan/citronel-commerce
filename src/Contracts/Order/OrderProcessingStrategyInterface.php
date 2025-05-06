@@ -24,4 +24,25 @@ interface OrderProcessingStrategyInterface
      * @return null | array
      */
     public function orderStrategyCreatePreCreateValidationRules();
+    
+    /**
+     * Method shouldSendReceipt
+     *
+     * @return bool
+     */
+    public function shouldSendReceipt();
+    
+    /**
+     * Method getReceiptChannels
+     *
+     * @return array
+     */
+    public function allowedReceiptChannels();
+    
+    /**
+     * Method receiptNotificationClass
+     *
+     * @return null | string
+     */
+    public function receiptNotificationClass();
 }

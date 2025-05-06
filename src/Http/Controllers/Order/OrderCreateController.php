@@ -44,7 +44,8 @@ class OrderCreateController extends OrderController
 
             $validationRules = $this->modelApiCommand->createValidationRules();
 
-            // check if this order strategy has a prevalidation 
+            // check if this order strategy has a pre validation
+            $fulfillmentStrategyClass = null;
             if (array_key_exists('custom_order_data', $requestArray) && array_key_exists('fulfillment_strategy_class', $requestArray['custom_order_data'])) {
 
                 $fulfillmentStrategyClass = $this->helperService->makeObject($requestArray['custom_order_data']['fulfillment_strategy_class']);
@@ -285,12 +286,24 @@ class OrderCreateController extends OrderController
                 $currencyRate = $getCurrencyRateResponse;
             }
 
+            $shouldSendReceipt = config('order.order_should_send_receipt');
+            if (!is_null($fulfillmentStrategyClass)) {
+                $shouldSendReceipt = $fulfillmentStrategyClass->shouldSendReceipt();
+            }
+
+            $receiptChannels = config('order.order_receipt_channels');
+            if (!is_null($fulfillmentStrategyClass)) {
+                $receiptChannels = $fulfillmentStrategyClass->allowedReceiptChannels();
+            }
+
             // create order
             $createOrderSaveData = [
                 'actor_id' => $this->actor ? $this->actor->id : null,
                 'currency_rate' => $currencyRate,
                 'order_currency_code' => $orderCurrencyCode,
-                'correlation_token' => $correlationToken
+                'correlation_token' => $correlationToken,
+                'should_send_receipt' => $shouldSendReceipt,
+                'receipt_channels' => $receiptChannels,
             ];
             if (array_key_exists('custom_order_data', $requestArray)) {
                 $createOrderSaveData = array_merge($createOrderSaveData, $requestArray['custom_order_data']);
@@ -332,8 +345,17 @@ class OrderCreateController extends OrderController
 
             $productTempArray = null;
 
-            $this->data['extra'] = $paymentMethodService->generatePaymentMethodExtra();
-            $currencyExtra = $currencyService->generateCurrencyExtra();
+            $generatePaymentMethodExtra = [
+                'order' => $newOrder,
+                'fulfillment_strategy_class' => $fulfillmentStrategyClass,
+            ];
+            $this->data['extra'] = $paymentMethodService->generatePaymentMethodExtra($generatePaymentMethodExtra);
+
+            $generateCurrencyExtra = [
+                'order' => $newOrder,
+                'fulfillment_strategy_class' => $fulfillmentStrategyClass,
+            ];
+            $currencyExtra = $currencyService->generateCurrencyExtra($generateCurrencyExtra);
             $this->data['extra'] = array_merge($this->data['extra'], $currencyExtra);
 
             $this->data['success'] = true;

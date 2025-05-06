@@ -4,9 +4,9 @@ namespace aliirfaan\CitronelCommerce\Models\CurrencyRate;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\MassPrunable;
-use Illuminate\Database\Eloquent\Model;
+use aliirfaan\CitronelCore\Models\CitronelBaseModel;
 
-class CurrencyRate extends Model
+class CurrencyRate extends CitronelBaseModel
 {
     use HasFactory;
 

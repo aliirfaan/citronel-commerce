@@ -182,7 +182,7 @@ trait PaymentServiceManualConfirmationTrait
             $auditData['al_message'] = $data['message'];
             $auditData['al_response'] = json_encode($manualPaymentConfirmationObj);
             
-            PaymentProcessed::dispatch($auditData);
+            PaymentProcessed::dispatch($payment, $auditData);
         }
 
         return $data;

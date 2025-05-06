@@ -14,6 +14,5 @@ Route::group([
     Route::post('/', [OrderCreateController::class, 'create']);
     Route::put('/{order_guid}/review', [OrderReviewController::class, 'review']);
     Route::put('/{order_guid}/items/{order_item_id}/review', [OrderItemReviewController::class, 'review']);
-    Route::post('/{order_guid}/items', [OrderItemCreateController::class, 'create']);
     Route::post('/{order_guid}/fulfill', [OrderFulfillController::class, 'fulfill']);
 });

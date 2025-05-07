@@ -341,7 +341,7 @@ class OrderCreateController extends OrderController
             
                 return $this->sendApiResponse($this->resultResponse, $this->resultResponse->collection['status_code'], $reponseHeaders);
             }
-            $newOrder = $createOrderResponse['result'];
+            $newOrder = $createOrderResponse['result']['order'];
 
             $productTempArray = null;
 

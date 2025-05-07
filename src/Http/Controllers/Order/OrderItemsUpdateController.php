@@ -141,12 +141,8 @@ class OrderItemsUpdateController extends OrderController
                 }
             }
 
-            $orderData = [
-                'correlation_token' => $correlationToken
-            ];
-
             // update order items
-            $updateOrderItemsResponse = $orderService->updateOrderItems($orderGuid, $orderData, $orderItems);
+            $updateOrderItemsResponse = $orderService->updateOrderItems($orderGuid, $orderItems);
             if (!$updateOrderItemsResponse['success']) {
                 $subProcessEvent = $this->errorCatalogueService->getSubProcessEvent('order', 'create', 'create_failure');
                 $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key']);
@@ -162,9 +158,9 @@ class OrderItemsUpdateController extends OrderController
                 return $this->sendApiResponse($this->resultResponse, $this->resultResponse->collection['status_code'], $reponseHeaders);
             }
 
-            $this->data['result']['order'] = $updateOrderItemsResponse['result'];
+            $this->data['result']['order'] = $updateOrderItemsResponse['result']['order'];
 
-            $generateOrderSummaryBeforeConfirmationResponse = $orderService->generateOrderSummaryBeforeConfirmation($updateOrderItemsResponse['result']);
+            $generateOrderSummaryBeforeConfirmationResponse = $orderService->generateOrderSummaryBeforeConfirmation($updateOrderItemsResponse['result']['order']);
             $this->data['result']['summary'] = $generateOrderSummaryBeforeConfirmationResponse['result'];
 
             $this->data['success'] = true;

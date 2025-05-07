@@ -29,6 +29,11 @@ class Order extends CitronelBaseModel
         return $this->hasMany(OrderItem::class, 'order_id');
     }
 
+    public function main_order_items(): HasMany
+    {
+        return $this->hasMany(OrderItem::class, 'order_id')->whereNull('linked_item_id');
+    }
+
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class, 'order_id');

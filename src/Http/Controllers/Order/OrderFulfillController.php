@@ -115,6 +115,10 @@ class OrderFulfillController extends OrderController
                 }
             }
 
+            // order fulfillment summary
+            $generateOrderFulfillmentSummaryResponse = $fulfillmentService->generateOrderFulfillmentSummary($order);
+            $this->data['result'] = $generateOrderFulfillmentSummaryResponse['result'];
+
             $this->data['success'] = true;
             $this->data['status_code'] = Response::HTTP_OK;
 

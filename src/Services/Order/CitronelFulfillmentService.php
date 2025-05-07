@@ -647,4 +647,72 @@ class CitronelFulfillmentService
         
         return $result->get();
     }
+
+    // @todo group
+    public function generateOrderItemFulfillmentSummary($item, $extra = [])
+    {
+        $data = $this->helperService->returnFormat();
+
+        $orderItemFulfillmentSummary[$item->id]['item'] = $item;
+
+        $productTempArray = array_key_exists('product_temp_array', $extra) ? $extra['product_temp_array'] : [];
+        $product = $productTempArray['product'];
+        $productInterfaceObj = $productTempArray['product_class'];
+        
+        $generateOrderItemFulfillmentSummaryExtra = [
+            'product_temp_array' => $productTempArray[$product->id],
+        ];
+        $generateOrderItemFulfillmentSummaryResponse = $productInterfaceObj->generateProductOrderFulfillmentSummary($item, $generateOrderItemFulfillmentSummaryExtra);
+        $orderItemFulfillmentSummary[$item->id]['summary'] = $generateOrderItemFulfillmentSummaryResponse;
+
+        $data['result'] = $orderItemFulfillmentSummary;
+        $data['success'] = true;
+
+        return $data;
+    }
+    
+    /**
+     * Method generateOrderFulfillmentSummary
+     *
+     * //@todo group fulfillment summary
+     * //sync or async fulfillmet summary
+     * // order strategy override
+     *
+     * @param mixed $order [explicite description]
+     * @param array $extra [explicite description]
+     *
+     * @return array
+     */
+    public function generateOrderFulfillmentSummary($order, $extra = [])
+    {
+        $data = $this->helperService->returnFormat();
+        $orderFulfillmentSummary['order'] = $order;
+        $productTempArray = [];
+
+        $fulfilledFulfillmentStatus = OrderStatus::FULFILLED->value;
+        $getFulfillmentsByOrderIdResponse = $this->getFulfillmentsByOrderId($order->id, $fulfilledFulfillmentStatus);
+
+        foreach ($getFulfillmentsByOrderIdResponse as $item) {
+
+            $product = $item->order_item->product;
+            if (!array_key_exists($product->id, $productTempArray)) {
+                $productInterfaceObj = $this->helperService->makeObject($product->product_class, ['product' => $product]);
+
+                $productTempArray[$product->id] = [
+                    'product' => $product,
+                    'product_class' => $productInterfaceObj
+                ];
+            }
+
+            $generateOrderItemFulfillmentSummaryExtra = [
+                'product_temp_array' => $productTempArray[$product->id],
+            ];
+            $generateOrderItemFulfillmentSummaryResponse = $this->generateOrderItemFulfillmentSummary($item, $generateOrderItemFulfillmentSummaryExtra);
+            $orderFulfillmentSummary['items'][] = $generateOrderItemFulfillmentSummaryResponse['result'];
+        }
+
+        $data['result'] = $orderFulfillmentSummary;
+       
+        return $data;
+    }
 }

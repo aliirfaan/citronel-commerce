@@ -12,10 +12,11 @@ use aliirfaan\CitronelCommerce\Services\Order\CitronelFulfillmentService;
 use aliirfaan\CitronelCommerce\Exceptions\Order\ItemFulfillmentException;
 use aliirfaan\CitronelCommerce\Enums\Order\OrderStatus;
 use aliirfaan\CitronelCommerce\Jobs\Order\FulfillItem;
+use aliirfaan\CitronelCommerce\Services\Currency\CitronelCurrencyService;
 
 class OrderFulfillController extends OrderController
 {
-    public function fulfill(Request $request, $order_guid, AuditLogService $auditService, CitronelOrderService $orderService, CitronelFulfillmentService $fulfillmentService)
+    public function fulfill(Request $request, $order_guid, AuditLogService $auditService, CitronelOrderService $orderService, CitronelFulfillmentService $fulfillmentService, CitronelCurrencyService $currencyService)
     {
         $correlationToken = $this->helperService->getCorrelationTokenFromHeader($request);
         $reponseHeaders = $this->helperService->setCorrelationResponseHeader($correlationToken);
@@ -119,7 +120,17 @@ class OrderFulfillController extends OrderController
 
             // order fulfillment summary
             $generateOrderFulfillmentSummaryResponse = $fulfillmentService->generateOrderFulfillmentSummary($order);
-            $this->data['result']['summary'] = $generateOrderFulfillmentSummaryResponse['result'];
+            $orderFulfillmentSummary = $generateOrderFulfillmentSummaryResponse['result'];
+
+            $orderFulfillmentSummary['order'] = $order;
+
+            $payment = $fulfillmentService->getSuccessPaymentForOrderFulfillmentSummary($order->id);
+            $orderFulfillmentSummary['payment'] = $payment;
+    
+            $orderFulfillmentSummary['totals']['sub_total'] = $currencyService->formatCurrencyAmount($order->order_subtotal, $order->order_currency_code);
+            $orderFulfillmentSummary['totals']['grand_total'] = $currencyService->formatCurrencyAmount($order->order_grand_total, $order->order_currency_code);
+
+            $this->data['result'] = $orderFulfillmentSummary;
 
             $this->data['success'] = true;
             $this->data['status_code'] = Response::HTTP_OK;

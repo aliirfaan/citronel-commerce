@@ -235,8 +235,9 @@ class CitronelFulfillmentService
                         'order_item_fulfillment_status' => $orderItemFulfillmentStatus,
                         'fulfilled_at' => $fulfilledAt
                     ];
+
+                    $fulfillmentUpdateData[$groupItem->id] = $groupFulfillmentUpdateData;
                 }
-                $fulfillmentUpdateData[$item->id] = $groupFulfillmentUpdateData;
             } else {
                 if ($fulfillProductOrderItemResponse['success']) {
                     $orderItemFulfillmentStatus = OrderStatus::FULFILLED->value;
@@ -254,7 +255,7 @@ class CitronelFulfillmentService
             }
 
             // for single and group, we are relying on main success for retry!
-            if ($fulfillProductOrderItemResponse['success']) {
+            if (!$fulfillProductOrderItemResponse['success']) {
                 /**
                  * check if request is the last retry for the job
                  * if retry job is active and if last retry, order status is set to unfulfilled, else order status is processing_retry
@@ -280,9 +281,9 @@ class CitronelFulfillmentService
             $productOrderFulfillmentItemUpdateData = $productInterfaceObj->generateProductOrderFulfillmentItemUpdate($item, $generateProductOrderFulfillmentItemUpdateExtra);
 
             if ($isInGroup) {
-                $fulfillmentUpdateData = array_merge($fulfillmentUpdateData, $productOrderFulfillmentItemUpdateData);
+                $fulfillmentUpdateData = array_merge_recursive($fulfillmentUpdateData, $productOrderFulfillmentItemUpdateData);
             } else {
-                $fulfillmentUpdateData[$item->id] = array_merge($fulfillmentUpdateData, $productOrderFulfillmentItemUpdateData);
+                $fulfillmentUpdateData[$item->id] = array_merge_recursive($fulfillmentUpdateData, $productOrderFulfillmentItemUpdateData);
             }
 
             foreach ($fulfillmentUpdateData as $key => $value) {
@@ -675,15 +676,28 @@ class CitronelFulfillmentService
 
         return false;
     }
-
+    
+    /**
+     * Method getFulfillmentsByFulfillmentGroupId
+     *
+     * @param mixed $groupId [explicite description]
+     * @param string|array $orderItemFulfillmentStatus [explicite description]
+     *
+     * @return mixed
+     */
     public function getFulfillmentsByFulfillmentGroupId($groupId, $orderItemFulfillmentStatus = null)
     {
-        if (is_null($orderItemFulfillmentStatus)) {
-            $orderItemFulfillmentStatus = OrderStatus::UNFULFILLED->value;
+        $result = $this->orderFulfillmentModel->where('order_item_fulfillment_grp_id', $groupId);
+
+        if (is_array($orderItemFulfillmentStatus)) {
+            // If $status is an array, use whereIn
+            $result->whereIn('order_item_fulfillment_status', $orderItemFulfillmentStatus);
+        } elseif (!is_null($orderItemFulfillmentStatus)) {
+            // If $status is a single value, use where
+            $result->where('order_item_fulfillment_status', $orderItemFulfillmentStatus);
         }
 
-        $result = $this->orderFulfillmentModel->where('order_item_fulfillment_grp_id', $groupId)
-        ->where('order_item_fulfillment_status', $orderItemFulfillmentStatus);
+        $result->orderBy('is_grp_parent', 'desc');
         
         return $result->get();
     }
@@ -693,8 +707,6 @@ class CitronelFulfillmentService
     {
         $data = $this->helperService->returnFormat();
 
-        $orderItemFulfillmentSummary[$item->id]['item'] = $item;
-
         $productTempArray = array_key_exists('product_temp_array', $extra) ? $extra['product_temp_array'] : [];
         $product = $productTempArray['product'];
         $productInterfaceObj = $productTempArray['product_class'];
@@ -703,7 +715,7 @@ class CitronelFulfillmentService
             'product_temp_array' => $productTempArray,
         ];
         $generateOrderItemFulfillmentSummaryResponse = $productInterfaceObj->generateProductOrderFulfillmentSummary($item, $generateOrderItemFulfillmentSummaryExtra);
-        $orderItemFulfillmentSummary[$item->id]['item_summary'] = $generateOrderItemFulfillmentSummaryResponse;
+        $orderItemFulfillmentSummary = $generateOrderItemFulfillmentSummaryResponse;
 
         $data['result'] = $orderItemFulfillmentSummary;
         $data['success'] = true;
@@ -726,7 +738,7 @@ class CitronelFulfillmentService
     public function generateOrderFulfillmentSummary($order, $extra = [])
     {
         $data = $this->helperService->returnFormat();
-        $orderFulfillmentSummary['order'] = $order;
+
         $productTempArray = [];
 
         $fulfilledFulfillmentStatus = OrderStatus::FULFILLED->value;
@@ -754,5 +766,23 @@ class CitronelFulfillmentService
         $data['result'] = $orderFulfillmentSummary;
        
         return $data;
+    }
+
+    public function getSuccessPaymentForOrderFulfillmentSummary($orderId)
+    {
+        return $this->orderFulfillmentModel
+            ->where('order_fulfillments.order_id', $orderId)
+            ->join('payments', 'payments.order_id', '=', 'order_fulfillments.order_id')
+            ->join('payment_method_configurations', 'payments.payment_method_configuration_id', '=', 'payment_method_configurations.id')
+            ->join('payment_methods', 'payment_methods.id', '=', 'payment_method_configurations.payment_method_id')
+            ->where('payments.payment_status', PaymentStatus::PAID->value)
+            ->select(
+                'payments.gateway_merchant_transaction_no',
+                'payments.paid_at',
+                'payment_methods.title',
+                'payments.card_number',
+                'payments.card_holder',
+            )
+            ->first();
     }
 }

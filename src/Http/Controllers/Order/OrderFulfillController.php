@@ -12,10 +12,11 @@ use aliirfaan\CitronelCommerce\Services\Order\CitronelFulfillmentService;
 use aliirfaan\CitronelCommerce\Exceptions\Order\ItemFulfillmentException;
 use aliirfaan\CitronelCommerce\Enums\Order\OrderStatus;
 use aliirfaan\CitronelCommerce\Jobs\Order\FulfillItem;
+use aliirfaan\CitronelCommerce\Services\Currency\CitronelCurrencyService;
 
 class OrderFulfillController extends OrderController
 {
-    public function fulfill(Request $request, $order_guid, AuditLogService $auditService, CitronelOrderService $orderService, CitronelFulfillmentService $fulfillmentService)
+    public function fulfill(Request $request, $order_guid, AuditLogService $auditService, CitronelOrderService $orderService, CitronelFulfillmentService $fulfillmentService, CitronelCurrencyService $currencyService)
     {
         $correlationToken = $this->helperService->getCorrelationTokenFromHeader($request);
         $reponseHeaders = $this->helperService->setCorrelationResponseHeader($correlationToken);
@@ -107,13 +108,29 @@ class OrderFulfillController extends OrderController
                 $fulfillmentTypeResponse = $productInterfaceObj->getProductOrderFulfillmentItemType();
                 if ($fulfillmentTypeResponse === 'sync') {
                     $itemFulfillmentResponse = $fulfillmentService->fulfillItem($item);
-                    $itemFulfillmentResponseMessages[] = $itemFulfillmentResponse['message'];
+                    if (is_array($itemFulfillmentResponse) && array_key_exists('message', $itemFulfillmentResponse)) {
+                        $itemFulfillmentResponseMessages[] = $itemFulfillmentResponse['message'];
+                    }
                 } else {
                     // if asyn how to prevent double fulfillment!
                     FulfillItem::dispatch($jobPolicyId, $item);
                     $itemFulfillmentResponseMessages[] = $productInterfaceObj->asyncItemFulfillmentMessage($item);
                 }
             }
+
+            // order fulfillment summary
+            $generateOrderFulfillmentSummaryResponse = $fulfillmentService->generateOrderFulfillmentSummary($order);
+            $orderFulfillmentSummary = $generateOrderFulfillmentSummaryResponse['result'];
+
+            $orderFulfillmentSummary['order'] = $order;
+
+            $payment = $fulfillmentService->getSuccessPaymentForOrderFulfillmentSummary($order->id);
+            $orderFulfillmentSummary['payment'] = $payment;
+    
+            $orderFulfillmentSummary['totals']['sub_total'] = $currencyService->formatCurrencyAmount($order->order_subtotal, $order->order_currency_code);
+            $orderFulfillmentSummary['totals']['grand_total'] = $currencyService->formatCurrencyAmount($order->order_grand_total, $order->order_currency_code);
+
+            $this->data['result'] = $orderFulfillmentSummary;
 
             $this->data['success'] = true;
             $this->data['status_code'] = Response::HTTP_OK;

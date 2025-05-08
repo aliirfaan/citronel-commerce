@@ -186,6 +186,12 @@ class CitronelFulfillmentService
             return;
         }
 
+        $groupItems = [];
+        $fulfillmentUpdateData = [];
+        if ($isInGroup) {
+            $groupItems = $this->getFulfillmentsByFulfillmentGroupId($item->order_item_fulfillment_grp_id);
+        }
+
         $orderItemFulfillmentStatus = $item->order_item_fulfillment_status;
 
         // check retry
@@ -209,45 +215,80 @@ class CitronelFulfillmentService
                 ['order_item_fulfillment_status' => $statusProcessing]
             );
 
-            $fulfilledAt = null;
+            $fulfilledAt = date(config('citronel.db_date_time_db_format'));
 
             $fulfillProductOrderItemResponse = $productInterfaceObj->fulfillProductOrderItem($item, $extra);
-            if ($fulfillProductOrderItemResponse['success']) {
-                $orderItemFulfillmentStatus = OrderStatus::FULFILLED->value;
-                $fulfilledAt = date(config('citronel.db_date_time_db_format'));
-            } else {
-                $orderItemFulfillmentStatus = OrderStatus::UNFULFILLED->value;
 
+            if ($isInGroup) {
+                foreach ($groupItems as $groupItem) {
+                    $fulfillProductOrderGroupItemResponse = $fulfillProductOrderItemResponse['result'][$groupItem->id];
+
+                    if ($fulfillProductOrderGroupItemResponse['success']) {
+                        $orderItemFulfillmentStatus = OrderStatus::FULFILLED->value;
+                        $fulfilledAt = $fulfilledAt;
+                    } else {
+                        $orderItemFulfillmentStatus = OrderStatus::UNFULFILLED->value;
+                        $fulfilledAt = null;
+                    }
+
+                    $groupFulfillmentUpdateData = [
+                        'order_item_fulfillment_status' => $orderItemFulfillmentStatus,
+                        'fulfilled_at' => $fulfilledAt
+                    ];
+
+                    $fulfillmentUpdateData[$groupItem->id] = $groupFulfillmentUpdateData;
+                }
+            } else {
+                if ($fulfillProductOrderItemResponse['success']) {
+                    $orderItemFulfillmentStatus = OrderStatus::FULFILLED->value;
+                } else {
+                    $orderItemFulfillmentStatus = OrderStatus::UNFULFILLED->value;
+                    $fulfilledAt = null;
+                }
+
+                $singleFulfillmentUpdateData = [
+                    'order_item_fulfillment_status' => $orderItemFulfillmentStatus,
+                    'fulfilled_at' => $fulfilledAt
+                ];
+
+                $fulfillmentUpdateData[$item->id] = $singleFulfillmentUpdateData;
+            }
+
+            // for single and group, we are relying on main success for retry!
+            if (!$fulfillProductOrderItemResponse['success']) {
                 /**
                  * check if request is the last retry for the job
                  * if retry job is active and if last retry, order status is set to unfulfilled, else order status is processing_retry
                  **/
 
-                $jobPolicyId = 'fulfill_item';
-                $jobPolicy = $this->getJobPolicy($jobPolicyId);
+                 $jobPolicyId = 'fulfill_item';
+                 $jobPolicy = $this->getJobPolicy($jobPolicyId);
+ 
+                 $isLastRetry = false;
+                 if (array_key_exists('is_last_retry', $extra)) {
+                     $isLastRetry = $extra['is_last_retry'];
+                 }
+                 if (!is_null($jobPolicy) && !$isLastRetry) {
+                     $orderItemFulfillmentStatus = OrderStatus::PROCESSING_RETRY->value;
+                 }
 
-                $isLastRetry = false;
-                if (array_key_exists('is_last_retry', $extra)) {
-                    $isLastRetry = $extra['is_last_retry'];
-                }
-                if (!is_null($jobPolicy) && !$isLastRetry) {
-                    $orderItemFulfillmentStatus = OrderStatus::PROCESSING_RETRY->value;
-                }
+                 $fulfillmentUpdateData[$item->id]['order_item_fulfillment_status'] = $orderItemFulfillmentStatus;
+                 $fulfillmentUpdateData[$item->id]['retry_count'] = $retryCount;
             }
-
-            $fulfillmentUpdateData = [
-                'order_item_fulfillment_status' => $orderItemFulfillmentStatus,
-                'fulfilled_at' => $fulfilledAt,
-                'retry_count' => $retryCount,
-            ];
 
             $generateProductOrderFulfillmentItemUpdateExtra = $fulfillProductOrderItemResponse['result'];
 
             $productOrderFulfillmentItemUpdateData = $productInterfaceObj->generateProductOrderFulfillmentItemUpdate($item, $generateProductOrderFulfillmentItemUpdateExtra);
 
-            $fulfillmentUpdateData = array_merge($fulfillmentUpdateData, $productOrderFulfillmentItemUpdateData);
+            if ($isInGroup) {
+                $fulfillmentUpdateData = array_merge_recursive($fulfillmentUpdateData, $productOrderFulfillmentItemUpdateData);
+            } else {
+                $fulfillmentUpdateData[$item->id] = array_merge_recursive($fulfillmentUpdateData, $productOrderFulfillmentItemUpdateData);
+            }
 
-            $this->orderFulfillmentModel::where('id', $item->id)->update($fulfillmentUpdateData);
+            foreach ($fulfillmentUpdateData as $key => $value) {
+                $this->orderFulfillmentModel::where('id', $key)->update($value);
+            }
 
             $data['message'] = $fulfillProductOrderItemResponse['message'];
         }
@@ -635,16 +676,113 @@ class CitronelFulfillmentService
 
         return false;
     }
-
+    
+    /**
+     * Method getFulfillmentsByFulfillmentGroupId
+     *
+     * @param mixed $groupId [explicite description]
+     * @param string|array $orderItemFulfillmentStatus [explicite description]
+     *
+     * @return mixed
+     */
     public function getFulfillmentsByFulfillmentGroupId($groupId, $orderItemFulfillmentStatus = null)
     {
-        if (is_null($orderItemFulfillmentStatus)) {
-            $orderItemFulfillmentStatus = OrderStatus::UNFULFILLED->value;
+        $result = $this->orderFulfillmentModel->where('order_item_fulfillment_grp_id', $groupId);
+
+        if (is_array($orderItemFulfillmentStatus)) {
+            // If $status is an array, use whereIn
+            $result->whereIn('order_item_fulfillment_status', $orderItemFulfillmentStatus);
+        } elseif (!is_null($orderItemFulfillmentStatus)) {
+            // If $status is a single value, use where
+            $result->where('order_item_fulfillment_status', $orderItemFulfillmentStatus);
         }
 
-        $result = $this->orderFulfillmentModel->where('order_item_fulfillment_grp_id', $groupId)
-        ->where('order_item_fulfillment_status', $orderItemFulfillmentStatus);
+        $result->orderBy('is_grp_parent', 'desc');
         
         return $result->get();
+    }
+
+    // @todo group
+    public function generateOrderItemFulfillmentSummary($item, $extra = [])
+    {
+        $data = $this->helperService->returnFormat();
+
+        $productTempArray = array_key_exists('product_temp_array', $extra) ? $extra['product_temp_array'] : [];
+        $product = $productTempArray['product'];
+        $productInterfaceObj = $productTempArray['product_class'];
+        
+        $generateOrderItemFulfillmentSummaryExtra = [
+            'product_temp_array' => $productTempArray,
+        ];
+        $generateOrderItemFulfillmentSummaryResponse = $productInterfaceObj->generateProductOrderFulfillmentSummary($item, $generateOrderItemFulfillmentSummaryExtra);
+        $orderItemFulfillmentSummary = $generateOrderItemFulfillmentSummaryResponse;
+
+        $data['result'] = $orderItemFulfillmentSummary;
+        $data['success'] = true;
+
+        return $data;
+    }
+    
+    /**
+     * Method generateOrderFulfillmentSummary
+     *
+     * //@todo group fulfillment summary
+     * //sync or async fulfillmet summary
+     * // order strategy override
+     *
+     * @param mixed $order [explicite description]
+     * @param array $extra [explicite description]
+     *
+     * @return array
+     */
+    public function generateOrderFulfillmentSummary($order, $extra = [])
+    {
+        $data = $this->helperService->returnFormat();
+
+        $productTempArray = [];
+
+        $fulfilledFulfillmentStatus = OrderStatus::FULFILLED->value;
+        $getFulfillmentsByOrderIdResponse = $this->getFulfillmentsByOrderId($order->id, $fulfilledFulfillmentStatus);
+
+        foreach ($getFulfillmentsByOrderIdResponse as $item) {
+
+            $product = $item->order_item->product;
+            if (!array_key_exists($product->id, $productTempArray)) {
+                $productInterfaceObj = $this->helperService->makeObject($product->product_class, ['product' => $product]);
+
+                $productTempArray[$product->id] = [
+                    'product' => $product,
+                    'product_class' => $productInterfaceObj
+                ];
+            }
+
+            $generateOrderItemFulfillmentSummaryExtra = [
+                'product_temp_array' => $productTempArray[$product->id],
+            ];
+            $generateOrderItemFulfillmentSummaryResponse = $this->generateOrderItemFulfillmentSummary($item, $generateOrderItemFulfillmentSummaryExtra);
+            $orderFulfillmentSummary['items'][] = $generateOrderItemFulfillmentSummaryResponse['result'];
+        }
+
+        $data['result'] = $orderFulfillmentSummary;
+       
+        return $data;
+    }
+
+    public function getSuccessPaymentForOrderFulfillmentSummary($orderId)
+    {
+        return $this->orderFulfillmentModel
+            ->where('order_fulfillments.order_id', $orderId)
+            ->join('payments', 'payments.order_id', '=', 'order_fulfillments.order_id')
+            ->join('payment_method_configurations', 'payments.payment_method_configuration_id', '=', 'payment_method_configurations.id')
+            ->join('payment_methods', 'payment_methods.id', '=', 'payment_method_configurations.payment_method_id')
+            ->where('payments.payment_status', PaymentStatus::PAID->value)
+            ->select(
+                'payments.gateway_merchant_transaction_no',
+                'payments.paid_at',
+                'payment_methods.title',
+                'payments.card_number',
+                'payments.card_holder',
+            )
+            ->first();
     }
 }

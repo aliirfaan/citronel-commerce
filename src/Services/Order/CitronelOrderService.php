@@ -935,8 +935,8 @@ class CitronelOrderService
             $orderGrandTotal = $this->currencyService->convertAmount($orderGrandTotal, $order->order_currency_code, $currencyRate, config('citronel.decimals'));
         }
 
-        $orderSummary['order_sub_total'] = $this->currencyService->formatCurrencyAmount($orderSubtotal, $order->order_currency_code);
-        $orderSummary['order_grand_total'] = $this->currencyService->formatCurrencyAmount($orderGrandTotal, $order->order_currency_code);
+        $orderSummary['totals']['sub_total'] = $this->currencyService->formatCurrencyAmount($orderSubtotal, $order->order_currency_code);
+        $orderSummary['totals']['grand_total'] = $this->currencyService->formatCurrencyAmount($orderGrandTotal, $order->order_currency_code);
 
         $data['result'] = $orderSummary;
        

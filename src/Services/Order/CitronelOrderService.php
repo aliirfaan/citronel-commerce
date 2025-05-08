@@ -184,6 +184,7 @@ class CitronelOrderService
             'fulfillment_strategy_class' => array_key_exists('fulfillment_strategy_class', $saveData) ? $saveData['fulfillment_strategy_class'] : null,
             'should_send_receipt' => array_key_exists('should_send_receipt', $saveData) ? $saveData['should_send_receipt'] : null,
             'receipt_channels' => $receiptChannels,
+            'order_payment_method_configuration_id' => array_key_exists('order_payment_method_configuration_id', $saveData) ? $saveData['order_payment_method_configuration_id'] : null,
             'order_meta' => array_key_exists('order_meta', $saveData) ? json_encode($saveData['order_meta']) : null,
         ];
     

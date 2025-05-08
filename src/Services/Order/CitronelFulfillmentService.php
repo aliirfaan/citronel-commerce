@@ -58,6 +58,8 @@ class CitronelFulfillmentService
 
     protected $errorCatalogueService;
 
+    protected $orderModel;
+
     public function __construct()
     {
         $this->orderFulfillmentModel = new OrderFulfillment();
@@ -70,6 +72,8 @@ class CitronelFulfillmentService
         $this->errorCatalogueService = new CitronelErrorCatalogueService();
 
         $this->mainProcess = $this->errorCatalogueService->getMainProcess('order');
+
+        $this->orderModel = app(config('citronel-order.order_model'));
     }
     
     /**
@@ -770,19 +774,41 @@ class CitronelFulfillmentService
 
     public function getSuccessPaymentForOrderFulfillmentSummary($orderId)
     {
-        return $this->orderFulfillmentModel
-            ->where('order_fulfillments.order_id', $orderId)
-            ->join('payments', 'payments.order_id', '=', 'order_fulfillments.order_id')
-            ->join('payment_method_configurations', 'payments.payment_method_configuration_id', '=', 'payment_method_configurations.id')
-            ->join('payment_methods', 'payment_methods.id', '=', 'payment_method_configurations.payment_method_id')
-            ->where('payments.payment_status', PaymentStatus::PAID->value)
-            ->select(
-                'payments.gateway_merchant_transaction_no',
-                'payments.paid_at',
-                'payment_methods.title',
-                'payments.card_number',
-                'payments.card_holder',
-            )
+        $result = null;
+
+        $order = $this->orderModel::where('id', $orderId)
+            ->whereHas('payments', function ($query) {
+                $query->where('payment_status', PaymentStatus::PAID->value);
+            })
+            ->with([
+                'payments' => function ($query) {
+                    $query->where('payment_status', PaymentStatus::PAID->value)
+                        ->select([
+                            'id',
+                            'order_id',
+                            'gateway_merchant_transaction_no',
+                            'paid_at',
+                            'card_number',
+                            'card_holder',
+                            'payment_method_configuration_id',
+                        ]);
+                },
+                'payments.payment_method_configuration:id,payment_method_id,id',
+                'payments.payment_method_configuration.payment_method:id,title'
+            ])
             ->first();
+
+        $payment = $order->payments->first();
+        if ($payment) {
+            $result = [
+                'gateway_merchant_transaction_no' => $payment->gateway_merchant_transaction_no,
+                'paid_at' => $payment->paid_at,
+                'title' => $payment->payment_method_configuration?->payment_method?->title,
+                'card_number' => $payment->card_number,
+                'card_holder' => $payment->card_holder,
+            ];
+        }
+
+        return $result;
     }
 }

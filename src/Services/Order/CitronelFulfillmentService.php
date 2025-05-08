@@ -186,6 +186,12 @@ class CitronelFulfillmentService
             return;
         }
 
+        $groupItems = [];
+        $fulfillmentUpdateData = [];
+        if ($isInGroup) {
+            $groupItems = $this->getFulfillmentsByFulfillmentGroupId($item->order_item_fulfillment_grp_id);
+        }
+
         $orderItemFulfillmentStatus = $item->order_item_fulfillment_status;
 
         // check retry
@@ -209,45 +215,79 @@ class CitronelFulfillmentService
                 ['order_item_fulfillment_status' => $statusProcessing]
             );
 
-            $fulfilledAt = null;
+            $fulfilledAt = date(config('citronel.db_date_time_db_format'));
 
             $fulfillProductOrderItemResponse = $productInterfaceObj->fulfillProductOrderItem($item, $extra);
-            if ($fulfillProductOrderItemResponse['success']) {
-                $orderItemFulfillmentStatus = OrderStatus::FULFILLED->value;
-                $fulfilledAt = date(config('citronel.db_date_time_db_format'));
-            } else {
-                $orderItemFulfillmentStatus = OrderStatus::UNFULFILLED->value;
 
+            if ($isInGroup) {
+                foreach ($groupItems as $groupItem) {
+                    $fulfillProductOrderGroupItemResponse = $fulfillProductOrderItemResponse['result'][$groupItem->id];
+
+                    if ($fulfillProductOrderGroupItemResponse['success']) {
+                        $orderItemFulfillmentStatus = OrderStatus::FULFILLED->value;
+                        $fulfilledAt = $fulfilledAt;
+                    } else {
+                        $orderItemFulfillmentStatus = OrderStatus::UNFULFILLED->value;
+                        $fulfilledAt = null;
+                    }
+
+                    $groupFulfillmentUpdateData = [
+                        'order_item_fulfillment_status' => $orderItemFulfillmentStatus,
+                        'fulfilled_at' => $fulfilledAt
+                    ];
+                }
+                $fulfillmentUpdateData[$item->id] = $groupFulfillmentUpdateData;
+            } else {
+                if ($fulfillProductOrderItemResponse['success']) {
+                    $orderItemFulfillmentStatus = OrderStatus::FULFILLED->value;
+                } else {
+                    $orderItemFulfillmentStatus = OrderStatus::UNFULFILLED->value;
+                    $fulfilledAt = null;
+                }
+
+                $singleFulfillmentUpdateData = [
+                    'order_item_fulfillment_status' => $orderItemFulfillmentStatus,
+                    'fulfilled_at' => $fulfilledAt
+                ];
+
+                $fulfillmentUpdateData[$item->id] = $singleFulfillmentUpdateData;
+            }
+
+            // for single and group, we are relying on main success for retry!
+            if ($fulfillProductOrderItemResponse['success']) {
                 /**
                  * check if request is the last retry for the job
                  * if retry job is active and if last retry, order status is set to unfulfilled, else order status is processing_retry
                  **/
 
-                $jobPolicyId = 'fulfill_item';
-                $jobPolicy = $this->getJobPolicy($jobPolicyId);
+                 $jobPolicyId = 'fulfill_item';
+                 $jobPolicy = $this->getJobPolicy($jobPolicyId);
+ 
+                 $isLastRetry = false;
+                 if (array_key_exists('is_last_retry', $extra)) {
+                     $isLastRetry = $extra['is_last_retry'];
+                 }
+                 if (!is_null($jobPolicy) && !$isLastRetry) {
+                     $orderItemFulfillmentStatus = OrderStatus::PROCESSING_RETRY->value;
+                 }
 
-                $isLastRetry = false;
-                if (array_key_exists('is_last_retry', $extra)) {
-                    $isLastRetry = $extra['is_last_retry'];
-                }
-                if (!is_null($jobPolicy) && !$isLastRetry) {
-                    $orderItemFulfillmentStatus = OrderStatus::PROCESSING_RETRY->value;
-                }
+                 $fulfillmentUpdateData[$item->id]['order_item_fulfillment_status'] = $orderItemFulfillmentStatus;
+                 $fulfillmentUpdateData[$item->id]['retry_count'] = $retryCount;
             }
-
-            $fulfillmentUpdateData = [
-                'order_item_fulfillment_status' => $orderItemFulfillmentStatus,
-                'fulfilled_at' => $fulfilledAt,
-                'retry_count' => $retryCount,
-            ];
 
             $generateProductOrderFulfillmentItemUpdateExtra = $fulfillProductOrderItemResponse['result'];
 
             $productOrderFulfillmentItemUpdateData = $productInterfaceObj->generateProductOrderFulfillmentItemUpdate($item, $generateProductOrderFulfillmentItemUpdateExtra);
 
-            $fulfillmentUpdateData = array_merge($fulfillmentUpdateData, $productOrderFulfillmentItemUpdateData);
+            if ($isInGroup) {
+                $fulfillmentUpdateData = array_merge($fulfillmentUpdateData, $productOrderFulfillmentItemUpdateData);
+            } else {
+                $fulfillmentUpdateData[$item->id] = array_merge($fulfillmentUpdateData, $productOrderFulfillmentItemUpdateData);
+            }
 
-            $this->orderFulfillmentModel::where('id', $item->id)->update($fulfillmentUpdateData);
+            foreach ($fulfillmentUpdateData as $key => $value) {
+                $this->orderFulfillmentModel::where('id', $key)->update($value);
+            }
 
             $data['message'] = $fulfillProductOrderItemResponse['message'];
         }
@@ -660,10 +700,10 @@ class CitronelFulfillmentService
         $productInterfaceObj = $productTempArray['product_class'];
         
         $generateOrderItemFulfillmentSummaryExtra = [
-            'product_temp_array' => $productTempArray[$product->id],
+            'product_temp_array' => $productTempArray,
         ];
         $generateOrderItemFulfillmentSummaryResponse = $productInterfaceObj->generateProductOrderFulfillmentSummary($item, $generateOrderItemFulfillmentSummaryExtra);
-        $orderItemFulfillmentSummary[$item->id]['summary'] = $generateOrderItemFulfillmentSummaryResponse;
+        $orderItemFulfillmentSummary[$item->id]['item_summary'] = $generateOrderItemFulfillmentSummaryResponse;
 
         $data['result'] = $orderItemFulfillmentSummary;
         $data['success'] = true;

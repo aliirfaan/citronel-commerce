@@ -107,7 +107,9 @@ class OrderFulfillController extends OrderController
                 $fulfillmentTypeResponse = $productInterfaceObj->getProductOrderFulfillmentItemType();
                 if ($fulfillmentTypeResponse === 'sync') {
                     $itemFulfillmentResponse = $fulfillmentService->fulfillItem($item);
-                    $itemFulfillmentResponseMessages[] = $itemFulfillmentResponse['message'];
+                    if (is_array($itemFulfillmentResponse) && array_key_exists('message', $itemFulfillmentResponse)) {
+                        $itemFulfillmentResponseMessages[] = $itemFulfillmentResponse['message'];
+                    }
                 } else {
                     // if asyn how to prevent double fulfillment!
                     FulfillItem::dispatch($jobPolicyId, $item);
@@ -117,7 +119,7 @@ class OrderFulfillController extends OrderController
 
             // order fulfillment summary
             $generateOrderFulfillmentSummaryResponse = $fulfillmentService->generateOrderFulfillmentSummary($order);
-            $this->data['result'] = $generateOrderFulfillmentSummaryResponse['result'];
+            $this->data['result']['summary'] = $generateOrderFulfillmentSummaryResponse['result'];
 
             $this->data['success'] = true;
             $this->data['status_code'] = Response::HTTP_OK;

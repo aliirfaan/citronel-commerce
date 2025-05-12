@@ -188,8 +188,6 @@ class CitronelFulfillmentService
         $fulfillmentUpdateData = [];
         $groupItems = $this->getFulfillmentsByFulfillmentGroupId($item->order_item_fulfillment_grp_id);
 
-        $orderItemFulfillmentStatus = $item->order_item_fulfillment_status;
-
         $productInterfaceObj = $this->helperService->makeObject($item->order_item->product->product_class, ['product' => $item->order_item->product]);
 
         $shouldFullfillItem = $this->shouldFulfillItem($item->order_item_fulfillment_status);
@@ -215,7 +213,6 @@ class CitronelFulfillmentService
 
                 if ($fulfillProductOrderGroupItemResponse['success']) {
                     $orderItemFulfillmentStatus = OrderStatus::FULFILLED->value;
-                    $fulfilledAt = $fulfilledAt;
                 } else {
                     $fulfilledAt = null;
                     $hasFulfillmentErrors = true;

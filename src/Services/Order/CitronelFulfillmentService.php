@@ -306,6 +306,7 @@ class CitronelFulfillmentService
         $auditData['al_event_name'] = $subProcess['events']['item_fulfillment_processed']['name'];
         $auditData['al_correlation_id'] = $correlationToken;
         $auditData['al_is_success'] = true;
+        $auditData['order_data']['order_guid'] = $item->order_item->order->order_guid;
 
         // Status can also be processing_retry in case of retry
         switch ($item->order_item_fulfillment_status) {

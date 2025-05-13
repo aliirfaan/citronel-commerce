@@ -11,5 +11,5 @@ interface ProductOrderFulfillmentSummaryInterface
      *
      * @return array
      */
-    public function generateOrderFulfillmentSummary($item = null, $extra = []);
+    public function generateFulfillmentItemSummary($item = null, $extra = []);
 }

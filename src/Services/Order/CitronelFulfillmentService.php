@@ -224,7 +224,7 @@ class CitronelFulfillmentService
             ['order_item_fulfillment_status' => $statusProcessing]
         );
 
-        $fulfillProductOrderItemResponse = $productInterfaceObj->fulfillItem($groupItems, $extra);
+        $fulfillProductOrderItemResponse = $productInterfaceObj->fulfillGroupItems($groupItems, $extra);
 
         foreach ($groupItems as $groupItem) {
 
@@ -530,7 +530,7 @@ class CitronelFulfillmentService
             return;
         }
 
-        $fulfillProductOrderItemResponse = $productInterfaceObj->manuallyfulfillItem($groupItems, $extra);
+        $fulfillProductOrderItemResponse = $productInterfaceObj->manuallyfulfillGroupItems(($groupItems, $extra);
 
         foreach ($validatedGroupItems as $groupItem) {
             $retryCount = intval($groupItem->retry_count);
@@ -823,7 +823,7 @@ class CitronelFulfillmentService
 
             $fulfilledAt = date(config('citronel.db_date_time_db_format'));
 
-            $fulfillProductOrderItemResponse = $productInterfaceObj->fulfillItem($item, $extra);
+            $fulfillProductOrderItemResponse = $productInterfaceObj->fulfillGroupItems($item, $extra);
 
      
             if ($fulfillProductOrderItemResponse['success']) {

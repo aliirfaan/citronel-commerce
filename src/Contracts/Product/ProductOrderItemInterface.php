@@ -61,7 +61,7 @@ interface ProductOrderItemInterface
      *
      * @return array
      */
-    public function fulfillItem($item, $extra = []);
+    public function fulfillGroupItems($groupItems, $extra = []);
     
     /**
      * A message to display after successful order processing

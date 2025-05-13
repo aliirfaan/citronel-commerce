@@ -149,7 +149,7 @@ class OrderCreateController extends OrderController
 
                                 $fulfillmentTypeResponse = $productInterfaceObj->getFulfillmentItemType();
                                 if ($fulfillmentTypeResponse === 'sync') {
-                                    $itemFulfillmentResponse = $fulfillmentService->fulfillItem($item);
+                                    $itemFulfillmentResponse = $fulfillmentService->fulfillGroupItems($item);
                                     $itemFulfillmentResponseMessages[] = $itemFulfillmentResponse['message'];
                                 } else {
                                     FulfillItem::dispatch($jobPolicyId, $item);

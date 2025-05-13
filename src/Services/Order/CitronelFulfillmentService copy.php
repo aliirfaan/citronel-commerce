@@ -148,10 +148,10 @@ class CitronelFulfillmentService
         if(!is_null($order->fulfillment_strategy_class)) {
             $fulfillmentStrategyClass = $this->helperService->makeObject($order->fulfillment_strategy_class);
 
-            $fulfillmentStrategyClass->groupProductOrderItems($order);
+            $fulfillmentStrategyClass->groupFulfillments($order);
         } else {
             // default grouping
-            $this->groupProductOrderItems($order);
+            $this->groupFulfillments($order);
         }
 
         DB::commit();
@@ -203,7 +203,7 @@ class CitronelFulfillmentService
                 ['order_item_fulfillment_status' => $statusProcessing]
             );
 
-            $fulfillProductOrderItemResponse = $productInterfaceObj->fulfillProductOrderItem($item, $extra);
+            $fulfillProductOrderItemResponse = $productInterfaceObj->fulfillItem($item, $extra);
 
             foreach ($groupItems as $groupItem) {
                 $fulfillProductOrderGroupItemResponse = $fulfillProductOrderItemResponse['result'][$groupItem->id];
@@ -305,7 +305,7 @@ class CitronelFulfillmentService
 
             $fulfilledAt = date(config('citronel.db_date_time_db_format'));
 
-            $fulfillProductOrderItemResponse = $productInterfaceObj->fulfillProductOrderItem($item, $extra);
+            $fulfillProductOrderItemResponse = $productInterfaceObj->fulfillItem($item, $extra);
 
             if ($isInGroup) {
                 foreach ($groupItems as $groupItem) {
@@ -675,7 +675,7 @@ class CitronelFulfillmentService
                 $data['message'] = $processSupplierOrderForManualFulfillmentResponse['message'];
 
             } else {
-                $fulfillProductOrderItemResponse = $productInterfaceObj->manuallyfulfillProductOrderItem($item, $extra);
+                $fulfillProductOrderItemResponse = $productInterfaceObj->manuallyfulfillItem($item, $extra);
                 if ($fulfillProductOrderItemResponse['success']) {
                     $orderItemFulfillmentStatus = OrderStatus::FULFILLED->value;
                     $fulfilledAt = date(config('citronel.db_date_time_db_format'));

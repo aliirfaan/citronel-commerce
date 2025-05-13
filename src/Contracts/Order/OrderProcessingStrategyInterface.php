@@ -5,7 +5,7 @@ namespace aliirfaan\CitronelCommerce\Contracts\Order;
 interface OrderProcessingStrategyInterface
 {
     /**
-     * Method groupProductOrderItems
+     * Method groupFulfillments
      *
      * Set group id and group parent for order fulfillment items when creating fuflillments
      *
@@ -14,7 +14,7 @@ interface OrderProcessingStrategyInterface
      *
      * @return array
      */
-    public function groupProductOrderItems($order);
+    public function groupFulfillments($order);
     
     /**
      * Method orderCreatePreProcessValidationRules

@@ -221,7 +221,7 @@ class CitronelOrderService
             $preProcessedOrderItem = $orderItemCreatePreProcessResponse['result'];
             $anOrderItem = is_array($preProcessedOrderItem) ? array_merge($anOrderItem, $preProcessedOrderItem) : $anOrderItem;
     
-            $saveOrderItemData = $productInterfaceObj->createProductOrderItem($anOrderItem);
+            $saveOrderItemData = $productInterfaceObj->createOrderItem($anOrderItem);
             $saveOrderItemData['order_id'] = $newOrder->id;
             $newOrderItem = $this->orderItemModel::create($saveOrderItemData);
     
@@ -279,7 +279,7 @@ class CitronelOrderService
                 $preProcessedSubItem = $subItemCreatePreProcessResponse['result'];
                 $aSubItem = is_array($preProcessedSubItem) ? array_merge($aSubItem, $preProcessedSubItem) : $aSubItem;
         
-                $saveSubItemData = $subItemProductInterfaceObj->createProductOrderItem($aSubItem);
+                $saveSubItemData = $subItemProductInterfaceObj->createOrderItem($aSubItem);
                 $saveSubItemData['order_id'] = $newOrder->id;
                 $saveSubItemData['linked_item_id'] = $newOrderItem->id;
                 $newSubItem = $this->orderItemModel::create($saveSubItemData);
@@ -765,7 +765,7 @@ class CitronelOrderService
                 $orderItemObj->quantity = $orderItemObj->quantity + $anOrderItem['quantity'];
                 $orderItemObj->save();
             } else {
-                $saveOrderItemData = $productInterfaceObj->createProductOrderItem($anOrderItem);
+                $saveOrderItemData = $productInterfaceObj->createOrderItem($anOrderItem);
                 $saveOrderItemData['order_id'] = $order->id;
                 $orderItemObj = $this->orderItemModel::create($saveOrderItemData);
             }
@@ -843,7 +843,7 @@ class CitronelOrderService
                 $preProcessedSubItem = $subItemCreatePreProcessResponse['result'];
                 $aSubItem = is_array($preProcessedSubItem) ? array_merge($aSubItem, $preProcessedSubItem) : $aSubItem;
         
-                $saveSubItemData = $subItemProductInterfaceObj->createProductOrderItem($aSubItem);
+                $saveSubItemData = $subItemProductInterfaceObj->createOrderItem($aSubItem);
                 $saveSubItemData['order_id'] = $order->id;
                 $saveSubItemData['linked_item_id'] = $orderItemObj->id;
                 $newSubItem = $this->orderItemModel::create($saveSubItemData);
@@ -1041,7 +1041,7 @@ class CitronelOrderService
                 $preProcessedOrderItem = $orderItemCreatePreProcessResponse['result'];
                 $anOrderItem = is_array($preProcessedOrderItem) ? array_merge($anOrderItem, $preProcessedOrderItem) : $anOrderItem;
         
-                $saveOrderItemData = $productInterfaceObj->createProductOrderItem($anOrderItem);
+                $saveOrderItemData = $productInterfaceObj->createOrderItem($anOrderItem);
                 $saveOrderItemData['order_id'] = $order->id;
                 $newOrderItem = $this->orderItemModel::create($saveOrderItemData);
 
@@ -1070,7 +1070,7 @@ class CitronelOrderService
                     $preProcessedSubItem = $subItemCreatePreProcessResponse['result'];
                     $aSubItem = is_array($preProcessedSubItem) ? array_merge($aSubItem, $preProcessedSubItem) : $aSubItem;
             
-                    $saveSubItemData = $subItemProductInterfaceObj->createProductOrderItem($aSubItem);
+                    $saveSubItemData = $subItemProductInterfaceObj->createOrderItem($aSubItem);
                     $saveSubItemData['order_id'] = $order->id;
                     $saveSubItemData['linked_item_id'] = $newOrderItem->id;
                     $this->orderItemModel::create($saveSubItemData);

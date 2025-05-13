@@ -23,5 +23,5 @@ interface ProductOrderFulfillmentRefundInterface
      *
      * @return null|array
      */
-    public function processOrderFulfillmentItemRefund($item = null, $extra = []);
+    public function processFulfillmentItemRefund($item = null, $extra = []);
 }

@@ -61,7 +61,7 @@ interface ProductOrderItemInterface
      *
      * @return array
      */
-    public function fulfillProductOrderItem($item, $extra = []);
+    public function fulfillItem($item, $extra = []);
     
     /**
      * A message to display after successful order processing
@@ -111,7 +111,7 @@ interface ProductOrderItemInterface
      *
      * @return mixed
      */
-    public function generateProductOrderItemAmount($item = null, $extra = []);
+    public function generateOrderItemAmount($item = null, $extra = []);
     
     /**
      * Specify columns for the product
@@ -121,7 +121,7 @@ interface ProductOrderItemInterface
      *
      * @return mixed
      */
-    public function createProductOrderItem($item = null, $extra = []);
+    public function createOrderItem($item = null, $extra = []);
     
     /**
      * Specify columns for the product for order fulfillment
@@ -132,7 +132,7 @@ interface ProductOrderItemInterface
      * @return mixed
 
      */
-    public function createProductOrderFulfillmentItem($item = null, $extra = []);
+    public function createFulfillmentItem($item = null, $extra = []);
 
     /**
      * If we want to pass outside information when generating the order fulfillment item like counter, reference generation based on quantity, etc.
@@ -143,7 +143,7 @@ interface ProductOrderItemInterface
      * @return mixed
 
      */
-    public function createProductOrderFulfillmentItemExtra($item = null, $extra = []);
+    public function createFulfillmentItemExtra($item = null, $extra = []);
     
     /**
      * Method getProductOrderFulfillmentItemType
@@ -155,7 +155,7 @@ interface ProductOrderItemInterface
      *
      * @return mixed
      */
-    public function getProductOrderFulfillmentItemType($item = null, $extra = []);
+    public function getFulfillmentItemType($item = null, $extra = []);
     
     /**
      * Method generateProductOrderFulfillmentItemUpdate
@@ -167,7 +167,7 @@ interface ProductOrderItemInterface
      *
      * @return array
      */
-    public function generateProductOrderFulfillmentItemUpdate($item = null, $extra = []);
+    public function generateFulfillmentItemUpdate($item = null, $extra = []);
 
     /**
      * Call before fulfilling the order item
@@ -179,7 +179,7 @@ interface ProductOrderItemInterface
      *
      * @return array
      */
-    public function fulfillProductOrderItemPreProcess($item, $extra = []);
+    public function fulfillItemPreProcess($item, $extra = []);
 
     /**
      * A message to display when fulfillment type is async and that processing will be done in the background

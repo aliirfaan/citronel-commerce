@@ -108,7 +108,7 @@ class OrderFulfillController extends OrderController
                     }
                 }
 
-                $fulfillmentTypeResponse = $productInterfaceObj->getProductOrderFulfillmentItemType();
+                $fulfillmentTypeResponse = $productInterfaceObj->getFulfillmentItemType();
                 if ($fulfillmentTypeResponse === 'sync') {
                     $itemFulfillmentResponse = $fulfillmentService->fulfillItem($item, $fulfillItemExtra);
                     if (is_array($itemFulfillmentResponse) && array_key_exists('message', $itemFulfillmentResponse)) {

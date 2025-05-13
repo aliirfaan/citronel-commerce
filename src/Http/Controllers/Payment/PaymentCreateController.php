@@ -169,7 +169,7 @@ class PaymentCreateController extends PaymentController
                         foreach ($getFulfillmentsByOrderIdResponse as $item) {
                             $productInterfaceObj = $this->helperService->makeObject($item->order_item->product->product_class, ['product' => $item->order_item->product]);
 
-                            $itemFulfillmentPreProcessResponse = $productInterfaceObj->fulfillProductOrderItemPreProcess($item);
+                            $itemFulfillmentPreProcessResponse = $productInterfaceObj->fulfillItemPreProcess($item);
                             if (!$itemFulfillmentPreProcessResponse['success']) {
                                 $this->resultResponse = $this->apiHelperService->apiProcessingErrorResponse($this->namespace, [], $itemFulfillmentPreProcessResponse['message']);
 
@@ -187,7 +187,7 @@ class PaymentCreateController extends PaymentController
                                 }
                             }
 
-                            $fulfillmentTypeResponse = $productInterfaceObj->getProductOrderFulfillmentItemType();
+                            $fulfillmentTypeResponse = $productInterfaceObj->getFulfillmentItemType();
                             if ($fulfillmentTypeResponse === 'sync') {
                                 $itemFulfillmentResponse = $fulfillmentService->fulfillItem($item);
                                 $itemFulfillmentResponseMessages[] = $itemFulfillmentResponse['message'];

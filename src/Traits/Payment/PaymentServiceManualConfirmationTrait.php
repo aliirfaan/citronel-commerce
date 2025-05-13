@@ -5,6 +5,8 @@ namespace aliirfaan\CitronelCommerce\Traits\Payment;
 use aliirfaan\CitronelCommerce\Enums\Payment\PaymentStatus;
 use aliirfaan\CitronelCommerce\Models\Payment\ManualPaymentConfirmation;
 use aliirfaan\CitronelCommerce\Events\Payment\PaymentProcessed;
+use Illuminate\Support\Str;
+use Carbon\Carbon;
 
 trait PaymentServiceManualConfirmationTrait
 {
@@ -69,6 +71,14 @@ trait PaymentServiceManualConfirmationTrait
             if ($paymentStatus == PaymentStatus::PAID->value) {
                 $data['errors'] = true;
                 $data['message'] = __('citronel-commerce::payment/messages.manual_payment_update_not_allowed');
+            }
+        }
+
+        if (is_null($data['errors'])) {
+            $validatePaymentForManualProcessingResponse = $this->validatePaymentForManualProcessing($payment);
+            if (!$validatePaymentForManualProcessingResponse['success']) {
+                $data['errors'] = true;
+                $data['message'] = $validatePaymentForManualProcessingResponse['message'];
             }
         }
 
@@ -142,8 +152,14 @@ trait PaymentServiceManualConfirmationTrait
 
                 'gateway_response_message' => $manualPaymentConfirmationObj->update_gateway_response_message,
 
-                'paid_at' => $manualPaymentConfirmationObj->update_paid_at,
+                'paid_at' => Carbon::parse($manualPaymentConfirmationObj->getRawOriginal('update_paid_at'))->format('Y-m-d H:i:s'),
             ];
+
+            // for some gateways, we do not receive callback, hence request array to gateway response mapping is blank
+            if (array_key_exists('payment_data', $manuallyConfirmPaymentResponse['result'])) {
+                $savePaymentData = \array_merge($savePaymentData, $manuallyConfirmPaymentResponse['result']['payment_data']);
+            }
+
             $this->paymentModel::where('id', $payment->id)->update(
                 $savePaymentData
             );

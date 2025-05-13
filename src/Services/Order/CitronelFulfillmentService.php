@@ -530,7 +530,7 @@ class CitronelFulfillmentService
             return;
         }
 
-        $fulfillProductOrderItemResponse = $productInterfaceObj->manuallyfulfillGroupItems(($groupItems, $extra);
+        $fulfillProductOrderItemResponse = $productInterfaceObj->manuallyfulfillGroupItems($groupItems, $extra);
 
         foreach ($validatedGroupItems as $groupItem) {
             $retryCount = intval($groupItem->retry_count);

@@ -6,7 +6,6 @@ use aliirfaan\CitronelCommerce\Enums\Payment\PaymentStatus;
 use aliirfaan\CitronelCommerce\Models\Payment\ManualPaymentConfirmation;
 use aliirfaan\CitronelCommerce\Events\Payment\PaymentProcessed;
 use Illuminate\Support\Str;
-use Carbon\Carbon;
 
 trait PaymentServiceManualConfirmationTrait
 {
@@ -152,7 +151,7 @@ trait PaymentServiceManualConfirmationTrait
 
                 'gateway_response_message' => $manualPaymentConfirmationObj->update_gateway_response_message,
 
-                'paid_at' => Carbon::parse($manualPaymentConfirmationObj->getRawOriginal('update_paid_at'))->format('Y-m-d H:i:s'),
+                'paid_at' => $manualPaymentConfirmationObj->update_paid_at,
             ];
 
             // for some gateways, we do not receive callback, hence request array to gateway response mapping is blank

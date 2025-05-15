@@ -147,6 +147,13 @@ class PaymentUpdateController extends PaymentController
     
                 if ($waitToPay) {
                     $this->data['result']['wait_to_pay'] = $processPaymentGatewayServiceResponseResult['wait_to_pay'];
+
+                    $refreshSeconds = null;
+                    if (array_key_exists('refresh_seconds', $processPaymentGatewayServiceResponseResult)) {
+                        $refreshSeconds = $processPaymentGatewayServiceResponseResult['refresh_seconds'];
+                        $this->data['result']['refresh_seconds'] = $refreshSeconds;
+                    }
+
                     $this->resultResponse = new ApiResponseCollection($this->data);
 
                     return $this->sendApiResponse($this->resultResponse, Response::HTTP_ACCEPTED, $reponseHeaders);

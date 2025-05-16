@@ -141,6 +141,9 @@ class ManualPaymentConfirmationController extends PaymentController
                  * If items are sync, fulfill them now
                  * If items are async, dispatch job to fulfill them
                  */
+                $fulfillItemExtra = [
+                    'language' => $this->locale,
+                ];
                 $itemFulfillmentResponseMessages = []; // store fulfillment messages
                 $jobPolicyId = 'fulfill_item';
 
@@ -149,7 +152,7 @@ class ManualPaymentConfirmationController extends PaymentController
                 foreach ($getFulfillmentsByOrderIdResponse as $item) {
                     $productInterfaceObj = $this->helperService->makeObject($item->order_item->product->product_class, ['product' => $item->order_item->product]);
 
-                    $itemFulfillmentPreProcessResponse = $productInterfaceObj->fulfillProductOrderItemPreProcess($item);
+                    $itemFulfillmentPreProcessResponse = $productInterfaceObj->fulfillItemPreProcess($item);
                     if (!$itemFulfillmentPreProcessResponse['success']) {
                         $this->resultResponse = $this->apiHelperService->apiProcessingErrorResponse($this->namespace, [], $itemFulfillmentPreProcessResponse['message']);
 
@@ -167,12 +170,14 @@ class ManualPaymentConfirmationController extends PaymentController
                         }
                     }
 
-                    $fulfillmentTypeResponse = $productInterfaceObj->getProductOrderFulfillmentItemType();
+                    $fulfillmentTypeResponse = $productInterfaceObj->getFulfillmentItemType();
                     if ($fulfillmentTypeResponse === 'sync') {
-                        $itemFulfillmentResponse = $fulfillmentService->fulfillItem($item);
-                        $itemFulfillmentResponseMessages[] = $itemFulfillmentResponse['message'];
+                        $itemFulfillmentResponse = $fulfillmentService->fulfillItem($item, $fulfillItemExtra);
+                        if (is_array($itemFulfillmentResponse) && array_key_exists('message', $itemFulfillmentResponse)) {
+                            $itemFulfillmentResponseMessages[] = $itemFulfillmentResponse['message'];
+                        }
                     } else {
-                        FulfillItem::dispatch($jobPolicyId, $item);
+                        FulfillItem::dispatch($jobPolicyId, $item, $fulfillItemExtra);
                         $itemFulfillmentResponseMessages[] = $productInterfaceObj->asyncItemFulfillmentMessage($item);
                     }
                 }

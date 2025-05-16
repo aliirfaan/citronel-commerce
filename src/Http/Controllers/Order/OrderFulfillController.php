@@ -90,6 +90,9 @@ class OrderFulfillController extends OrderController
              * If items are sync, fulfill them now
              * If items are async, dispatch job to fulfill them
              */
+            $fulfillItemExtra = [
+                'language' => $this->locale,
+            ];
             $itemFulfillmentResponseMessages = []; // store fulfillment messages
             $jobPolicyId = 'fulfill_item';
 
@@ -105,15 +108,15 @@ class OrderFulfillController extends OrderController
                     }
                 }
 
-                $fulfillmentTypeResponse = $productInterfaceObj->getProductOrderFulfillmentItemType();
+                $fulfillmentTypeResponse = $productInterfaceObj->getFulfillmentItemType();
                 if ($fulfillmentTypeResponse === 'sync') {
-                    $itemFulfillmentResponse = $fulfillmentService->fulfillItem($item);
+                    $itemFulfillmentResponse = $fulfillmentService->fulfillItem($item, $fulfillItemExtra);
                     if (is_array($itemFulfillmentResponse) && array_key_exists('message', $itemFulfillmentResponse)) {
                         $itemFulfillmentResponseMessages[] = $itemFulfillmentResponse['message'];
                     }
                 } else {
                     // if asyn how to prevent double fulfillment!
-                    FulfillItem::dispatch($jobPolicyId, $item);
+                    FulfillItem::dispatch($jobPolicyId, $item,$fulfillItemExtra);
                     $itemFulfillmentResponseMessages[] = $productInterfaceObj->asyncItemFulfillmentMessage($item);
                 }
             }

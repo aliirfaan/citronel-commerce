@@ -627,18 +627,18 @@ class CitronelOrderService
 
             $orderItemCreatePreProcessResponse = $productInterfaceObj->orderItemCreatePreProcess($anOrderItem, $createOrderItemsPreProcessExtra);
 
-            if (!$orderItemCreatePreProcessResponse['success']) {
-                $data['errors'] = true;
-                $data['message'] = $orderItemCreatePreProcessResponse['message'];
-                break;
-            }
-    
-            $preProcessedOrderItem = $orderItemCreatePreProcessResponse['result'];
-            $anOrderItem = is_array($preProcessedOrderItem) ? array_merge($anOrderItem, $preProcessedOrderItem) : $anOrderItem;
-    
-            $saveOrderItemData = $productInterfaceObj->createProductOrderItem($anOrderItem);
-            $saveOrderItemData['order_id'] = $order->id;
-            $newOrderItem = $this->orderItemModel::create($saveOrderItemData);
+                if (!$orderItemCreatePreProcessResponse['success']) {
+                    $data['errors'] = true;
+                    $data['message'] = $orderItemCreatePreProcessResponse['message'];
+                    break;
+                }
+        
+                $preProcessedOrderItem = $orderItemCreatePreProcessResponse['result'];
+                $anOrderItem = is_array($preProcessedOrderItem) ? array_merge($anOrderItem, $preProcessedOrderItem) : $anOrderItem;
+        
+                $saveOrderItemData = $productInterfaceObj->createOrderItem($anOrderItem);
+                $saveOrderItemData['order_id'] = $order->id;
+                $newOrderItem = $this->orderItemModel::create($saveOrderItemData);
 
             $subItems = array_key_exists('sub_items', $anOrderItem) ? $anOrderItem['sub_items'] : [];
             foreach($subItems as $aSubItem){
@@ -665,7 +665,7 @@ class CitronelOrderService
                 $preProcessedSubItem = $subItemCreatePreProcessResponse['result'];
                 $aSubItem = is_array($preProcessedSubItem) ? array_merge($aSubItem, $preProcessedSubItem) : $aSubItem;
         
-                $saveSubItemData = $subItemProductInterfaceObj->createProductOrderItem($aSubItem);
+                $saveSubItemData = $subItemProductInterfaceObj->createOrderItem($aSubItem);
                 $saveSubItemData['order_id'] = $order->id;
                 $saveSubItemData['linked_item_id'] = $newOrderItem->id;
                 $this->orderItemModel::create($saveSubItemData);

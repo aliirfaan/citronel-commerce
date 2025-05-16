@@ -129,7 +129,7 @@ class OrderCreateController extends OrderController
                             foreach ($getFulfillmentsByOrderIdResponse as $item) {
                                 $productInterfaceObj = $this->helperService->makeObject($item->order_item->product->product_class, ['product' => $item->order_item->product]);
 
-                                $itemFulfillmentPreProcessResponse = $productInterfaceObj->fulfillProductOrderItemPreProcess($item);
+                                $itemFulfillmentPreProcessResponse = $productInterfaceObj->fulfillItemPreProcess($item);
                                 if (!$itemFulfillmentPreProcessResponse['success']) {
                                     $this->resultResponse = $this->apiHelperService->apiProcessingErrorResponse($this->namespace, [], $itemFulfillmentPreProcessResponse['message']);
 
@@ -147,9 +147,9 @@ class OrderCreateController extends OrderController
                                     }
                                 }
 
-                                $fulfillmentTypeResponse = $productInterfaceObj->getProductOrderFulfillmentItemType();
+                                $fulfillmentTypeResponse = $productInterfaceObj->getFulfillmentItemType();
                                 if ($fulfillmentTypeResponse === 'sync') {
-                                    $itemFulfillmentResponse = $fulfillmentService->fulfillItem($item);
+                                    $itemFulfillmentResponse = $fulfillmentService->fulfillGroupItems($item);
                                     $itemFulfillmentResponseMessages[] = $itemFulfillmentResponse['message'];
                                 } else {
                                     FulfillItem::dispatch($jobPolicyId, $item);

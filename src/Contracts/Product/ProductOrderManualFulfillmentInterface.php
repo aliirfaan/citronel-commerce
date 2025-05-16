@@ -32,5 +32,5 @@ interface ProductOrderManualFulfillmentInterface
      *
      * @return array
      */
-    public function manuallyfulfillProductOrderItem($item, $extra = []);
+    public function manuallyfulfillGroupItems($groupItems, $extra = []);
 }

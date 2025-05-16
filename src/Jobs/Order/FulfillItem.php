@@ -18,14 +18,17 @@ class FulfillItem extends CitronelJob implements ShouldQueue
 
     public $item;
 
+    public $fulfillItemExtra = [];
+
     /**
      * Create a new job instance.
      */
-    public function __construct($jobPolicyId, $item)
+    public function __construct($jobPolicyId, $item, $fulfillItemExtra)
     {
         parent::__construct($jobPolicyId);
 
         $this->item = $item;
+        $this->fulfillItemExtra = $fulfillItemExtra;
         $this->fulfillmentService = new CitronelFulfillmentService();
 
         // job should be tried based on product max retry count
@@ -47,7 +50,9 @@ class FulfillItem extends CitronelJob implements ShouldQueue
             'is_last_retry' => $this->isLastAttempt
         ];
 
-        $itemFulfillmentResponse = $this->fulfillmentService->fulfillItem($this->item, $itemFulfillmentExtra);
+        $this->fulfillItemExtra = array_merge($this->fulfillItemExtra, $itemFulfillmentExtra);
+
+        $itemFulfillmentResponse = $this->fulfillmentService->fulfillItem($this->item, $this->fulfillItemExtra);
         if (!$itemFulfillmentResponse['success']) {
             // fail job
             throw new ItemFulfillmentException($itemFulfillmentResponse['message']);

@@ -694,6 +694,7 @@ class CitronelFulfillmentService
         $data = $this->helperService->returnFormat();
 
         $productTempArray = [];
+        $orderFulfillmentSummary = [];
 
         $fulfilledFulfillmentStatus = OrderStatus::FULFILLED->value;
         $getFulfillmentsByOrderIdResponse = $this->getFulfillmentsByOrderId($order->id, $fulfilledFulfillmentStatus);

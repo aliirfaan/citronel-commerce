@@ -699,6 +699,8 @@ class CitronelFulfillmentService
         $fulfilledFulfillmentStatus = OrderStatus::FULFILLED->value;
         $getFulfillmentsByOrderIdResponse = $this->getFulfillmentsByOrderId($order->id, $fulfilledFulfillmentStatus);
 
+        $orderFulfillmentSummary = [];
+
         foreach ($getFulfillmentsByOrderIdResponse as $item) {
 
             $product = $item->order_item->product;

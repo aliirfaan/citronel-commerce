@@ -873,6 +873,7 @@ class CitronelOrderService
         $orderItemSubtotal = bcmul((string) $item->product_price, (string) $item->quantity, config('citronel.decimals'));
 
         // Order summary
+        $orderItemSummary[$item->id]['product_id'] = $item->product_id;
         $orderItemSummary[$item->id]['quantity'] = $item->quantity;
         $orderItemSummary[$item->id]['product_price'] = $this->currencyService->formatCurrencyAmount($item->product_price, $order->order_currency_code);
         $orderItemSummary[$item->id]['product_total_price'] = $this->currencyService->formatCurrencyAmount($orderItemSubtotal, $order->order_currency_code);

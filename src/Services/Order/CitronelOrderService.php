@@ -189,6 +189,15 @@ class CitronelOrderService
         ];
     
         $newOrder = $this->orderModel::create($orderSaveData);
+
+        // order number
+        $orderNumber = $this->generateOrderNumber($newOrder->id);
+        $updateOrderSaveData = [
+            'order_number' => $orderNumber
+        ];
+
+        // Update database
+        $this->orderModel::where('id', $newOrder->id)->update($updateOrderSaveData);
     
         $createItemResponse = $this->createOrderItems($newOrder, $orderItems, $extra);
 

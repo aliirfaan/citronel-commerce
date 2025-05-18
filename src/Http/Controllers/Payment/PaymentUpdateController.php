@@ -14,6 +14,7 @@ use aliirfaan\CitronelCommerce\Jobs\Order\CreateOrderFulfillment;
 use aliirfaan\CitronelCommerce\Services\Currency\CitronelCurrencyService;
 use aliirfaan\CitronelCommerce\Services\Order\CitronelFulfillmentService;
 use aliirfaan\CitronelCommerce\Enums\Order\OrderStatus;
+use aliirfaan\CitronelCommerce\Enums\Payment\PaymentStatus;
 
 class PaymentUpdateController extends PaymentController
 {
@@ -116,6 +117,32 @@ class PaymentUpdateController extends PaymentController
                 AuditLogged::dispatch($this->auditData);
 
                 $this->resultResponse = $this->apiHelperService->apiValidationErrorResponse($this->namespace, [], null, $validatePaymentChannelResponse['message'], ['code' => $code['code']]);
+            
+                return $this->sendApiResponse($this->resultResponse, $this->resultResponse->collection['status_code'], $reponseHeaders);
+            }
+
+            // validate payment method timeout
+            $validateUpdateTimeResponse = $paymentInterfaceObj->validateUpdateTime($payment);
+            if (!$validateUpdateTimeResponse['success']) {
+
+                // update payment
+                $paymentSaveData = [
+                    'payment_status' => PaymentStatus::FAILED->value,
+                    'payment_channel' => $paymentChannel,
+                    'expired_at' => now()
+                ];
+                $paymentService->updatePayment($payment->id, $paymentSaveData);
+
+                $subProcessEvent = $this->errorCatalogueService->getSubProcessEvent('payment', 'update', 'payment_timeout');
+                $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessEvent['key']);
+
+                $this->auditData['al_event_name'] = $subProcessEvent['name'];
+                $this->auditData['al_is_success'] = $validatePaymentChannelResponse['success'];
+                $this->auditData['al_code'] = $code['code'];
+                $this->auditData['al_request'] = $payment->gateway_merchant_transaction_no;
+                AuditLogged::dispatch($this->auditData);
+
+                $this->resultResponse = $this->apiHelperService->apiValidationErrorResponse($this->namespace, [], null, $validateUpdateTimeResponse['message'], ['code' => $code['code']]);
             
                 return $this->sendApiResponse($this->resultResponse, $this->resultResponse->collection['status_code'], $reponseHeaders);
             }

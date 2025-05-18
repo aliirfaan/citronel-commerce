@@ -36,6 +36,7 @@ return new class extends Migration
             $table->dateTime('paid_at')->nullable(true);
             $table->dateTime('cancelled_at')->nullable(true);
             $table->dateTime('expired_at')->nullable(true);
+            $table->dateTime('timed_out_at')->nullable(true); // gateway timeout
             $table->string('card_holder')->nullable(true);
             $table->string('card_number')->nullable(true);
             $table->string('card_expiry')->nullable(true);
@@ -58,6 +59,7 @@ return new class extends Migration
             $table->index('paid_at');
             $table->index('cancelled_at');
             $table->index('expired_at');
+            $table->index('timed_out_at');
             $table->index('card_holder');
             $table->index('card_number');
             $table->index('card_expiry');

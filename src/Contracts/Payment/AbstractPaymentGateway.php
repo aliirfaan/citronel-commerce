@@ -301,16 +301,17 @@ abstract class AbstractPaymentGateway
      * validateUpdateTime
      *
      * Check if payment is updated within a reasonable time frame
+     * Override this method in payment method if you want to change the time frame
      *
-     * @param  string $createdAt date format Y-m-d H:i:s
+     * @param  mixed payment
      * @return array
      */
-    public function validateUpdateTime($createdAt)
+    public function validateUpdateTime($payment)
     {
         $data = $this->helperService->returnFormat();
 
         $allowedTimeLapse = intval(config('citronel-payment.payment_update_time_gap_seconds'));
-        if ($createdAt < Carbon::now()->subSeconds($allowedTimeLapse)) {
+        if ($payment->created_at < Carbon::now()->subSeconds($allowedTimeLapse)) {
             $data['errors'] = true;
             $data['message'] = __('citronel-commerce::payment/messages.payment_method_update_time_exceeded');
         } else {

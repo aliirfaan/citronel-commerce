@@ -115,6 +115,12 @@ return [
                             'code' => '6',
                             'code_status' => 'invalid_currency',
                         ],
+                        'payment_timeout' => [
+                            'key' => 'payment_timeout',
+                            'name' => 'payment_timeout',
+                            'code' => '7',
+                            'code_status' => 'payment_timeout',
+                        ],
                     ]
                 ],
                 'process' => [

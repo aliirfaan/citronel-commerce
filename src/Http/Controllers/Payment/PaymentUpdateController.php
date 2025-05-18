@@ -108,7 +108,7 @@ class PaymentUpdateController extends PaymentController
             $validatePaymentChannelResponse = $paymentInterfaceObj->validatePaymentChannel($paymentChannel);
             if (!$validatePaymentChannelResponse['success']) {
                 $subProcessEvent = $this->errorCatalogueService->getSubProcessEvent('payment', 'update', 'invalid_payment_channel');
-                $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessEvent['key']);
+                $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key']);
 
                 $this->auditData['al_event_name'] = $subProcessEvent['name'];
                 $this->auditData['al_is_success'] = $validatePaymentChannelResponse['success'];
@@ -134,7 +134,7 @@ class PaymentUpdateController extends PaymentController
                 $paymentService->updatePayment($payment->id, $paymentSaveData);
 
                 $subProcessEvent = $this->errorCatalogueService->getSubProcessEvent('payment', 'update', 'payment_timeout');
-                $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessEvent['key']);
+                $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key']);
 
                 $this->auditData['al_event_name'] = $subProcessEvent['name'];
                 $this->auditData['al_is_success'] = $validatePaymentChannelResponse['success'];

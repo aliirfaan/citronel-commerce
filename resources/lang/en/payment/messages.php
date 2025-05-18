@@ -5,7 +5,7 @@
     'payment_method_not_found' => 'Payment method not found.',
     'payment_method_min_amount' => 'The minimum allowed amount for this payment method is :amount.',
     'payment_method_max_amount' => 'The maximum allowed amount for this payment method is :amount.',
-    'payment_method_update_time_exceeded' => 'Allowed time exceeded to allow update.',
+    'payment_method_update_time_exceeded' => 'Your payment session expired because it took too long to complete. Payment reference: :payment_reference. You can use this to track your payment.',
     'payment_process_success' => 'We have successfully accepted your payment of :amount. Payment reference: :payment_reference.',
     'invalid_payment_channel' => 'Invalid payment channel.',
     'valid_payment_channel' => 'Valid payment channel.',

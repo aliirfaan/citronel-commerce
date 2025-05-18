@@ -313,7 +313,9 @@ abstract class AbstractPaymentGateway
         $allowedTimeLapse = intval(config('citronel-payment.payment_update_time_gap_seconds'));
         if ($payment->created_at < Carbon::now()->subSeconds($allowedTimeLapse)) {
             $data['errors'] = true;
-            $data['message'] = __('citronel-commerce::payment/messages.payment_method_update_time_exceeded');
+            $data['message'] = __('citronel-commerce::payment/messages.payment_method_update_time_exceeded', [
+                'payment_reference' => $payment->gateway_merchant_transaction_no,
+            ]);
         } else {
             $data['success'] = true;
         }

@@ -225,8 +225,16 @@ class CitronelFulfillmentService
         );
 
         $fulfillProductOrderItemResponse = $productInterfaceObj->fulfillGroupItems($groupItems, $extra);
-
         foreach ($groupItems as $groupItem) {
+
+            if (!array_key_exists($groupItem->id, $fulfillProductOrderItemResponse['result'])) {
+               // for some reason we do not have the response for this item
+               // could be due to fulfillment conditions not met
+               // we set success to false to this item
+               $fulfillProductOrderItemResponse['result'][$groupItem->id] = [
+                    'success' => false
+                ];
+            }
 
             $fulfillProductOrderGroupItemResponse = $fulfillProductOrderItemResponse['result'][$groupItem->id];
 

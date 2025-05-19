@@ -42,6 +42,7 @@ return new class extends Migration
             $table->string('card_expiry')->nullable(true);
             $table->string('gateway_approval_code')->nullable(true);
             $table->string('gateway_receipt_no')->nullable(true);
+            $table->string('gateway_payment_mode')->nullable(true); // for gateway to identify the payment mode (e.g. credit card, qr, etc.)
             $table->timestamps();
 
             $table->index('payment_status');
@@ -65,6 +66,7 @@ return new class extends Migration
             $table->index('card_expiry');
             $table->index('gateway_approval_code');
             $table->index('gateway_receipt_no');
+            $table->index('gateway_payment_mode');
 
             $table->foreign('order_id')->references('id')->on('orders');
             $table->foreign('payment_method_configuration_id')->references('id')->on('payment_method_configurations');

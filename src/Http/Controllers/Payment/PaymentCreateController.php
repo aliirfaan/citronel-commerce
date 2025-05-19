@@ -224,6 +224,8 @@ class PaymentCreateController extends PaymentController
                 return $this->sendApiResponse($this->resultResponse, $this->resultResponse->collection['status_code'], $reponseHeaders);
             }
 
+            // @todo call payment gateway create validation rules as some payment gateways require additional payment data like gateway_payment_mode
+
             $createPaymentResponse = $paymentService->createPayment($order, $createPaymentExtra);
             $payment = $createPaymentResponse['result'];
 

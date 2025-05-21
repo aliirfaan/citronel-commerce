@@ -37,6 +37,7 @@ return new class extends Migration
             $table->tinyInteger('should_send_receipt')->nullable(true);
             $table->string('receipt_channels', 255)->nullable(true);
             $table->tinyInteger('receipt_sent')->nullable(true);
+            $table->timestamp('terms_accepted_at')->nullable();
             $table->timestamps();
 
             $table->foreign('currency_rate_id')->references('id')->on('currency_rates');
@@ -52,6 +53,7 @@ return new class extends Migration
             $table->index('correlation_token');
             $table->index('created_at');
             $table->index('updated_at');
+            $table->index('terms_accepted_at');
         });
     }
 

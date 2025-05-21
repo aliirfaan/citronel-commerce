@@ -163,6 +163,11 @@ class CitronelOrderService
         $currencyRate = $saveData['currency_rate'];
         $lockCurrency = array_key_exists('lock_currency', $extra) ? $extra['lock_currency'] : false;
 
+        $acceptedTermsAt = null;
+        if (array_key_exists('terms_accepted', $saveData)) {
+            $acceptedTermsAt = now();
+        }
+
         $shouldSendReceipt = array_key_exists('should_send_receipt', $saveData) ? $saveData['should_send_receipt'] : null;
         $receiptChannels = null;
         if (!is_null($shouldSendReceipt) && intval($shouldSendReceipt) !== 0) {
@@ -185,6 +190,7 @@ class CitronelOrderService
             'should_send_receipt' => array_key_exists('should_send_receipt', $saveData) ? $saveData['should_send_receipt'] : null,
             'receipt_channels' => $receiptChannels,
             'order_payment_method_configuration_id' => array_key_exists('order_payment_method_configuration_id', $saveData) ? $saveData['order_payment_method_configuration_id'] : null,
+            'terms_accepted_at' => $acceptedTermsAt,
             'order_meta' => array_key_exists('order_meta', $saveData) ? json_encode($saveData['order_meta']) : null,
         ];
     
@@ -947,6 +953,9 @@ class CitronelOrderService
 
         $orderSummary['totals']['sub_total'] = $this->currencyService->formatCurrencyAmount($orderSubtotal, $order->order_currency_code);
         $orderSummary['totals']['grand_total'] = $this->currencyService->formatCurrencyAmount($orderGrandTotal, $order->order_currency_code);
+
+        $order->setRelations([]);
+        $orderSummary['order'] = $order;
 
         $data['result'] = $orderSummary;
        

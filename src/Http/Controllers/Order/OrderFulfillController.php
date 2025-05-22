@@ -135,6 +135,27 @@ class OrderFulfillController extends OrderController
 
             $this->data['result'] = $orderFulfillmentSummary;
 
+            $fulfillmentStrategyClass = null;
+            if (!is_null($order->fulfillment_strategy_class)) {
+                $fulfillmentStrategyClass = $this->helperService->makeObject($order->fulfillment_strategy_class);
+
+                $generateOrderFulfillmentSummaryResponseForStrategy = $fulfillmentStrategyClass->generateOrderFulfillmentSummary($order);
+
+                if (
+                    isset($generateOrderFulfillmentSummaryResponseForStrategy['result']) &&
+                    is_array($generateOrderFulfillmentSummaryResponseForStrategy['result'])
+                ) {
+                    if (!is_null($this->data['extra'])) {
+                        $this->data['extra'] = array_merge(
+                            $this->data['extra'],
+                            $generateOrderFulfillmentSummaryResponseForStrategy['result']
+                        );
+                    } else {
+                        $this->data['extra'] = $generateOrderFulfillmentSummaryResponseForStrategy['result'];
+                    }
+                }
+            }
+
             $this->data['success'] = true;
             $this->data['status_code'] = Response::HTTP_OK;
 

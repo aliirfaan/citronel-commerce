@@ -45,4 +45,14 @@ interface OrderProcessingStrategyInterface
      * @return null | string
      */
     public function receiptNotificationClass();
+    
+    /**
+     * Method generateOrderFulfillmentSummary
+     *
+     * Generate order fulfillment summary for strategy 
+     * @param mixed $order [explicite description]
+     *
+     * @return array
+     */
+    public function generateOrderFulfillmentSummary($order);
 }

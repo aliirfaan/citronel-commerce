@@ -205,12 +205,24 @@ return [
                     'name' => 'order_summary',
                     'code' => '8',
                     'events' => [
+                        'invalid_order' => [
+                            'key' => 'invalid_order',
+                            'name' => 'invalid_order',
+                            'code' => '1',
+                            'code_status' => 'invalid_order',
+                        ],
                         'order_summary_generation_failed' => [
                             'key' => 'order_summary_generation_failed',
                             'name' => 'order_summary_generation_failed',
-                            'code' => '1',
+                            'code' => '2',
                             'code_status' => 'order_summary_generation_failed',
-                        ]
+                        ],
+                        'expired_order' => [
+                            'key' => 'expired_order',
+                            'name' => 'expired_order',
+                            'code' => '3',
+                            'code_status' => 'expired_order',
+                        ],
                     ]
                 ],
             ]

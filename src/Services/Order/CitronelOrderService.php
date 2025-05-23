@@ -961,4 +961,38 @@ class CitronelOrderService
        
         return $data;
     }
+
+    public function validateMaxItemsPerOrder($requestArray, $maxItemsPerOrder)
+    {
+        $data = $this->helperService->returnFormat();
+
+        /**
+         * Get order items in request array, add quantity for each and compare with max items
+         */
+        $orderItems = array_key_exists('order_items', $requestArray) ? $requestArray['order_items'] : null;
+
+        if (is_array($orderItems)) {
+            $totalItems = 0;
+            foreach ($orderItems as $anOrderItem) {
+                $quantity = array_key_exists('quantity', $anOrderItem) ? $anOrderItem['quantity'] : 0;
+                $totalItems += intval($quantity);
+            }
+
+            if ($totalItems > $maxItemsPerOrder) {
+                $data['errors'] = true;
+                $data['message'] = __('citronel-commerce::order/messages.max_items_per_order_exceeded');
+            }
+        }
+
+        if (is_null($data['errors'])) {
+            $data['success'] = true;
+        }
+
+        return $data;
+    }
+
+    public function getMaxItemsPerOrder()
+    {
+        return intval(config('citronel-order.max_items_per_order'));
+    }
 }

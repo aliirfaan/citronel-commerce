@@ -43,6 +43,7 @@ class OrderCreateController extends OrderController
             $subProcessKey = $this->subProcess['key'];
 
             $validationRules = $this->modelApiCommand->createValidationRules();
+            $validationMessages = [];
 
             // check if this order strategy has a pre validation
             $fulfillmentStrategyClass = null;
@@ -50,12 +51,13 @@ class OrderCreateController extends OrderController
 
                 $fulfillmentStrategyClass = $this->helperService->makeObject($requestArray['custom_order_data']['fulfillment_strategy_class']);
 
-                $validationRules = array_merge($this->modelApiCommand->createValidationRules(), $fulfillmentStrategyClass->orderStrategyCreatePreCreateValidationRules());
+                $validationRules = array_merge($validationRules, $fulfillmentStrategyClass->orderStrategyPreCreateValidationRules()['rules']);
+
+                $validationMessages = array_merge($validationMessages, $fulfillmentStrategyClass->orderStrategyPreCreateValidationRules()['messages']);
             }
 
             // validate order
-            $validationRules = $this->modelApiCommand->createValidationRules();
-            $validationResponse = $this->apiHelperService->validateRequestFields($requestArray, $validationRules);
+            $validationResponse = $this->apiHelperService->validateRequestFields($requestArray, $validationRules, $validationMessages);
             if (!is_null($validationResponse)) {
                 $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, null, $this->validationErrorCatalogue()['code']);
                 $this->resultResponse = $this->apiHelperService->apiValidationErrorResponse($this->namespace, $validationResponse, null, $this->validationErrorCatalogue()['lang'], ['code' => $code['code']]);
@@ -64,6 +66,28 @@ class OrderCreateController extends OrderController
                 $this->auditData['al_code'] = $code['code'];
                 $this->auditData['al_request'] = json_encode($requestArray);
                 $this->auditData['al_response'] = json_encode($validationResponse);
+                AuditLogged::dispatch($this->auditData);
+            
+                return $this->sendApiResponse($this->resultResponse, $this->resultResponse->collection['status_code'], $reponseHeaders);
+            }
+
+            // validate max items per order
+            $maxItemsPerOrder = $orderService->getMaxItemsPerOrder();
+            if (!is_null($fulfillmentStrategyClass)) {
+                $maxItemsPerOrder = $fulfillmentStrategyClass->getMaxItemsPerOrder();
+            }
+            $validateMaxItemsPerOrderResponse = $orderService->validateMaxItemsPerOrder($requestArray, $maxItemsPerOrder);
+            if (!$validateMaxItemsPerOrderResponse['success']) {
+                $subProcessEvent = $this->errorCatalogueService->getSubProcessEvent('order', 'create', 'max_items_validation_failed');
+                $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key']);
+
+                $this->resultResponse = $this->apiHelperService->apiValidationErrorResponse($this->namespace, [], null, $validateMaxItemsPerOrderResponse['message'], ['code' => $code['code']]);
+
+                $this->auditData['al_is_success'] = $this->data['success'];
+                $this->auditData['al_event_name'] = $subProcessEvent['name'];
+                $this->auditData['al_code'] = $code['code'];
+                $this->auditData['al_request'] = json_encode($requestArray);
+                $this->auditData['al_message'] = $code['status'];
                 AuditLogged::dispatch($this->auditData);
             
                 return $this->sendApiResponse($this->resultResponse, $this->resultResponse->collection['status_code'], $reponseHeaders);

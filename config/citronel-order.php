@@ -48,4 +48,5 @@ return [
     'order_model' => aliirfaan\CitronelCommerce\Models\Order\Order::class,
     'order_should_send_receipt' => env('ORDER_SHOULD_SEND_RECEIPT', false),
     'order_receipt_channels' => ['mail'],
+    'max_items_per_order' => env('MAX_ITEMS_PER_ORDER', 1),
 ];

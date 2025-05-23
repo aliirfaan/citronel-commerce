@@ -60,6 +60,12 @@ return [
                             'code' => '6',
                             'code_status' => null,
                         ],
+                        'max_items_validation_failed' => [
+                            'key' => 'max_items_validation_failed',
+                            'name' => 'max_items_validation_failed',
+                            'code' => '7',
+                            'code_status' => null,
+                        ],
                     ],
                 ],
                 'review' => [

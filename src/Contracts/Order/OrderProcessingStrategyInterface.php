@@ -23,7 +23,17 @@ interface OrderProcessingStrategyInterface
      *
      * @return null | array
      */
-    public function orderStrategyCreatePreCreateValidationRules();
+    public function orderStrategyPreCreateValidationRules();
+
+    
+    /**
+     * Method orderStrategyPreUpdateValidationRules
+     * 
+     * Set validation rules specific for this order strategy
+     *
+     * @return null | array
+     */
+    public function orderStrategyPreUpdateValidationRules();
     
     /**
      * Method shouldSendReceipt
@@ -55,4 +65,6 @@ interface OrderProcessingStrategyInterface
      * @return array
      */
     public function generateOrderFulfillmentSummary($order);
+
+    public function getMaxItemsPerOrder();
 }

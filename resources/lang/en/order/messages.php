@@ -17,4 +17,5 @@
     'order_item_fulfillment_max_retry_reached' => 'Maximum retries reached for this item.',
     'order_item_fulfillment_retry_not_allowed' => 'Retry not allowed. Status must be unfulfilled to attempt retry.',
     'order_not_paid' => 'Order is not paid. Please pay the order first.',
+    'max_items_per_order_exceeded' => 'You have exceeded the maximum items per order. Please remove some items and try again. Code: :code.',
 ];

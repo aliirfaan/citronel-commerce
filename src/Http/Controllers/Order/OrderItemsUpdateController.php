@@ -14,12 +14,12 @@ use aliirfaan\LaravelSimpleApi\Http\Resources\ApiResponseCollection;
 
 class OrderItemsUpdateController extends OrderController
 {
-    public function update(string $orderGuid, Request $request, AuditLogService $auditService, OrderItem $orderItemApi, CitronelProductService $productService, CitronelOrderService $orderService)
+    public function update(string $order_guid, Request $request, AuditLogService $auditService, OrderItem $orderItemApi, CitronelProductService $productService, CitronelOrderService $orderService)
     {
         $correlationToken = $this->helperService->getCorrelationTokenFromHeader($request);
         $reponseHeaders = $this->helperService->setCorrelationResponseHeader($correlationToken);
 
-        $this->subProcess = $this->errorCatalogueService->getSubProcess($this->mainProcess['key'], 'create');
+        $this->subProcess = $this->errorCatalogueService->getSubProcess($this->mainProcess['key'], 'order_items_update');
 
         $this->actor = $request->get('actor', null);
 
@@ -31,7 +31,37 @@ class OrderItemsUpdateController extends OrderController
         try{
             $subProcessKey = $this->subProcess['key'];
 
+            $getOrderResponse = $orderService->getOrderByGuid($order_guid);
+            if (!$getOrderResponse['success']) {
+                $subProcessEvent = $this->errorCatalogueService->getSubProcessEvent($this->mainProcess['key'], $subProcessKey, 'invalid_order');
+                $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key']);
+
+                $this->resultResponse = $this->apiHelperService->apiNotFoundErrorResponse($this->namespace, [], null, $this->recordNotFoundErrorCatalogue()['lang'], ['code' => $code['code']]);
+
+                $this->auditData['al_is_success'] = $this->data['success'];
+                $this->auditData['al_event_name'] = $subProcessEvent['name'];
+                $this->auditData['al_code'] = $code['code'];
+                $this->auditData['al_request'] = $order_guid;
+                $this->auditData['al_message'] = $code['status'];
+                AuditLogged::dispatch($this->auditData);
+            
+                return $this->sendApiResponse($this->resultResponse, $this->resultResponse->collection['status_code'], $reponseHeaders);
+            }
+            $order = $getOrderResponse['result'];
+
             $validationRules = $this->modelApiCommand->updateOrderItemsValidationRules();
+            $validationMessages = [];
+
+            // check if this order strategy has a pre validation
+            $fulfillmentStrategyClass = null;
+            if (!is_null($order->fulfillment_strategy_class)) {
+                $fulfillmentStrategyClass = $this->helperService->makeObject($order->fulfillment_strategy_class);
+
+                $validationRules = array_merge($validationRules, $fulfillmentStrategyClass->orderStrategyPreUpdateValidationRules()['rules']);
+
+                $validationMessages = array_merge($validationMessages, $fulfillmentStrategyClass->orderStrategyPreUpdateValidationRules()['messages']);
+            }
+
             $validationResponse = $this->apiHelperService->validateRequestFields($requestArray, $validationRules);
             if (!is_null($validationResponse)) {
                 $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, null, $this->validationErrorCatalogue()['code']);
@@ -41,6 +71,28 @@ class OrderItemsUpdateController extends OrderController
                 $this->auditData['al_code'] = $code['code'];
                 $this->auditData['al_request'] = json_encode($requestArray);
                 $this->auditData['al_response'] = json_encode($validationResponse);
+                AuditLogged::dispatch($this->auditData);
+            
+                return $this->sendApiResponse($this->resultResponse, $this->resultResponse->collection['status_code'], $reponseHeaders);
+            }
+
+            // validate max items per order
+            $maxItemsPerOrder = $orderService->getMaxItemsPerOrder();
+            if (!is_null($fulfillmentStrategyClass)) {
+                $maxItemsPerOrder = $fulfillmentStrategyClass->getMaxItemsPerOrder();
+            }
+            $validateMaxItemsPerOrderResponse = $orderService->validateMaxItemsPerOrder($requestArray, $maxItemsPerOrder);
+            if (!$validateMaxItemsPerOrderResponse['success']) {
+                $subProcessEvent = $this->errorCatalogueService->getSubProcessEvent($this->mainProcess['key'], $subProcessKey, 'max_items_validation_failed');
+                $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key']);
+
+                $this->resultResponse = $this->apiHelperService->apiValidationErrorResponse($this->namespace, [], null, $validateMaxItemsPerOrderResponse['message'], ['code' => $code['code']]);
+
+                $this->auditData['al_is_success'] = $this->data['success'];
+                $this->auditData['al_event_name'] = $subProcessEvent['name'];
+                $this->auditData['al_code'] = $code['code'];
+                $this->auditData['al_request'] = json_encode($requestArray);
+                $this->auditData['al_message'] = $code['status'];
                 AuditLogged::dispatch($this->auditData);
             
                 return $this->sendApiResponse($this->resultResponse, $this->resultResponse->collection['status_code'], $reponseHeaders);
@@ -71,7 +123,7 @@ class OrderItemsUpdateController extends OrderController
                 $productId = $anOrderItem['product_id'];
                 $getProductResponse = $productService->getProductById($productId);
                 if (!$getProductResponse['success']) {
-                    $subProcessEvent = $this->errorCatalogueService->getSubProcessEvent('order', 'create', 'invalid_product');
+                    $subProcessEvent = $this->errorCatalogueService->getSubProcessEvent($this->mainProcess['key'], $subProcessKey, 'invalid_product');
                     $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $this->subProcess['key'], null, $this->recordNotFoundErrorCatalogue()['code']);
     
                     $this->resultResponse = $this->apiHelperService->apiNotFoundErrorResponse($this->namespace, [], null, $this->recordNotFoundErrorCatalogue()['lang'], ['code' => $code['code']]);
@@ -142,9 +194,9 @@ class OrderItemsUpdateController extends OrderController
             }
 
             // update order items
-            $updateOrderItemsResponse = $orderService->updateOrderItems($orderGuid, $orderItems);
+            $updateOrderItemsResponse = $orderService->updateOrderItems($order_guid, $orderItems);
             if (!$updateOrderItemsResponse['success']) {
-                $subProcessEvent = $this->errorCatalogueService->getSubProcessEvent('order', 'create', 'create_failure');
+                $subProcessEvent = $this->errorCatalogueService->getSubProcessEvent($this->mainProcess['key'], $subProcessKey, 'create_failure');
                 $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key']);
 
                 $this->auditData['al_event_name'] = $subProcessEvent['name'];

@@ -62,7 +62,7 @@ class OrderItemsUpdateController extends OrderController
                 $validationMessages = array_merge($validationMessages, $fulfillmentStrategyClass->orderStrategyPreUpdateValidationRules()['messages']);
             }
 
-            $validationResponse = $this->apiHelperService->validateRequestFields($requestArray, $validationRules);
+            $validationResponse = $this->apiHelperService->validateRequestFields($requestArray, $validationRules, $validationMessages);
             if (!is_null($validationResponse)) {
                 $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, null, $this->validationErrorCatalogue()['code']);
                 $this->resultResponse = $this->apiHelperService->apiValidationErrorResponse($this->namespace, $validationResponse, null, $this->validationErrorCatalogue()['lang'], ['code' => $code['code']]);

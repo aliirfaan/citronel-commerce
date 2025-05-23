@@ -49,6 +49,23 @@ class OrderItemsUpdateController extends OrderController
             }
             $order = $getOrderResponse['result'];
 
+            // check order expiry
+            $checkOrderExpiryResponse = $orderService->checkOrderExpiry($order);
+            if (!$checkOrderExpiryResponse['success']) {
+                $subProcessEvent = $this->errorCatalogueService->getSubProcessEvent('order', 'item_review', 'expired_order');
+                $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key']);
+
+                $this->auditData['al_event_name'] = $subProcessEvent['name'];
+                $this->auditData['al_is_success'] = $checkOrderExpiryResponse['success'];
+                $this->auditData['al_code'] = $code['code'];
+                $this->auditData['al_request'] = $order->id;
+                AuditLogged::dispatch($this->auditData);
+
+                $this->resultResponse = $this->apiHelperService->apiValidationErrorResponse($this->namespace, [], null, $checkOrderExpiryResponse['message'], ['code' => $code['code']]);
+            
+                return $this->sendApiResponse($this->resultResponse, $this->resultResponse->collection['status_code'], $reponseHeaders);
+            }
+
             $validationRules = $this->modelApiCommand->updateOrderItemsValidationRules();
             $validationMessages = [];
 

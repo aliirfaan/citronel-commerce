@@ -232,8 +232,8 @@ return [
                     ]
                 ],
                 'order_items_update' => [
-                    'key' => 'create',
-                    'name' => 'create',
+                    'key' => 'order_items_update',
+                    'name' => 'order_items_update',
                     'code' => '1',
                     'events' => [
                         'invalid_product' => [

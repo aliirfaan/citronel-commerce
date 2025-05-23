@@ -231,6 +231,55 @@ return [
                         ],
                     ]
                 ],
+                'order_items_update' => [
+                    'key' => 'create',
+                    'name' => 'create',
+                    'code' => '1',
+                    'events' => [
+                        'invalid_product' => [
+                            'key' => 'invalid_product',
+                            'name' => 'invalid_product',
+                            'code' => '1',
+                            'code_status' => 'invalid_product',
+                        ],
+                        'invalid_pre_process' => [
+                            'key' => 'invalid_pre_process',
+                            'name' => 'invalid_pre_process',
+                            'code' => '2',
+                            'code_status' => 'invalid_pre_process',
+                        ],
+                        'invalid_currency' => [
+                            'key' => 'key',
+                            'name' => 'invalid_currency',
+                            'code' => '3',
+                            'code_status' => null,
+                        ],
+                        'create_failure' => [
+                            'key' => 'key',
+                            'name' => 'create_failure',
+                            'code' => '4',
+                            'code_status' => null,
+                        ],
+                        'created' => [
+                            'key' => 'key',
+                            'name' => 'created',
+                            'code' => '5',
+                            'code_status' => null,
+                        ],
+                        'pending_fulfillment_block' => [
+                            'key' => 'pending_fulfillment_block',
+                            'name' => 'pending_fulfillment_block',
+                            'code' => '6',
+                            'code_status' => null,
+                        ],
+                        'max_items_validation_failed' => [
+                            'key' => 'max_items_validation_failed',
+                            'name' => 'max_items_validation_failed',
+                            'code' => '7',
+                            'code_status' => null,
+                        ],
+                    ],
+                ],
             ]
         ],
     ],

@@ -94,25 +94,29 @@ class OrderFulfillController extends OrderController
                 'language' => $this->locale,
             ];
             $itemFulfillmentResponseMessages = []; // store fulfillment messages
+            $itemFulfillmentResponseHasSuccess = false; // store if at least 1 group has fulfillment success
             $jobPolicyId = 'fulfill_item';
 
             $createdFulfillmentStatus = OrderStatus::CREATED->value;
             $getFulfillmentsByOrderIdResponse = $fulfillmentService->getFulfillmentsByOrderId($order->id, $createdFulfillmentStatus);
             foreach ($getFulfillmentsByOrderIdResponse as $item) {
-                $productInterfaceObj = $this->helperService->makeObject($item->order_item->product->product_class, ['product' => $item->order_item->product]);
 
-                if (!is_null($productInterfaceObj->product->fulfillment_conditions)) {
-                    $checkFulfillmentConditionsResponse = $productInterfaceObj->checkFulfillmentConditions($item);
-                    if (!$checkFulfillmentConditionsResponse) {
-                        continue;
-                    }
+                $isGroupParent = intval($item->is_grp_parent);
+                if (!$isGroupParent) {
+                    continue;
                 }
+
+                $productInterfaceObj = $this->helperService->makeObject($item->order_item->product->product_class, ['product' => $item->order_item->product]);
 
                 $fulfillmentTypeResponse = $productInterfaceObj->getFulfillmentItemType();
                 if ($fulfillmentTypeResponse === 'sync') {
                     $itemFulfillmentResponse = $fulfillmentService->fulfillItem($item, $fulfillItemExtra);
                     if (is_array($itemFulfillmentResponse) && array_key_exists('message', $itemFulfillmentResponse)) {
                         $itemFulfillmentResponseMessages[] = $itemFulfillmentResponse['message'];
+
+                        if($itemFulfillmentResponse['success']) {
+                            $itemFulfillmentResponseHasSuccess = true;
+                        }
                     }
                 } else {
                     // if asyn how to prevent double fulfillment!
@@ -156,7 +160,10 @@ class OrderFulfillController extends OrderController
                 }
             }
 
-            $this->data['success'] = true;
+            if ($itemFulfillmentResponseHasSuccess) {
+                $this->data['success'] = true;
+            }
+            
             $this->data['status_code'] = Response::HTTP_OK;
 
             // add item fulfillment messages

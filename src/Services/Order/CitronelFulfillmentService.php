@@ -178,8 +178,7 @@ class CitronelFulfillmentService
         $subProcess = $this->errorCatalogueService->getSubProcess('order', 'fulfillment');
         $subProcessKey = $subProcess['key'];
 
-        // get parent
-        $parentItem = $this->getParentItemByFulfillmentGroupId($item->order_item_fulfillment_grp_id);
+        $parentItem = $item;
 
         $isRetry = false;
         $retryCount = null;
@@ -195,7 +194,7 @@ class CitronelFulfillmentService
             $isLastRetry = $extra['is_last_retry'];
         }
 
-        $hasFulfillmentErrors = false;
+        $fulfillmentErrorCount = 0;
         $fulfillmentUpdateData = [];
 
         $fulfillmentStatusFilter = [
@@ -242,7 +241,7 @@ class CitronelFulfillmentService
                 $orderItemFulfillmentStatus = OrderStatus::FULFILLED->value;
             } else {
                 $fulfilledAt = null;
-                $hasFulfillmentErrors = true;
+                $fulfillmentErrorCount++;
 
                 if (!is_null($jobPolicy) && !$isLastRetry) {
                     $orderItemFulfillmentStatus = OrderStatus::PROCESSING_RETRY->value;
@@ -284,10 +283,12 @@ class CitronelFulfillmentService
         $auditData['al_is_success'] = true;
         $auditData['order_data']['order_guid'] = $item->order_item->order->order_guid;
 
-        if ($hasFulfillmentErrors) {
+        if ($fulfillmentErrorCount == count($groupItems)) {
             $data['errors'] = true;
             $auditData['al_is_success'] = false;
+        }
 
+        if ($fulfillmentErrorCount > 0) {
             $data['message'] = $productInterfaceObj->failedItemFulfillmentMessage($parentItem, $extra);
         } else {
             $data['message'] = $productInterfaceObj->successItemFulfillmentMessage($parentItem, $extra);

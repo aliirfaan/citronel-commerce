@@ -14,8 +14,9 @@
     'order_remarks' => 'order',
     'order_item_quantity_max' => 'The maximum quantity you can buy is :max.',
     'order_create_on_hold' => 'We are still processing your previous order. Please wait for :wait_time.',
-    'order_item_fulfillment_max_retry_reached' => 'Maximum retries reached for this item.',
-    'order_item_fulfillment_retry_not_allowed' => 'Retry not allowed. Status must be unfulfilled to attempt retry.',
+    'order_item_fulfillment_max_retry_reached' => 'Maximum retries reached for this item. Item: :item. Retry count: :retry_count.',
+    'order_item_fulfillment_retry_not_allowed' => 'Retry not allowed. Status must be unfulfilled to attempt retry. Item: :item.',
     'order_not_paid' => 'Order is not paid. Please pay the order first.',
     'max_items_per_order_exceeded' => 'You have exceeded the maximum items per order. Please remove some items and try again. Code: :code.',
+    'no_items_to_fulfill' => 'No items to fulfill.',
 ];

@@ -65,13 +65,20 @@ class ManualFulfillmentController extends OrderController
 
             $manuallyFulfillItemExtra['retry_user_id'] = $requestArray['retry_user_id'];
             $fulfillItemResponse = $fulfillmentService->manuallyFulfillItem($item, $manuallyFulfillItemExtra);
+
+            // add item fulfillment messages
+            $itemFulfillmentResponseMessagesString = implode(' ',  $fulfillItemResponse['message']);
+            $this->data['message'] = $itemFulfillmentResponseMessagesString;
+
             if (!$fulfillItemResponse['success']) {
-                $this->resultResponse = $this->apiHelperService->apiProcessingErrorResponse($this->namespace, [], $fulfillItemResponse['message']);
+                $this->resultResponse = $this->apiHelperService->apiProcessingErrorResponse($this->namespace, [], $itemFulfillmentResponseMessagesString);
             
                 return $this->sendApiResponse($this->resultResponse, $this->resultResponse->collection['status_code'], $reponseHeaders);
             }
 
             $this->data = $fulfillItemResponse;
+            $this->data['message'] = $itemFulfillmentResponseMessagesString;
+
             $this->data['status_code'] = Response::HTTP_OK;
             $this->resultResponse = new ApiResponseCollection($this->data);
 

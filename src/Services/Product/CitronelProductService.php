@@ -91,7 +91,9 @@ class CitronelProductService
 
         if (intval($product->allow_manual_retry) == 0) {
             $data['errors'] = true;
-            $data['message'] = __('citronel-commerce::product/messages.product_fulfillment_manual_retry_disabled');
+            $data['message'] = __('citronel-commerce::product/messages.product_fulfillment_manual_retry_disabled', [
+                'title' => $product->title,
+            ]);
         } else {
             $data['success'] = true;
         }

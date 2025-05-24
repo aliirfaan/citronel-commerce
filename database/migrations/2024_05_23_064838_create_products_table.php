@@ -24,8 +24,10 @@ return new class extends Migration
             $table->enum('fulfillment_type', ['sync', 'async', 'none'])->default('sync');
             $table->tinyInteger('allow_transaction')->default(1);
             $table->tinyInteger('send_order_notif')->default(0);
+            $table->tinyInteger('allow_auto_retry')->default(0);
+            $table->tinyInteger('max_auto_retry')->default(0);
             $table->tinyInteger('allow_manual_retry')->default(0);
-            $table->tinyInteger('max_retry_count')->default(0);
+            $table->tinyInteger('max_manual_retry')->default(0);
             $table->text('fulfillment_conditions')->nullable(true);
             $table->string('custom_value_1')->nullable(true);
             $table->string('custom_value_2')->nullable(true);
@@ -38,6 +40,7 @@ return new class extends Migration
             $table->index('active');
             $table->index('allow_transaction');
             $table->index('send_order_notif');
+            $table->index('allow_auto_retry');
             $table->index('allow_manual_retry');
             $table->index('price_currency_code');
             $table->index('custom_value_1');

@@ -24,7 +24,8 @@ return new class extends Migration
             $table->string('supplier_order_id')->nullable(true); //updated by supplier
             $table->string('correlation_token')->nullable(true);
             $table->dateTime('fulfilled_at')->nullable(true);
-            $table->integer('retry_count')->nullable(true);
+            $table->integer('auto_retry_count')->nullable(true);
+            $table->integer('manual_retry_count')->nullable(true);
             $table->string('result_code')->nullable(true);
             $table->text('result_message')->nullable(true);
             $table->string('product_code')->nullable(true); // external code to identify product like a SKU
@@ -49,7 +50,8 @@ return new class extends Migration
             $table->index('supplier_order_id');
             $table->index('correlation_token');
             $table->index('fulfilled_at');
-            $table->index('retry_count');
+            $table->index('auto_retry_count');
+            $table->index('manual_retry_count');
             $table->index('result_code');
             $table->index('product_code');
             $table->index('order_item_fulfillment_grp_id');

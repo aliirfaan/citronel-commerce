@@ -92,6 +92,7 @@ class OrderFulfillController extends OrderController
              */
             $fulfillItemExtra = [
                 'language' => $this->locale,
+                'is_first_attempt' => true, // for asyn jobs we mark first attempt
             ];
             $itemFulfillmentResponseMessages = []; // store fulfillment messages
             $itemFulfillmentResponseHasSuccess = false; // store if at least 1 group has fulfillment success
@@ -112,7 +113,7 @@ class OrderFulfillController extends OrderController
                 if ($fulfillmentTypeResponse === 'sync') {
                     $itemFulfillmentResponse = $fulfillmentService->fulfillItem($item, $fulfillItemExtra);
                     if (is_array($itemFulfillmentResponse) && array_key_exists('message', $itemFulfillmentResponse)) {
-                        $itemFulfillmentResponseMessages[] = $itemFulfillmentResponse['message'];
+                        $itemFulfillmentResponseMessages = $itemFulfillmentResponse['message'];
 
                         if($itemFulfillmentResponse['success']) {
                             $itemFulfillmentResponseHasSuccess = true;
@@ -120,8 +121,9 @@ class OrderFulfillController extends OrderController
                     }
                 } else {
                     // if asyn how to prevent double fulfillment!
-                    FulfillItem::dispatch($jobPolicyId, $item,$fulfillItemExtra);
-                    $itemFulfillmentResponseMessages[] = $productInterfaceObj->asyncItemFulfillmentMessage($item);
+                    $isFirstAttempt = true;
+                    FulfillItem::dispatch($jobPolicyId, $item,$fulfillItemExtra, $isFirstAttempt);
+                    $itemFulfillmentResponseMessages = $productInterfaceObj->asyncItemFulfillmentMessage($item);
                 }
             }
 
@@ -167,8 +169,8 @@ class OrderFulfillController extends OrderController
             $this->data['status_code'] = Response::HTTP_OK;
 
             // add item fulfillment messages
-            $itemFulfillmentResponseMessagesString = implode(' ', $itemFulfillmentResponseMessages);
-            $this->data['message'] = $this->data['message'] . ' ' . $itemFulfillmentResponseMessagesString;
+            $itemFulfillmentResponseMessagesString = implode(' ', array_map('trim', $itemFulfillmentResponseMessages));
+            $this->data['message'] = $itemFulfillmentResponseMessagesString;
 
             $this->resultResponse = new ApiResponseCollection($this->data);
 

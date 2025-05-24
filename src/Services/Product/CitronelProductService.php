@@ -100,4 +100,24 @@ class CitronelProductService
 
         return $data;
     }
+
+    public function validateProductForFulfillment($product, $isRetry = false)
+    {
+        $data = $this->helperService->returnFormat();
+
+        if ($isRetry) {
+            if (intval($product->allow_auto_retry) == 0) {
+                $data['errors'] = true;
+                $data['message'] = __('citronel-commerce::product/messages.product_fulfillment_auto_retry_disabled', [
+                    'title' => $product->title,
+                ]);
+            }
+        }
+
+        if (is_null($data['errors'])) {
+            $data['success'] = true;
+        }
+
+        return $data;
+    }
 }

@@ -67,7 +67,7 @@ class ManualFulfillmentController extends OrderController
             $fulfillItemResponse = $fulfillmentService->manuallyFulfillItem($item, $manuallyFulfillItemExtra);
 
             // add item fulfillment messages
-            $itemFulfillmentResponseMessagesString = implode(' ',  $fulfillItemResponse['message']);
+            $itemFulfillmentResponseMessagesString = implode(' ', array_map('trim', $fulfillItemResponse['message']));
             $this->data['message'] = $itemFulfillmentResponseMessagesString;
 
             if (!$fulfillItemResponse['success']) {

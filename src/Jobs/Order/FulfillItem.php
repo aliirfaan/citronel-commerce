@@ -21,9 +21,16 @@ class FulfillItem extends CitronelJob implements ShouldQueue
     public $fulfillItemExtra = [];
 
     /**
+     * Indicates if the job is being processed the first time. For async fulfillment, we use this so that auto_retry_count is not incremented on the first attempt.
+     *
+     * @var int
+     */
+    public bool $isFirstAttempt;
+
+    /**
      * Create a new job instance.
      */
-    public function __construct($jobPolicyId, $item, $fulfillItemExtra)
+    public function __construct($jobPolicyId, $item, $fulfillItemExtra, $isFirstAttempt = false)
     {
         parent::__construct($jobPolicyId);
 
@@ -32,10 +39,12 @@ class FulfillItem extends CitronelJob implements ShouldQueue
         $this->fulfillmentService = new CitronelFulfillmentService();
 
         // job should be tried based on product max retry count
-        $fulfillmentItemMaxRetryCount = intval($item->order_item->product->max_retry_count);
+        $fulfillmentItemMaxRetryCount = intval($item->order_item->product->max_auto_retry);
         if ($fulfillmentItemMaxRetryCount !== 0) {
             $this->tries = $fulfillmentItemMaxRetryCount;
         }
+
+        $this->isFirstAttempt = $isFirstAttempt;
     }
 
     /**
@@ -45,17 +54,23 @@ class FulfillItem extends CitronelJob implements ShouldQueue
     {
         parent::handle();
 
-        $itemFulfillmentExtra = [
-            'retry_count' => $this->attempts(),
-            'is_last_retry' => $this->isLastAttempt
-        ];
+        $itemFulfillmentExtra = [];
+        if (!$this->isFirstAttempt) {
+            // this is a retry
+            $itemFulfillmentExtra = [
+                'retry_count' => $this->attempts(),
+                'is_last_retry' => $this->isLastAttempt
+            ];
+        }
 
         $this->fulfillItemExtra = array_merge($this->fulfillItemExtra, $itemFulfillmentExtra);
 
         $itemFulfillmentResponse = $this->fulfillmentService->fulfillItem($this->item, $this->fulfillItemExtra);
         if (!$itemFulfillmentResponse['success']) {
             // fail job
-            throw new ItemFulfillmentException($itemFulfillmentResponse['message']);
+            $itemFulfillmentResponseMessagesString = implode(' ', array_map('trim', $itemFulfillmentResponse['message']));
+
+            throw new ItemFulfillmentException($itemFulfillmentResponseMessagesString);
         }
     }
 }

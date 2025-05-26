@@ -15,10 +15,15 @@ use aliirfaan\CitronelCommerce\Services\Order\CitronelOrderService;
 use aliirfaan\CitronelCommerce\Services\Order\CitronelFulfillmentService;
 use aliirfaan\CitronelCommerce\Jobs\Order\FulfillItem;
 use aliirfaan\CitronelCommerce\Enums\Order\OrderStatus;
+use aliirfaan\CitronelCommerce\Services\Currency\CitronelCurrencyService;
 
+/**
+ * Controller for handling manual payment confirmation.
+ * For manual payment confirmation, order fulfillment is done after payment confirmation.
+ */
 class ManualPaymentConfirmationController extends PaymentController
 {
-    public function confirmPayment(Request $request, $gateway_merchant_transaction_no, AuditLogService $auditService, CitronelPaymentService $paymentService, ManualFulfillmentRetry $manualPaymentConfirmationApiCommand, CitronelPaymentMethodService $paymentMethodService, CitronelOrderService $orderService, CitronelFulfillmentService $fulfillmentService)
+    public function confirmPayment(Request $request, $gateway_merchant_transaction_no, AuditLogService $auditService, CitronelPaymentService $paymentService, ManualFulfillmentRetry $manualPaymentConfirmationApiCommand, CitronelPaymentMethodService $paymentMethodService, CitronelOrderService $orderService, CitronelFulfillmentService $fulfillmentService, CitronelCurrencyService $currencyService)
     {
         $correlationToken = $this->helperService->getCorrelationTokenFromHeader($request);
         $reponseHeaders = $this->helperService->setCorrelationResponseHeader($correlationToken);
@@ -137,16 +142,8 @@ class ManualPaymentConfirmationController extends PaymentController
                 CreateOrderFulfillment::dispatchSync($payment->order);
 
                 /**
-                 * Fulfill items
-                 * If items are sync, fulfill them now
-                 * If items are async, dispatch job to fulfill them
+                 * Fetch additional data needed for fulfillments or give additional information in response
                  */
-                $fulfillItemExtra = [
-                    'language' => $this->locale,
-                ];
-                $itemFulfillmentResponseMessages = []; // store fulfillment messages
-                $jobPolicyId = 'fulfill_item';
-
                 $createdFulfillmentStatus = OrderStatus::CREATED->value;
                 $getFulfillmentsByOrderIdResponse = $fulfillmentService->getFulfillmentsByOrderId($payment->order->id, $createdFulfillmentStatus);
                 foreach ($getFulfillmentsByOrderIdResponse as $item) {
@@ -162,37 +159,101 @@ class ManualPaymentConfirmationController extends PaymentController
                     if (!is_null($itemFulfillmentPreProcessResponse['result'])) {
                         $this->data['result']['fulfillment_preprocess'] = $itemFulfillmentPreProcessResponse['result'];
                     }
+                }
+            }
 
-                    if (!is_null($productInterfaceObj->product->fulfillment_conditions)) {
-                        $checkFulfillmentConditionsResponse = $productInterfaceObj->checkFulfillmentConditions($item);
-                        if (!$checkFulfillmentConditionsResponse) {
-                            continue;
+            /**
+             * Fulfill items
+             * If items are sync, fulfill them now
+             * If items are async, dispatch job to fulfill them
+             */
+            $order = $payment->order;
+            $fulfillItemExtra = [
+                'language' => $this->locale,
+                'is_first_attempt' => true, // for asyn jobs we mark first attempt
+            ];
+            $itemFulfillmentResponseMessages = []; // store fulfillment messages
+            $itemFulfillmentResponseHasSuccess = false; // store if at least 1 group has fulfillment success
+            $jobPolicyId = 'fulfill_item';
+
+            $createdFulfillmentStatus = OrderStatus::CREATED->value;
+            $getFulfillmentsByOrderIdResponse = $fulfillmentService->getFulfillmentsByOrderId($order->id, $createdFulfillmentStatus);
+            foreach ($getFulfillmentsByOrderIdResponse as $item) {
+
+                $isGroupParent = intval($item->is_grp_parent);
+                if (!$isGroupParent) {
+                    continue;
+                }
+
+                $productInterfaceObj = $this->helperService->makeObject($item->order_item->product->product_class, ['product' => $item->order_item->product]);
+
+                $fulfillmentTypeResponse = $productInterfaceObj->getFulfillmentItemType();
+                if ($fulfillmentTypeResponse === 'sync') {
+                    $itemFulfillmentResponse = $fulfillmentService->fulfillItem($item, $fulfillItemExtra);
+                    if (is_array($itemFulfillmentResponse) && array_key_exists('message', $itemFulfillmentResponse)) {
+                        $itemFulfillmentResponseMessages = $itemFulfillmentResponse['message'];
+
+                        if($itemFulfillmentResponse['success']) {
+                            $itemFulfillmentResponseHasSuccess = true;
                         }
                     }
+                } else {
+                    // if asyn how to prevent double fulfillment!
+                    $isFirstAttempt = true;
+                    FulfillItem::dispatch($jobPolicyId, $item,$fulfillItemExtra, $isFirstAttempt);
+                    $itemFulfillmentResponseMessages = $productInterfaceObj->asyncItemFulfillmentMessage($item);
+                }
+            }
 
-                    $fulfillmentTypeResponse = $productInterfaceObj->getFulfillmentItemType();
-                    if ($fulfillmentTypeResponse === 'sync') {
-                        $itemFulfillmentResponse = $fulfillmentService->fulfillItem($item, $fulfillItemExtra);
-                        if (is_array($itemFulfillmentResponse) && array_key_exists('message', $itemFulfillmentResponse)) {
-                            $itemFulfillmentResponseMessages[] = $itemFulfillmentResponse['message'];
-                        }
+            // order fulfillment summary
+            $generateOrderFulfillmentSummaryResponse = $fulfillmentService->generateOrderFulfillmentSummary($order);
+            $orderFulfillmentSummary = $generateOrderFulfillmentSummaryResponse['result'];
+
+            $orderFulfillmentSummary['order'] = $order;
+
+            $payment = $fulfillmentService->getSuccessPaymentForOrderFulfillmentSummary($order->id);
+            $orderFulfillmentSummary['payment'] = $payment;
+
+            $orderFulfillmentSummary['totals']['sub_total'] = $currencyService->formatCurrencyAmount($order->order_subtotal, $order->order_currency_code);
+            $orderFulfillmentSummary['totals']['grand_total'] = $currencyService->formatCurrencyAmount($order->order_grand_total, $order->order_currency_code);
+
+            $this->data['result'] = $orderFulfillmentSummary;
+
+            $fulfillmentStrategyClass = null;
+            if (!is_null($order->fulfillment_strategy_class)) {
+                $fulfillmentStrategyClass = $this->helperService->makeObject($order->fulfillment_strategy_class);
+
+                $generateOrderFulfillmentSummaryResponseForStrategy = $fulfillmentStrategyClass->generateOrderFulfillmentSummary($order);
+
+                if (
+                    isset($generateOrderFulfillmentSummaryResponseForStrategy['result']) &&
+                    is_array($generateOrderFulfillmentSummaryResponseForStrategy['result'])
+                ) {
+                    if (!is_null($this->data['extra'])) {
+                        $this->data['extra'] = array_merge(
+                            $this->data['extra'],
+                            $generateOrderFulfillmentSummaryResponseForStrategy['result']
+                        );
                     } else {
-                        FulfillItem::dispatch($jobPolicyId, $item, $fulfillItemExtra);
-                        $itemFulfillmentResponseMessages[] = $productInterfaceObj->asyncItemFulfillmentMessage($item);
+                        $this->data['extra'] = $generateOrderFulfillmentSummaryResponseForStrategy['result'];
                     }
                 }
             }
 
-            $this->data['result']['payment'] = $manuallyConfirmPaymentResponse['result']['payment'];
-            $this->data['success'] = $manuallyConfirmPaymentResponse['success'];
+            if ($itemFulfillmentResponseHasSuccess) {
+                $this->data['success'] = true;
+            }
+            
             $this->data['status_code'] = Response::HTTP_OK;
-            $this->data['message'] = $manuallyConfirmPaymentResponse['message'];
 
             // add item fulfillment messages
-            $itemFulfillmentResponseMessagesString = implode(' ', $itemFulfillmentResponseMessages);
-            $this->data['message'] = $this->data['message'] . ' ' . $itemFulfillmentResponseMessagesString;
+            $itemFulfillmentResponseMessagesString = implode(' ', array_map('trim', $itemFulfillmentResponseMessages));
+            $this->data['message'] = $itemFulfillmentResponseMessagesString;
 
             $this->resultResponse = new ApiResponseCollection($this->data);
+        
+        } catch (ItemFulfillmentException $e) {
+            $this->resultResponse = $this->apiHelperService->apiProcessingErrorResponse($this->namespace, [], $e->getMessage());
 
         } catch (\Exception $e) {
             $this->resultResponse = $this->handleException($e);

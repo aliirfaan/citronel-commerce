@@ -313,7 +313,7 @@ class CitronelRefundService
         $orderFulfillmentItemRefundAmount = $orderFulfillmentItem->order_item->product_price;
 
         $orderCurrencyCode = $orderFulfillmentItem->order_item->order->order_currency_code;
-        if ($orderCurrencyCode !== $this->currencyService->getBaseCurrencyCode()) {
+        if (!$orderFulfillmentItem->order_item->order->lock_currency && ($orderCurrencyCode !== $this->currencyService->getBaseCurrencyCode())) {
             $currencyRate = $this->currencyService->getCurrencyRateById($orderFulfillmentItem->order_item->order->currency_rate_id);
             $orderFulfillmentItemRefundAmount = $this->currencyService->convertAmount($orderFulfillmentItemRefundAmount, $orderCurrencyCode, $currencyRate);
         }

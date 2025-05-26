@@ -11,13 +11,12 @@ trait PaymentGatewayMessageTrait
      *
      * @return string
      */
-    public function successPaymentMessage($extra = [])
+    public function successPaymentMessage($payment, $extra = [])
     {
         $amount = array_key_exists('amount', $extra) ? $extra['amount'] : null;
-        $paymentReference = array_key_exists('payment_reference', $extra) ? $extra['payment_reference'] : null;
         $replace = [
             'amount' => $amount,
-            'payment_reference' => $paymentReference
+            'payment_reference' => $payment->gateway_merchant_transaction_no
         ];
 
         return __('citronel-commerce::payment/messages.payment_process_success', $replace);
@@ -30,11 +29,12 @@ trait PaymentGatewayMessageTrait
      *
      * @return string
      */
-    public function cancelPaymentMessage($extra = [])
+    public function cancelPaymentMessage($payment, $extra = [])
     {
         $amount = array_key_exists('amount', $extra) ? $extra['amount'] : null;
         $replace = [
-            'amount' => $amount
+            'amount' => $amount,
+            'payment_reference' => $payment->gateway_merchant_transaction_no
         ];
 
         return  __('citronel-commerce::payment/messages.payment_process_cancelled', $replace);
@@ -47,13 +47,17 @@ trait PaymentGatewayMessageTrait
      *
      * @return string
      */
-    public function failedPaymentMessage($extra = [])
+    public function failedPaymentMessage($payment, $extra = [])
     {
-        $cause = null;
+        $cause = $cause ?? '';
         if (\array_key_exists('gateway_response_message', $extra) && !is_null($extra['gateway_response_message'])) {
-            $cause = 'Cause: '.$extra['gateway_response_message'];
+            $cause = ' Cause: '.$extra['gateway_response_message'];
         }
-        return __('citronel-commerce::payment/messages.payment_process_failed', ['cause' => $cause]);
+
+        return __('citronel-commerce::payment/messages.payment_process_failed', [
+            'cause' => $cause,
+            'payment_reference' => $payment->gateway_merchant_transaction_no
+        ]);
     }
 
     /**
@@ -63,12 +67,14 @@ trait PaymentGatewayMessageTrait
      *
      * @return string
      */
-    public function expiredPaymentMessage($replacementVars = null)
+    public function expiredPaymentMessage($payment, $replacementVars = null)
     {
-        return __('citronel-commerce::payment/messages.payment_process_expired');
+        return __('citronel-commerce::payment/messages.payment_process_expired', [
+            'payment_reference' => $payment->gateway_merchant_transaction_no
+        ]);
     }
 
-    public function waitingPaymentMessage($replacementVars = null)
+    public function waitingPaymentMessage($payment, $replacementVars = null)
     {
         return __('citronel-commerce::payment/messages.waiting_payment');
     }

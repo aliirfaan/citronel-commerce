@@ -249,16 +249,16 @@ class CitronelPaymentService
         ['gateway_response_message' => $payment->gateway_response_message]);
         switch ($payment->payment_status) {
             case PaymentStatus::PAID->value:
-                $data['message'] = $paymentGatewayService->successPaymentMessage($paymentMessageExtra);
+                $data['message'] = $paymentGatewayService->successPaymentMessage($payment, $paymentMessageExtra);
                 break;
             case PaymentStatus::CANCELLED->value:
                 $data['errors'] = true;
-                $data['message'] = $paymentGatewayService->cancelPaymentMessage($paymentMessageExtra);
+                $data['message'] = $paymentGatewayService->cancelPaymentMessage($payment, $paymentMessageExtra);
                 break;
             case PaymentStatus::FAILED->value:
             default:
                 $data['errors'] = true;
-                $data['message'] = $paymentGatewayService->failedPaymentMessage($paymentMessageExtra);
+                $data['message'] = $paymentGatewayService->failedPaymentMessage($payment, $paymentMessageExtra);
                 break;
         }
 

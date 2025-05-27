@@ -8,10 +8,11 @@ use aliirfaan\LaravelSimpleApi\Http\Resources\ApiResponseCollection;
 use aliirfaan\LaravelSimpleAuditLog\Services\AuditLogService;
 use aliirfaan\LaravelSimpleAuditLog\Events\AuditLogged;
 use aliirfaan\CitronelCommerce\Services\Order\CitronelOrderService;
+use aliirfaan\CitronelCommerce\Services\Payment\CitronelPaymentService;
 
 class OrderPaymentsController extends OrderController
 {
-    public function orderPayments(Request $request, $order_guid, AuditLogService $auditService, CitronelOrderService $orderService)
+    public function orderPayments(Request $request, $order_guid, AuditLogService $auditService, CitronelOrderService $orderService, CitronelPaymentService $paymentService)
     {
         $correlationToken = $this->helperService->getCorrelationTokenFromHeader($request);
         $reponseHeaders = $this->helperService->setCorrelationResponseHeader($correlationToken);
@@ -46,13 +47,27 @@ class OrderPaymentsController extends OrderController
             }
             $order = $getOrderResponse['result'];
 
-            dd($order->payments);
+            $perPage = config('citronel.per_page');
+            if ($request->per_page) {
+                $perPage = (int) $request->per_page;
+                $maxPerPage = config('citronel.max_per_page');
+                if (intval($perPage) > intval($maxPerPage)) {
+                    $perPage = $maxPerPage;
+                }
+            }
+    
+            $pageNumber = 1;
+            if ($request->page) {
+                $pageNumber = (int) $request->page;
+            }
 
-            $generateOrderSummaryBeforeConfirmationResponse = $orderService->generateOrderSummaryBeforeConfirmation($order);
+            $getPaymentsByOrderGuidResponse = $paymentService->getPaymentsByOrderGuid($order->order_guid)
+                ->paginate($perPage, ['*'], 'page', $pageNumber)
+                ->withQueryString();
 
             $this->data['success'] = true;
             $this->data['status_code'] = Response::HTTP_OK;
-            $this->data['result'] = $generateOrderSummaryBeforeConfirmationResponse['result'];
+            $this->data['result'] = $getPaymentsByOrderGuidResponse;
 
             $this->resultResponse = new ApiResponseCollection($this->data);
 

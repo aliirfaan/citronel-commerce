@@ -507,4 +507,9 @@ class CitronelPaymentService
 
         return $shouldUpdateOrder;
     }
+
+    public function getPaymentsByOrderGuid($orderGuid)
+    {
+        return $this->paymentModel->getPaymentsByOrderGuid($orderGuid);
+    }
 }

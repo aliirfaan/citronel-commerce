@@ -297,7 +297,7 @@ return [
                     'name' => 'order_payments',
                     'code' => '10',
                     'events' => [
-                        'invalid_item' => [
+                        'invalid_order' => [
                             'key' => 'invalid_order',
                             'name' => 'invalid_order',
                             'code' => '1',

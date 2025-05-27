@@ -292,6 +292,19 @@ return [
                         ],
                     ],
                 ],
+                'order_payments' => [
+                    'key' => 'order_payments',
+                    'name' => 'order_payments',
+                    'code' => '10',
+                    'events' => [
+                        'invalid_item' => [
+                            'key' => 'invalid_order',
+                            'name' => 'invalid_order',
+                            'code' => '1',
+                            'code_status' => 'invalid_order',
+                        ],
+                    ]
+                ],
             ]
         ],
     ],

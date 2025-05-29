@@ -454,4 +454,23 @@ abstract class AbstractPaymentGateway
 
         return $data;
     }
+    
+    /**
+     * Method createPaymentValidationRules
+     * validation rules before creating payment as some payment gateways require additional payment data like gateway_payment_mode
+     *
+     * @param array $requestArray [explicite description]
+     *
+     * @return array
+     */
+    public function createPaymentValidationRules($requestArray = [])
+    {
+        $rules = [];
+        $attributes = [];
+
+        return  [
+            'rules' => $rules,
+            'attributes' => $attributes
+        ];
+    }
 }

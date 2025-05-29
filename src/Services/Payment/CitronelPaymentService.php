@@ -100,6 +100,7 @@ class CitronelPaymentService
             'subtotal' => (string) $order->order_subtotal,
             'grand_total' => (string) $order->order_grand_total,
             'payment_remarks' => array_key_exists('payment_remarks', $extra)? $extra['payment_remarks'] : $order->order_number,
+            'gateway_payment_mode' => array_key_exists('gateway_payment_mode', $extra) ? $extra['gateway_payment_mode'] : null,
         ];
 
         $newPayment = $this->paymentModel::create($paymentSaveData);

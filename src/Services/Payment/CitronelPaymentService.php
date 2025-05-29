@@ -100,6 +100,7 @@ class CitronelPaymentService
             'subtotal' => (string) $order->order_subtotal,
             'grand_total' => (string) $order->order_grand_total,
             'payment_remarks' => array_key_exists('payment_remarks', $extra)? $extra['payment_remarks'] : $order->order_number,
+            'gateway_payment_mode' => array_key_exists('gateway_payment_mode', $extra) ? $extra['gateway_payment_mode'] : null,
         ];
 
         $newPayment = $this->paymentModel::create($paymentSaveData);
@@ -249,16 +250,16 @@ class CitronelPaymentService
         ['gateway_response_message' => $payment->gateway_response_message]);
         switch ($payment->payment_status) {
             case PaymentStatus::PAID->value:
-                $data['message'] = $paymentGatewayService->successPaymentMessage($paymentMessageExtra);
+                $data['message'] = $paymentGatewayService->successPaymentMessage($payment, $paymentMessageExtra);
                 break;
             case PaymentStatus::CANCELLED->value:
                 $data['errors'] = true;
-                $data['message'] = $paymentGatewayService->cancelPaymentMessage($paymentMessageExtra);
+                $data['message'] = $paymentGatewayService->cancelPaymentMessage($payment, $paymentMessageExtra);
                 break;
             case PaymentStatus::FAILED->value:
             default:
                 $data['errors'] = true;
-                $data['message'] = $paymentGatewayService->failedPaymentMessage($paymentMessageExtra);
+                $data['message'] = $paymentGatewayService->failedPaymentMessage($payment, $paymentMessageExtra);
                 break;
         }
 

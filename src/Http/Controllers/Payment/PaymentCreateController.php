@@ -29,6 +29,8 @@ class PaymentCreateController extends PaymentController
         $this->auditData = $auditService->generatePreliminaryAuditData($request, $correlationToken, $this->actor);
         $this->auditData['al_event_name'] = $this->subProcess['name'];
 
+        $requestArray = $request->json()->all();
+
         try {
             $subProcessKey = $this->subProcess['key'];
             
@@ -212,6 +214,7 @@ class PaymentCreateController extends PaymentController
                 'payment_interface_obj' => $paymentInterfaceObj,
                 'payment_remarks' => $paymentRemarks,
             ];
+            $createPaymentExtra = array_merge($createPaymentExtra, $requestArray);
 
             // create payment preprocess
             $paymentPreProcessResponse = $paymentService->paymentCreatePreprocess($order, $createPaymentExtra);
@@ -224,7 +227,20 @@ class PaymentCreateController extends PaymentController
                 return $this->sendApiResponse($this->resultResponse, $this->resultResponse->collection['status_code'], $reponseHeaders);
             }
 
-            // @todo call payment gateway create validation rules as some payment gateways require additional payment data like gateway_payment_mode
+            $createPaymentValidationRules = $paymentInterfaceObj->createPaymentValidationRules();
+            $validationResponse = $this->apiHelperService->validateRequestFields($requestArray, $createPaymentValidationRules['rules']);
+            if (!is_null($validationResponse)) {
+                $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, null, $this->validationErrorCatalogue()['code']);
+                $this->resultResponse = $this->apiHelperService->apiValidationErrorResponse($this->namespace, $validationResponse, null, $this->validationErrorCatalogue()['lang'], ['code' => $code['code']]);
+
+                $this->auditData['al_is_success'] = $this->data['success'];
+                $this->auditData['al_code'] = $code['code'];
+                $this->auditData['al_request'] = json_encode($requestArray);
+                $this->auditData['al_response'] = json_encode($validationResponse);
+                AuditLogged::dispatch($this->auditData);
+            
+                return $this->sendApiResponse($this->resultResponse, $this->resultResponse->collection['status_code'], $reponseHeaders);
+            }
 
             $createPaymentResponse = $paymentService->createPayment($order, $createPaymentExtra);
             $payment = $createPaymentResponse['result'];

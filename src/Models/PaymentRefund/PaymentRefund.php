@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use aliirfaan\CitronelCommerce\Models\Payment\Payment;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use aliirfaan\CitronelCommerce\Models\OrderFulfillmentRefund\OrderFulfillmentRefund;
+use aliirfaan\CitronelCommerce\Models\Order\Order;
 
 class PaymentRefund extends CitronelBaseModel
 {
@@ -29,6 +30,11 @@ class PaymentRefund extends CitronelBaseModel
     public function payment(): BelongsTo
     {
         return $this->belongsTo(Payment::class);
+    }
+
+    public function order(): BelongsTo
+    {
+        return $this->belongsTo(Order::class);
     }
 
     public function OrderFulfillmentRefunds(): HasMany

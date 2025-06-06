@@ -321,6 +321,14 @@ class CitronelRefundService
         return $orderFulfillmentItemRefundAmount;
     }
 
+    public function getPaymentRefundsByOrderGuid(string $orderGuid)
+    {
+        return $this->paymentRefundApiQuery::whereHas('order', function ($query) use ($orderGuid) {
+            $query->where('order_guid', $orderGuid);
+        })
+        ->with('orderFulfillmentRefunds');
+    }
+
     public function getPaymentRefundById($id)
     {
         $data = $this->helperService->returnFormat();

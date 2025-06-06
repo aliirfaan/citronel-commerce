@@ -57,6 +57,12 @@ return [
                         ],
                     ]
                 ],
+                'get_order_refunds' => [
+                    'key' => 'get_order_refunds',
+                    'name' => 'get_order_refunds',
+                    'code' => '3',
+                    'events' => []
+                ],
             ]
         ],
     ],

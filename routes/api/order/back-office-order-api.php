@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use aliirfaan\CitronelCommerce\Http\Controllers\Order\ManualFulfillmentController;
 use aliirfaan\CitronelCommerce\Http\Controllers\Order\OrderPaymentsController;
+use aliirfaan\CitronelCommerce\Http\Controllers\Order\OrderItemIndexController;
 
 Route::group([
     'prefix' => config('citronel-commerce.back_office_api_route_prefix') ?? '',
@@ -10,4 +11,5 @@ Route::group([
 ], function () {
     Route::post('/manual-fulfillment/{order_fulfillment_id}', [ManualFulfillmentController::class, 'fulfillItem']);
     Route::get('/{order_guid}/payments', [OrderPaymentsController::class, 'orderPayments']);
+    Route::get('/{order_id}/items', [OrderItemIndexController::class, 'index']);
 });

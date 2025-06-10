@@ -305,6 +305,18 @@ return [
                         ],
                     ]
                 ],
+                'order_items_index' => [
+                    'key' => 'order_items_index',
+                    'name' => 'order_items_index',
+                    'code' => '11',
+                    'events' => [],
+                ],
+                'order_fulfillments_index' => [
+                    'key' => 'order_fulfillments_index',
+                    'name' => 'order_fulfillments_index',
+                    'code' => '12',
+                    'events' => [],
+                ],
             ]
         ],
     ],

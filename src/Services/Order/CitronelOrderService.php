@@ -13,6 +13,7 @@ use aliirfaan\CitronelCommerce\Enums\Order\OrderStatus;
 use aliirfaan\CitronelCommerce\Models\Order\Order;
 use aliirfaan\CitronelErrorCatalogue\Services\CitronelErrorCatalogueService;
 use aliirfaan\CitronelCommerce\Services\Product\CitronelProductService;
+use aliirfaan\CitronelCommerce\Models\Order\OrderFulfillment;
 
 class CitronelOrderService
 {
@@ -32,7 +33,13 @@ class CitronelOrderService
      */
     protected $orderItemModel;
 
-    
+    /**
+     * orderFulfillmentModel
+     *
+     * @var mixed
+     */
+    protected $orderFulfillmentModel;
+
     /**
      * auditService
      *
@@ -69,6 +76,7 @@ class CitronelOrderService
     {
         $this->loadOrderModel();
         $this->orderItemModel = new OrderItem();
+        $this->orderFulfillmentModel = new OrderFulfillment();
         $this->auditService = new AuditLogService();
 
         $helperServiceClass = config('citronel-commerce.helper_service');
@@ -344,6 +352,44 @@ class CitronelOrderService
             $data['success'] = true;
         }
 
+        return $data;
+    }
+
+    public function getOrderItemsByOrderGuid($orderGuid)
+    {
+        $data = $this->helperService->returnFormat();
+
+        $result = $this->orderItemModel::whereHas('order', function ($query) use ($orderGuid) {
+            $query->where('order_guid', $orderGuid);
+        });
+
+        if (is_null($result)) {
+            $data['errors'] = true;
+        }
+
+        if (is_null($data['errors'])) {
+            $data['result'] = $result;
+            $data['success'] = true;
+        }
+        
+        return $data;
+    }
+
+    public function getOrderFulfillmentsByItemId($itemId)
+    {
+        $data = $this->helperService->returnFormat();
+
+        $result = $this->orderFulfillmentModel::where('order_item_id', $itemId);
+
+        if (is_null($result)) {
+            $data['errors'] = true;
+        }
+
+        if (is_null($data['errors'])) {
+            $data['result'] = $result;
+            $data['success'] = true;
+        }
+        
         return $data;
     }
     

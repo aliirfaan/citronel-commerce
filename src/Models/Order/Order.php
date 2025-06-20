@@ -14,7 +14,7 @@ class Order extends CitronelBaseModel
 
     protected $table = 'orders';
 
-    protected $hidden = ['id', 'currency_rate_id', 'correlation_token',
+    protected $hidden = ['id', 'currency_rate_id',
     'order_base_currency_subtotal', 'order_base_currency_tax_amount',
     'order_base_currency_discount_amount', 'order_base_currency_grand_total', 'expires_at', 'created_at', 'updated_at', 'fulfillment_fail_notif_sent', 'lock_currency', 'fulfillment_strategy_class', 'should_send_receipt', 'receipt_channels', 'receipt_sent'];
 

@@ -134,7 +134,7 @@ class PaymentUpdateController extends PaymentController
                 $paymentService->updatePayment($payment->id, $paymentSaveData);
 
                 // call expire payment if payment gateway supports it
-                $paymentGatewayServiceCancelPaymentResponse = $paymentInterfaceObj->cancelPayment($payment);
+                $paymentGatewayServiceCancelPaymentResponse = $paymentInterfaceObj->expirePayment($payment);
 
                 $subProcessEvent = $this->errorCatalogueService->getSubProcessEvent('payment', 'update', 'payment_timeout');
                 $code = $this->errorCatalogueService->generateCodeFromCatalogue($this->mainProcess['key'], $subProcessKey, $subProcessEvent['key']);

@@ -22,4 +22,5 @@
     'previous_payment_process_success' => 'Your last payment of :amount is still being processed. Payment method: :payment_method. Payment reference: :payment_reference.',
     'payment_already_processed' => 'Payment has already been processed.',
     'waiting_payment' => 'Waiting for payment.',
+    'payment_cancellation_not_allowed' => 'Payment cancellation is not allowed for this payment status.',
 ];

@@ -513,4 +513,65 @@ class CitronelPaymentService
     {
         return $this->paymentModel->getPaymentsByOrderGuid($orderGuid);
     }
+
+    public function validatePaymentForCancellation($payment, $extra = [])
+    {
+        $data = $this->helperService->returnFormat();
+
+        $paymentStatus = $payment->payment_status;
+        $allowCalcellationStatuses = [
+            PaymentStatus::UNPAID->value,
+            PaymentStatus::FAILED->value,
+            PaymentStatus::EXPIRED->value,
+        ];
+
+        if (!in_array($paymentStatus, $allowCalcellationStatuses)) {
+            $data['errors'] = true;
+            $data['message'] = __('citronel-commerce::payment/messages.payment_cancellation_not_allowed');
+        }
+
+        if (is_null($data['errors'])) {
+            $data['success'] = true;
+        }
+
+        return $data;
+    }
+
+    public function cancelPayment($payment, $paymentGatewayService, $extra = [])
+    {
+        $data = $this->helperService->returnFormat();
+        $subProcess = $this->mainProcess['sub_process']['process'];
+        $correlationToken = $payment->order->correlation_token ?? null;
+
+        $savePaymentData = [
+            'payment_status' => PaymentStatus::CANCELLED->value,
+            'cancelled_at' => now(),
+        ];
+
+        $this->paymentModel::where('id', $payment->id)->update(
+            $savePaymentData
+        );
+
+        $payment = $this->paymentModel::where('id', $payment->id)->first();
+
+        // log
+        $auditData = $this->auditService->generatePreliminaryAuditData(null, $correlationToken);
+        $auditData['al_target_id'] = $payment->id;
+        $auditData['al_action_type'] = config('audit.action_types.update.name');
+        $auditData['al_event_name'] = $subProcess['name'];
+        $auditData['al_is_success'] = 1;
+
+        if ($data['errors'] == null) {
+            $data['success'] = true;
+            $data['message'] = $paymentGatewayService->cancelPaymentMessage($payment, $extra);
+            $auditData['al_is_success'] = 1;
+        }
+
+        $data['result']['payment'] = $payment;
+        $auditData['al_message'] = $data['message'];
+
+        PaymentProcessed::dispatch($payment, $auditData);
+
+        return $data;
+    }
 }

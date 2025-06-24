@@ -129,6 +129,55 @@ return [
                     'code' => '3',
                     'events' => []
                 ],
+                'cancel' => [
+                    'key' => 'cancel',
+                    'name' => 'cancel',
+                    'code' => '4',
+                    'events' => [
+                        'invalid_order_for_payment' => [
+                            'key' => 'invalid_order_for_payment',
+                            'name' => 'invalid_order_for_payment',
+                            'code' => '1',
+                            'code_status' => 'invalid_order_for_payment',
+                        ],
+                        'invalid_payment' => [
+                            'key' => 'invalid_payment',
+                            'name' => 'invalid_payment',
+                            'code' => '2',
+                            'code_status' => 'invalid_payment',
+                        ],
+                        'invalid_payment_method' => [
+                            'key' => 'invalid_payment_method',
+                            'name' => 'invalid_payment_method',
+                            'code' => '3',
+                            'code_status' => 'invalid_payment_method',
+                        ],
+                        'invalid_payment_channel' => [
+                            'key' => 'invalid_payment_channel',
+                            'name' => 'invalid_payment_channel',
+                            'code' => '4',
+                            'code_status' => 'invalid_payment_channel',
+                        ],
+                        'gateway_process_error' => [
+                            'key' => 'gateway_process_error',
+                            'name' => 'gateway_process_error',
+                            'code' => '5',
+                            'code_status' => 'gateway_process_error',
+                        ],
+                        'invalid_currency' => [
+                            'key' => 'invalid_currency',
+                            'name' => 'invalid_currency',
+                            'code' => '6',
+                            'code_status' => 'invalid_currency',
+                        ],
+                        'payment_timeout' => [
+                            'key' => 'payment_timeout',
+                            'name' => 'payment_timeout',
+                            'code' => '7',
+                            'code_status' => 'payment_timeout',
+                        ],
+                    ]
+                ],
                 'get_actor_payments_with_order_items' => [
                     'key' => 'get_actor_payments_with_order_items',
                     'name' => 'get_actor_payments_with_order_items',

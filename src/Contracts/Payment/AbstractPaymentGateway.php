@@ -473,4 +473,37 @@ abstract class AbstractPaymentGateway
             'attributes' => $attributes
         ];
     }
+
+    
+    /**
+     * Use for payment gateways that support payment cancellation
+     *
+     * @param mixed $payment [explicite description]
+     * @param mixed $extra [explicite description]
+     *
+     * @return array
+     */
+    public function cancelPayment($payment, $extra = null)
+    {
+        $data = $this->helperService->returnFormat();
+        $data['success'] = true;
+
+        return $data;
+    }
+    
+    /**
+     * Use to process payment expiration at the payment gateway
+     *
+     * @param mixed $payment [explicite description]
+     * @param mixed $extra [explicite description]
+     *
+     * @return array
+     */
+    public function expirePayment($payment, $extra = null)
+    {
+        $data = $this->helperService->returnFormat();
+        $data['success'] = true;
+
+        return $data;
+    }
 }

@@ -646,14 +646,13 @@ class CitronelFulfillmentService
 
         foreach ($validatedGroupItems as $groupItem) {
 
-            if (!array_key_exists($groupItem->id, $fulfillProductOrderItemResponse['result'])) {
-                // for some reason we do not have the response for this item
-                // could be due to fulfillment conditions not met
-                // we set success to false to this item
+            if (!is_array($fulfillProductOrderItemResponse['result']) || !array_key_exists($groupItem->id, $fulfillProductOrderItemResponse['result'])) {
+                // Response for this item is missing or result is not an array
+                // Likely due to unmet fulfillment conditions
                 $fulfillProductOrderItemResponse['result'][$groupItem->id] = [
-                     'success' => false
-                 ];
-             }
+                    'success' => false
+                ];
+            }
 
             $fulfillProductOrderGroupItemResponse = $fulfillProductOrderItemResponse['result'][$groupItem->id];
 
@@ -706,6 +705,7 @@ class CitronelFulfillmentService
         $auditData['al_event_name'] = $subProcess['events']['item_fulfillment_processed']['name'];
         $auditData['al_correlation_id'] = $correlationToken;
         $auditData['al_is_success'] = $data['success'];
+        $auditData['order_data']['order_guid'] = $item->order_item->order->order_guid;
 
         if ($fulfillmentErrorCount > 0) {
             $auditData['al_is_success'] = false;

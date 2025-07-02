@@ -32,7 +32,7 @@ class ManualFulfillmentRetry extends CitronelBaseModel
     public function createValidationRules()
     {
         return [
-            'update_actor_id' => ['bail', 'required'],
+            'retry_user_id' => ['bail', 'required'],
         ];
     }
 }

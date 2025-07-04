@@ -9,7 +9,7 @@ use aliirfaan\LaravelSimpleAuditLog\Services\AuditLogService;
 use aliirfaan\LaravelSimpleAuditLog\Events\AuditLogged;
 use aliirfaan\CitronelCommerce\Services\Payment\CitronelPaymentMethodService;
 use aliirfaan\CitronelCommerce\Jobs\Order\CreateOrderFulfillment;
-use aliirfaan\CitronelCommerce\Models\Order\ManualFulfillmentRetry;
+use aliirfaan\CitronelCommerce\Models\Payment\ManualPaymentConfirmation;
 use aliirfaan\CitronelCommerce\Services\Payment\CitronelPaymentService;
 use aliirfaan\CitronelCommerce\Services\Order\CitronelOrderService;
 use aliirfaan\CitronelCommerce\Services\Order\CitronelFulfillmentService;
@@ -23,7 +23,7 @@ use aliirfaan\CitronelCommerce\Services\Currency\CitronelCurrencyService;
  */
 class ManualPaymentConfirmationController extends PaymentController
 {
-    public function confirmPayment(Request $request, $gateway_merchant_transaction_no, AuditLogService $auditService, CitronelPaymentService $paymentService, ManualFulfillmentRetry $manualPaymentConfirmationApiCommand, CitronelPaymentMethodService $paymentMethodService, CitronelOrderService $orderService, CitronelFulfillmentService $fulfillmentService, CitronelCurrencyService $currencyService)
+    public function confirmPayment(Request $request, $gateway_merchant_transaction_no, AuditLogService $auditService, CitronelPaymentService $paymentService, ManualPaymentConfirmation $manualPaymentConfirmationApiCommand, CitronelPaymentMethodService $paymentMethodService, CitronelOrderService $orderService, CitronelFulfillmentService $fulfillmentService, CitronelCurrencyService $currencyService)
     {
         $correlationToken = $this->helperService->getCorrelationTokenFromHeader($request);
         $reponseHeaders = $this->helperService->setCorrelationResponseHeader($correlationToken);

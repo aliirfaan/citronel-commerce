@@ -3,6 +3,27 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com) and this project adheres to [Semantic Versioning](https://semver.org).
 
+## 1.0.8 - 2025-07-09
+
+### Added
+
+- Nothing
+
+### Changed
+
+- Nothing
+
+
+### Deprecated
+
+- Nothing
+
+### Removed
+
+- Nothing
+
+### Fixed
+
 ## 1.0.7 - 2025-07-01
 
 ### Added
@@ -23,6 +44,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com) and this p
 - Nothing
 
 ### Fixed
+
+- ManualPaymentConfirmationController - used correct model
 
 - CitronelFulfillment service: is_array check for manual fulfillment
 - CitronelFulfillment service: pass order in audit

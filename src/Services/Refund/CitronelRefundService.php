@@ -277,6 +277,8 @@ class CitronelRefundService
                 'payment_refund_id' => $newPaymentRefund->id,
                 'return_actor_id' => $newPaymentRefund->create_actor_id,
                 'refund_amount' => $orderFulfillmentRefundAmount,
+                'return_status' => null,
+                'returned_at' => null,
                 'created_at' => now(),
                 'updated_at' => now(),
             ];

@@ -3,7 +3,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com) and this project adheres to [Semantic Versioning](https://semver.org).
 
-## 1.0.8 - 2025-07-09
+## 1.0.9 - 2025-07-17
 
 ### Added
 
@@ -23,6 +23,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com) and this p
 - Nothing
 
 ### Fixed
+
+-  initiate refund order with both fulfilled and unfulfilled item, set return status and returned_at to null
+
+## 1.0.8 - 2025-07-09
+
+### Added
+
+- Nothing
+
+### Changed
+
+- Nothing
+
+### Deprecated
+
+- Nothing
+
+### Removed
+
+- Nothing
+
+### Fixed
+
+- Manual payment confirm
 
 ## 1.0.7 - 2025-07-01
 
